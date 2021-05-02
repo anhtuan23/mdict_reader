@@ -55,7 +55,7 @@ List<String> parseSounds(String html) {
   var sounds = re
       .allMatches(html)
       .map((match) => match.group(1))
-      .map((sound) => sound.replaceAll('/', '\\'))
+      .map((sound) => sound!.replaceAll('/', '\\'))
       .toList();
   return sounds;
 }

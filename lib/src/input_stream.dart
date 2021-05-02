@@ -34,7 +34,7 @@ abstract class InputStream {
 
   /// Read a null-terminated string, or if [len] is provided, that number of
   /// bytes returned as a string.
-  String readString({int size, bool utf8});
+  String readString({int? size, bool? utf8});
 
   /// Read a 16-bit word from the stream.
   int readUint16();
@@ -51,13 +51,13 @@ abstract class InputStream {
 /// A buffer that can be read as a stream of bytes
 class BytesInputStream extends InputStream {
   Uint8List buffer;
-  int offset;
-  int start;
+  late int offset;
+  late int start;
   ByteOrder byteOrder;
 
   /// Create a InputStream for reading from a List<int>
   BytesInputStream(Uint8List data,
-      {this.byteOrder = ByteOrder.big_endian, int start = 0, int length})
+      {this.byteOrder = ByteOrder.big_endian, int start = 0, int? length})
       : buffer =
             Uint8List.view(data.buffer, data.offsetInBytes, data.lengthInBytes),
         offset = start,
@@ -100,7 +100,7 @@ class BytesInputStream extends InputStream {
   /// to the start of the buffer.  If [position] is not specified, the current
   /// read position is used. If [length] is not specified, the remainder of this
   /// stream is used.
-  InputStream subset([int position, int length]) {
+  InputStream subset([int? position, int? length]) {
     if (position == null) {
       position = offset;
     } else {
@@ -153,12 +153,12 @@ class BytesInputStream extends InputStream {
   /// Read a null-terminated string, or if [len] is provided, that number of
   /// bytes returned as a string.
   @override
-  String readString({int size, bool utf8 = true}) {
+  String readString({int? size, bool? utf8 = true}) {
     final codes = <int>[];
     if (size == null) {
       while (!isEOS) {
         var c = readByte();
-        if (!utf8) {
+        if (!utf8!) {
           var c2 = readByte();
           c = (c2 << 8) | c;
         }
@@ -168,10 +168,10 @@ class BytesInputStream extends InputStream {
         codes.add(c);
       }
     } else {
-      while (size > 0) {
+      while (size! > 0) {
         var c = readByte();
         size--;
-        if (!utf8) {
+        if (!utf8!) {
           var c2 = readByte();
           size--;
           c = (c2 << 8) | c;
@@ -183,7 +183,7 @@ class BytesInputStream extends InputStream {
       }
     }
 
-    return utf8 ? Utf8Decoder().convert(codes) : String.fromCharCodes(codes);
+    return utf8! ? Utf8Decoder().convert(codes) : String.fromCharCodes(codes);
   }
 
   /// Read a 16-bit word from the stream.
@@ -252,19 +252,19 @@ class BytesInputStream extends InputStream {
     return bytes;
   }
 
-  int _length;
+  late int _length;
 }
 
 class FileInputStream extends InputStream {
   final String path;
   final ByteOrder byteOrder;
-  RandomAccessFile _file;
+  late RandomAccessFile _file;
   int _fileSize = 0;
   int _filePosition = 0;
-  Uint8List _buffer;
+  late Uint8List _buffer;
   int _bufferSize = 0;
   int _bufferPosition = 0;
-  int _maxBufferSize;
+  late int _maxBufferSize;
   static const int _kDefaultBufferSize = 4096;
 
   FileInputStream(this.path,
@@ -501,12 +501,12 @@ class FileInputStream extends InputStream {
   /// Read a null-terminated string, or if [len] is provided, that number of
   /// bytes returned as a string.
   @override
-  String readString({int size, bool utf8 = true}) {
+  String readString({int? size, bool? utf8 = true}) {
     final codes = <int>[];
     if (size == null) {
       while (!isEOS) {
         var c = readByte();
-        if (!utf8) {
+        if (!utf8!) {
           var c2 = readByte();
           c = (c2 << 8) | c;
         }
@@ -516,10 +516,10 @@ class FileInputStream extends InputStream {
         codes.add(c);
       }
     } else {
-      while (size > 0) {
+      while (size! > 0) {
         var c = readByte();
         size--;
-        if (!utf8) {
+        if (!utf8!) {
           var c2 = readByte();
           size--;
           c = (c2 << 8) | c;
@@ -531,7 +531,7 @@ class FileInputStream extends InputStream {
       }
     }
 
-    return utf8 ? Utf8Decoder().convert(codes) : String.fromCharCodes(codes);
+    return utf8! ? Utf8Decoder().convert(codes) : String.fromCharCodes(codes);
   }
 
   int get _remainingBufferSize => _bufferSize - _bufferPosition;
@@ -545,4 +545,3 @@ class FileInputStream extends InputStream {
     _filePosition += _bufferSize;
   }
 }
-

@@ -19,10 +19,10 @@ class Record {
 
 class MdictReader {
   String path;
-  Map<String, String> _header;
-  List<Key> _key_list;
-  List<Record> _record_list;
-  int _record_block_offset;
+  late Map<String, String> _header;
+  late List<Key> _key_list;
+  late List<Record> _record_list;
+  late int _record_block_offset;
 
   MdictReader(this.path) {
     var _in = FileInputStream(path, bufferSize: 64 * 1024);
@@ -174,7 +174,7 @@ class MdictReader {
     var flag = comp_block[0];
     var data = comp_block.sublist(8);
     if (flag == 2) {
-      return BytesInputStream(zlib.decoder.convert(data));
+      return BytesInputStream(zlib.decoder.convert(data) as Uint8List);
     } else {
       return BytesInputStream(data);
     }
