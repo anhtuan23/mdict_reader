@@ -23,7 +23,7 @@ void main(List<String> args) {
     var record = mdict.query(word);
     if ('sounds' == command) {
       var sounds = parseSounds(record);
-      print('${word}\t${sounds.join(",")}');
+      print('$word\t${sounds.join(",")}');
     } else {
       if (record is String) {
         stdout.write(record);
@@ -38,7 +38,7 @@ Function processor(String command) {
   if ('sounds' == command) {
     return (String word, dynamic record) {
       var sounds = parseSounds(record);
-      print('${word}\t${sounds.join(",")}');
+      print('$word\t${sounds.join(",")}');
     };
   }
   return (String word, dynamic record) {

@@ -1,8 +1,7 @@
 import 'dart:io';
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:pointycastle/api.dart';
-import 'package:xml/xml.dart' as xml;
+import 'package:xml/xml.dart';
 import 'input_stream.dart';
 
 class Key {
@@ -59,7 +58,7 @@ class MdictReader {
 
   Map<String, String> _parse_header(String header) {
     var attributes = <String, String>{};
-    var doc = xml.parse(header);
+    var doc = XmlDocument.parse(header);
     doc.rootElement.attributes.forEach((a) {
       attributes[a.name.local] = a.value;
     });
@@ -70,14 +69,17 @@ class MdictReader {
     var encrypted = _header['Encrypted'] == '2';
     var utf8 = _header['Encoding'] == 'UTF-8';
     var key_num_blocks = _in.readUint64();
+    // ignore: unused_local_variable
     var key_num_entries = _in.readUint64();
+    // ignore: unused_local_variable
     var key_index_decomp_len = _in.readUint64();
     var key_index_comp_len = _in.readUint64();
+    // ignore: unused_local_variable
     var key_blocks_len = _in.readUint64();
     _in.skip(4);
-    var comp_size = List<int>(key_num_blocks);
-    var decomp_size = List<int>(key_num_blocks);
-    var num_entries = List<int>(key_num_blocks);
+    var comp_size = List.filled(key_num_blocks, -1);
+    var decomp_size = List.filled(key_num_blocks, -1);
+    var num_entries = List.filled(key_num_blocks, -1);
     var index_comp_block = _in.readBytes(key_index_comp_len);
     if (encrypted) {
       var key = _compute_key(index_comp_block);
@@ -90,11 +92,13 @@ class MdictReader {
       if (!utf8) {
         first_length = first_length * 2;
       }
+      // ignore: unused_local_variable
       var first_word = index_ds.readString(size: first_length, utf8: utf8);
       var last_length = index_ds.readUint16() + 1;
       if (!utf8) {
         last_length = last_length * 2;
       }
+      // ignore: unused_local_variable
       var last_word = index_ds.readString(size: last_length, utf8: utf8);
       comp_size[i] = index_ds.readUint64();
       decomp_size[i] = index_ds.readUint64();
@@ -118,8 +122,11 @@ class MdictReader {
 
   List<Record> _read_records(FileInputStream _in) {
     var record_num_blocks = _in.readUint64();
+    // ignore: unused_local_variable
     var record_num_entries = _in.readUint64();
+    // ignore: unused_local_variable
     var record_index_len = _in.readUint64();
+    // ignore: unused_local_variable
     var record_blocks_len = _in.readUint64();
     var record_list = <Record>[];
     for (var i = 0; i < record_num_blocks; i++) {
