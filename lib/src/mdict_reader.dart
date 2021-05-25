@@ -98,7 +98,7 @@ class MdictReader {
     var index_ds = _decompress_block(index_comp_block);
     for (var i = 0; i < key_num_blocks; i++) {
       num_entries.add(await index_ds.readUint64());
-      var first_length = await index_ds.readUint16() + 1;
+      var first_length = (await index_ds.readUint16()) + 1;
       if (!utf8) {
         first_length = first_length * 2;
       }
@@ -109,7 +109,7 @@ class MdictReader {
       if (!utf8) {
         last_length = last_length * 2;
       }
-      print('Last length: $last_length\n utf8: $utf8\n\n');
+      // print('Last length: $last_length\n utf8: $utf8\n\n');
       // ignore: unused_local_variable
       var last_word = await index_ds.readString(size: last_length, utf8: utf8);
       comp_size.add(await index_ds.readUint64());
