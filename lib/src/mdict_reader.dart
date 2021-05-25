@@ -37,12 +37,14 @@ class MdictReader {
     return _key_list.map((key) => key.key).toList();
   }
 
-  dynamic query(String word) {
+  Future<dynamic> query(String word) async {
     var mdd = path.endsWith('.mdd');
     var keys = _key_list.where((key) => key.key == word).toList();
-    var records = keys
-        .map((key) => _read_record(key.key, key.offset, key.length, mdd))
-        .toList();
+    final records = [];
+    for (var key in keys) {
+      final record = await _read_record(key.key, key.offset, key.length, mdd);
+      records.add(record);
+    }
     if (mdd) {
       return records[0];
     }
@@ -137,7 +139,8 @@ class MdictReader {
     return record_list;
   }
 
-  dynamic _read_record(String word, int offset, int length, bool mdd) {
+  Future<dynamic> _read_record(
+      String word, int offset, int length, bool mdd) async {
     var compressed_offset = 0;
     var decompressed_offset = 0;
     var compressed_size = 0;
@@ -151,10 +154,10 @@ class MdictReader {
       decompressed_offset += decompressed_size;
       compressed_offset += compressed_size;
     }
-    var _in = File(path).openSync();
-    _in.setPositionSync(_record_block_offset + compressed_offset);
-    var block = _in.readSync(compressed_size);
-    _in.closeSync();
+    var _in = await File(path).open();
+    await _in.setPosition(_record_block_offset + compressed_offset);
+    var block = await _in.read(compressed_size);
+    await _in.close();
     var block_in = _decompress_block(block);
     block_in.skip(offset - decompressed_offset);
     if (mdd) {

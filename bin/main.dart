@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 
-void main(List<String> args) {
+void main(List<String> args) async {
   var parser = ArgParser();
   var results = parser.parse(args);
   var command = results.rest[0];
@@ -19,8 +19,8 @@ void main(List<String> args) {
       return [word];
     }
   }).toList();
-  words.where((word) => word.isNotEmpty).forEach((word) {
-    var record = mdict.query(word);
+  for (var word in words.where((word) => word.isNotEmpty)) {
+    var record = await mdict.query(word);
     if ('sounds' == command) {
       var sounds = parseSounds(record);
       print('$word\t${sounds.join(",")}');
@@ -31,7 +31,7 @@ void main(List<String> args) {
         stdout.add(record);
       }
     }
-  });
+  }
 }
 
 Function processor(String command) {
