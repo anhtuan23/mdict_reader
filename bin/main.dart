@@ -8,7 +8,7 @@ void main(List<String> args) async {
   var command = results.rest[0];
   var path = results.rest[1];
   var words = results.rest.sublist(2);
-  var mdict = MdictReader(path);
+  var mdict = await MdictReader.create(path);
   if (words.isEmpty) {
     words = mdict.keys();
   }

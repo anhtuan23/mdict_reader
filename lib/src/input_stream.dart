@@ -18,34 +18,34 @@ abstract class InputStream {
   bool get isEOS;
 
   /// Reset to the beginning of the stream.
-  void reset();
+  Future<void> reset();
 
   /// Rewind the read head of the stream by the given number of bytes.
-  void rewind([int length = 1]);
+  Future<void> rewind([int length = 1]);
 
   /// Move the read position by [count] bytes.
-  void skip(int length);
+  Future<void> skip(int length);
 
   /// Read a single byte.
-  int readByte();
+  Future<int> readByte();
 
   /// Read [count] bytes from the stream.
-  Uint8List readBytes(int count);
+  Future<Uint8List> readBytes(int count);
 
   /// Read a null-terminated string, or if [len] is provided, that number of
   /// bytes returned as a string.
-  String readString({int? size, bool? utf8});
+  Future<String> readString({int? size, bool? utf8});
 
   /// Read a 16-bit word from the stream.
-  int readUint16();
+  Future<int> readUint16();
 
   /// Read a 32-bit word from the stream.
-  int readUint32();
+  Future<int> readUint32();
 
   /// Read a 64-bit word form the stream.
-  int readUint64();
+  Future<int> readUint64();
 
-  Uint8List toUint8List();
+  Future<Uint8List> toUint8List();
 }
 
 /// A buffer that can be read as a stream of bytes
@@ -79,13 +79,13 @@ class BytesInputStream extends InputStream {
 
   /// Reset to the beginning of the stream.
   @override
-  void reset() {
+  Future<void> reset() async {
     offset = start;
   }
 
   /// Rewind the read head of the stream by the given number of bytes.
   @override
-  void rewind([int length = 1]) {
+  Future<void> rewind([int length = 1]) async {
     offset -= length;
     if (offset < 0) {
       offset = 0;
@@ -132,19 +132,19 @@ class BytesInputStream extends InputStream {
 
   /// Move the read position by [count] bytes.
   @override
-  void skip(int count) {
+  Future<void> skip(int count) async {
     offset += count;
   }
 
   /// Read a single byte.
   @override
-  int readByte() {
+  Future<int> readByte() async {
     return buffer[offset++];
   }
 
   /// Read [count] bytes from the stream.
   @override
-  Uint8List readBytes(int count) {
+  Future<Uint8List> readBytes(int count) async {
     final bytes = subset(offset - start, count);
     offset += bytes.length;
     return bytes.toUint8List();
@@ -153,13 +153,13 @@ class BytesInputStream extends InputStream {
   /// Read a null-terminated string, or if [len] is provided, that number of
   /// bytes returned as a string.
   @override
-  String readString({int? size, bool? utf8 = true}) {
+  Future<String> readString({int? size, bool? utf8 = true}) async {
     final codes = <int>[];
     if (size == null) {
       while (!isEOS) {
-        var c = readByte();
+        var c = await readByte();
         if (!utf8!) {
-          var c2 = readByte();
+          var c2 = await readByte();
           c = (c2 << 8) | c;
         }
         if (c == 0) {
@@ -169,10 +169,10 @@ class BytesInputStream extends InputStream {
       }
     } else {
       while (size! > 0) {
-        var c = readByte();
+        var c = await readByte();
         size--;
         if (!utf8!) {
-          var c2 = readByte();
+          var c2 = await readByte();
           size--;
           c = (c2 << 8) | c;
         }
@@ -188,7 +188,7 @@ class BytesInputStream extends InputStream {
 
   /// Read a 16-bit word from the stream.
   @override
-  int readUint16() {
+  Future<int> readUint16() async {
     final b1 = buffer[offset++] & 0xff;
     final b2 = buffer[offset++] & 0xff;
     if (byteOrder == ByteOrder.big_endian) {
@@ -199,7 +199,7 @@ class BytesInputStream extends InputStream {
 
   /// Read a 32-bit word from the stream.
   @override
-  int readUint32() {
+  Future<int> readUint32() async {
     final b1 = buffer[offset++] & 0xff;
     final b2 = buffer[offset++] & 0xff;
     final b3 = buffer[offset++] & 0xff;
@@ -212,7 +212,7 @@ class BytesInputStream extends InputStream {
 
   /// Read a 64-bit word form the stream.
   @override
-  int readUint64() {
+  Future<int> readUint64() async {
     final b1 = buffer[offset++] & 0xff;
     final b2 = buffer[offset++] & 0xff;
     final b3 = buffer[offset++] & 0xff;
@@ -242,7 +242,7 @@ class BytesInputStream extends InputStream {
   }
 
   @override
-  Uint8List toUint8List() {
+  Future<Uint8List> toUint8List() async {
     var len = length;
     if ((offset + len) > buffer.length) {
       len = buffer.length - offset;
@@ -267,18 +267,36 @@ class FileInputStream extends InputStream {
   late int _maxBufferSize;
   static const int _kDefaultBufferSize = 4096;
 
-  FileInputStream(this.path,
-      {this.byteOrder = ByteOrder.big_endian,
-      int bufferSize = _kDefaultBufferSize}) {
-    _maxBufferSize = bufferSize;
-    _buffer = Uint8List(_maxBufferSize);
-    _file = File(path).openSync();
-    _fileSize = _file.lengthSync();
-    _readBuffer();
+  FileInputStream._(
+    this.path, {
+    required this.byteOrder,
+    required int bufferSize,
+  });
+
+  static Future<FileInputStream> create(
+    String path, {
+    ByteOrder byteOrder = ByteOrder.big_endian,
+    int bufferSize = _kDefaultBufferSize,
+  }) async {
+    final fileInputStream = FileInputStream._(
+      path,
+      byteOrder: byteOrder,
+      bufferSize: bufferSize,
+    );
+    await fileInputStream.init(bufferSize);
+    return fileInputStream;
   }
 
-  void close() {
-    _file.closeSync();
+  Future<void> init(int bufferSize) async {
+    _maxBufferSize = bufferSize;
+    _buffer = Uint8List(_maxBufferSize);
+    _file = await File(path).open();
+    _fileSize = await _file.length();
+    await _readBuffer();
+  }
+
+  Future<void> close() async {
+    await _file.close();
     _fileSize = 0;
   }
 
@@ -301,20 +319,20 @@ class FileInputStream extends InputStream {
   int get fileRemaining => _fileSize - _filePosition;
 
   @override
-  void reset() {
+  Future<void> reset() async {
     _filePosition = 0;
-    _file.setPositionSync(0);
-    _readBuffer();
+    await _file.setPosition(0);
+    await _readBuffer();
   }
 
   @override
-  void skip(int length) {
+  Future<void> skip(int length) async {
     if ((_bufferPosition + length) < _bufferSize) {
       _bufferPosition += length;
     } else {
       var remaining = length - (_bufferSize - _bufferPosition);
       while (!isEOS) {
-        _readBuffer();
+        await _readBuffer();
         if (remaining < _bufferSize) {
           _bufferPosition += remaining;
           break;
@@ -325,27 +343,27 @@ class FileInputStream extends InputStream {
   }
 
   @override
-  void rewind([int count = 1]) {
+  Future<void> rewind([int count = 1]) async {
     if (_bufferPosition - count < 0) {
       var remaining = (_bufferPosition - count).abs();
       _filePosition = _filePosition - _bufferSize - remaining;
       if (_filePosition < 0) {
         _filePosition = 0;
       }
-      _file.setPositionSync(_filePosition);
-      _readBuffer();
+      await _file.setPosition(_filePosition);
+      await _readBuffer();
       return;
     }
     _bufferPosition -= count;
   }
 
   @override
-  int readByte() {
+  Future<int> readByte() async {
     if (isEOS) {
       return 0;
     }
     if (_bufferPosition >= _bufferSize) {
-      _readBuffer();
+      await _readBuffer();
     }
     if (_bufferPosition >= _bufferSize) {
       return 0;
@@ -355,15 +373,15 @@ class FileInputStream extends InputStream {
 
   /// Read a 16-bit word from the stream.
   @override
-  int readUint16() {
+  Future<int> readUint16() async {
     var b1 = 0;
     var b2 = 0;
     if ((_bufferPosition + 2) < _bufferSize) {
       b1 = _buffer[_bufferPosition++] & 0xff;
       b2 = _buffer[_bufferPosition++] & 0xff;
     } else {
-      b1 = readByte();
-      b2 = readByte();
+      b1 = await readByte();
+      b2 = await readByte();
     }
     if (byteOrder == ByteOrder.big_endian) {
       return (b1 << 8) | b2;
@@ -373,7 +391,7 @@ class FileInputStream extends InputStream {
 
   /// Read a 32-bit word from the stream.
   @override
-  int readUint32() {
+  Future<int> readUint32() async {
     var b1 = 0;
     var b2 = 0;
     var b3 = 0;
@@ -384,10 +402,10 @@ class FileInputStream extends InputStream {
       b3 = _buffer[_bufferPosition++] & 0xff;
       b4 = _buffer[_bufferPosition++] & 0xff;
     } else {
-      b1 = readByte();
-      b2 = readByte();
-      b3 = readByte();
-      b4 = readByte();
+      b1 = await readByte();
+      b2 = await readByte();
+      b3 = await readByte();
+      b4 = await readByte();
     }
 
     if (byteOrder == ByteOrder.big_endian) {
@@ -398,7 +416,7 @@ class FileInputStream extends InputStream {
 
   /// Read a 64-bit word form the stream.
   @override
-  int readUint64() {
+  Future<int> readUint64() async {
     var b1 = 0;
     var b2 = 0;
     var b3 = 0;
@@ -417,14 +435,14 @@ class FileInputStream extends InputStream {
       b7 = _buffer[_bufferPosition++] & 0xff;
       b8 = _buffer[_bufferPosition++] & 0xff;
     } else {
-      b1 = readByte();
-      b2 = readByte();
-      b3 = readByte();
-      b4 = readByte();
-      b5 = readByte();
-      b6 = readByte();
-      b7 = readByte();
-      b8 = readByte();
+      b1 = await readByte();
+      b2 = await readByte();
+      b3 = await readByte();
+      b4 = await readByte();
+      b5 = await readByte();
+      b6 = await readByte();
+      b7 = await readByte();
+      b8 = await readByte();
     }
 
     if (byteOrder == ByteOrder.big_endian) {
@@ -448,13 +466,13 @@ class FileInputStream extends InputStream {
   }
 
   @override
-  Uint8List readBytes(int length) {
+  Future<Uint8List> readBytes(int length) async {
     if (isEOS) {
       return Uint8List.fromList(<int>[]);
     }
 
     if (_bufferPosition == _bufferSize) {
-      _readBuffer();
+      await _readBuffer();
     }
 
     if (_remainingBufferSize >= length) {
@@ -483,7 +501,7 @@ class FileInputStream extends InputStream {
       length -= l.length;
       _bufferPosition = end;
       if (length > 0 && _bufferPosition == _bufferSize) {
-        _readBuffer();
+        await _readBuffer();
         if (_bufferSize == 0) {
           break;
         }
@@ -494,20 +512,20 @@ class FileInputStream extends InputStream {
   }
 
   @override
-  Uint8List toUint8List() {
+  Future<Uint8List> toUint8List() async {
     return readBytes(_fileSize);
   }
 
   /// Read a null-terminated string, or if [len] is provided, that number of
   /// bytes returned as a string.
   @override
-  String readString({int? size, bool? utf8 = true}) {
+  Future<String> readString({int? size, bool? utf8 = true}) async {
     final codes = <int>[];
     if (size == null) {
       while (!isEOS) {
-        var c = readByte();
+        var c = await readByte();
         if (!utf8!) {
-          var c2 = readByte();
+          var c2 = await readByte();
           c = (c2 << 8) | c;
         }
         if (c == 0) {
@@ -517,10 +535,10 @@ class FileInputStream extends InputStream {
       }
     } else {
       while (size! > 0) {
-        var c = readByte();
+        var c = await readByte();
         size--;
         if (!utf8!) {
-          var c2 = readByte();
+          var c2 = await readByte();
           size--;
           c = (c2 << 8) | c;
         }
@@ -536,9 +554,9 @@ class FileInputStream extends InputStream {
 
   int get _remainingBufferSize => _bufferSize - _bufferPosition;
 
-  void _readBuffer() {
+  Future<void> _readBuffer() async {
     _bufferPosition = 0;
-    _bufferSize = _file.readIntoSync(_buffer);
+    _bufferSize = await _file.readInto(_buffer);
     if (_bufferSize == 0) {
       return;
     }
