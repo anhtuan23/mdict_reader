@@ -2,10 +2,10 @@ import 'package:mdict_reader/src/mdict_manager.dart';
 
 void main() async {
   final mdxPaths = [
-    // 'dict/CC-CEDICT.mdx',
-    // 'dict/JaViDic_Ja-Vi.mdx',
-    // 'dict/OALD_8th.mdx',
-    'dict/jmdict.mdx',
+    'dict/CC-CEDICT.mdx',
+    'dict/JaViDic_Ja-Vi.mdx',
+    'dict/OALD_8th.mdx',
+    // 'dict/jmdict.mdx',
   ];
   final word = '勉強';
   // final word = '哽咽';
