@@ -87,9 +87,9 @@ class MdictReader {
     // ignore: unused_local_variable
     var key_blocks_len = await _in.readUint64();
     await _in.skip(4);
-    var comp_size = <int>[];
-    var decomp_size = <int>[];
-    var num_entries = <int>[];
+    var comp_size = List.filled(key_num_blocks, -1);
+    var decomp_size = List.filled(key_num_blocks, -1);
+    var num_entries = List.filled(key_num_blocks, -1);
     var index_comp_block = await _in.readBytes(key_index_comp_len);
     if (encrypted) {
       var key = _compute_key(index_comp_block);
@@ -97,7 +97,7 @@ class MdictReader {
     }
     var index_ds = _decompress_block(index_comp_block);
     for (var i = 0; i < key_num_blocks; i++) {
-      num_entries.add(await index_ds.readUint64());
+      num_entries[i] = await index_ds.readUint64();
       var first_length = (await index_ds.readUint16()) + 1;
       if (!utf8) {
         first_length = first_length * 2;
@@ -112,8 +112,8 @@ class MdictReader {
       // print('Last length: $last_length\n utf8: $utf8\n\n');
       // ignore: unused_local_variable
       var last_word = await index_ds.readString(size: last_length, utf8: utf8);
-      comp_size.add(await index_ds.readUint64());
-      decomp_size.add(await index_ds.readUint64());
+      comp_size[i] = await index_ds.readUint64();
+      decomp_size[i] = await index_ds.readUint64();
     }
     var key_list = <Key>[];
     for (var i = 0; i < key_num_blocks; i++) {
