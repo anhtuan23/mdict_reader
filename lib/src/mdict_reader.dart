@@ -23,6 +23,7 @@ class MdictReader {
   late List<Key> _key_list;
   late List<Record> _record_list;
   late int _record_block_offset;
+  late bool _isNewVersion;
 
   MdictReader._(this.path);
 
@@ -35,6 +36,8 @@ class MdictReader {
   Future<void> init() async {
     var _in = await FileInputStream.create(path, bufferSize: 64 * 1024);
     _header = await _read_header(_in);
+    _isNewVersion =
+        double.parse(_header['GeneratedByEngineVersion'] ?? '2') >= 2;
     _key_list = await _read_keys(_in);
     _record_list = await _read_records(_in);
     _record_block_offset = _in.position;
@@ -78,56 +81,88 @@ class MdictReader {
   Future<List<Key>> _read_keys(FileInputStream _in) async {
     var encrypted = _header['Encrypted'] == '2';
     var utf8 = _header['Encoding'] == 'UTF-8';
-    var key_num_blocks = await _in.readUint64();
+
+    /// Number of Key Blocks
+    var key_num_blocks = await _read8Bytes(_in);
+
+    /// Number of Entries
     // ignore: unused_local_variable
-    var key_num_entries = await _in.readUint64();
+    var key_num_entries = await _read8Bytes(_in);
+
+    /// Number of Bytes After Decompression
+    if (_isNewVersion) {
+      // ignore: unused_local_variable
+      var key_index_decomp_len = await _in.readUint64();
+    }
+
+    /// Number of Bytes of Key Block Info
+    var key_index_comp_len = await _read8Bytes(_in);
+
+    /// Length of Key Blocks
     // ignore: unused_local_variable
-    var key_index_decomp_len = await _in.readUint64();
-    var key_index_comp_len = await _in.readUint64();
-    // ignore: unused_local_variable
-    var key_blocks_len = await _in.readUint64();
-    await _in.skip(4);
+    var key_blocks_len = await _read8Bytes(_in);
+
+    /// Checksum
+    if (_isNewVersion) await _in.skip(4);
+
+    var num_entries = <int>[];
     var comp_size = <int>[];
     var decomp_size = <int>[];
-    var num_entries = <int>[];
+
+    /// READ KEY BLOCK INFO
     var index_comp_block = await _in.readBytes(key_index_comp_len);
     if (encrypted) {
       var key = _compute_key(index_comp_block);
       _decrypt_block(key, index_comp_block, 8);
     }
-    var index_ds = _decompress_block(index_comp_block);
+    var index_ds = _isNewVersion
+        ? _decompress_block(index_comp_block)
+        : BytesInputStream(index_comp_block);
+
     for (var i = 0; i < key_num_blocks; i++) {
-      num_entries.add(await index_ds.readUint64());
-      var first_length = (await index_ds.readUint16()) + 1;
-      if (!utf8) {
-        first_length = first_length * 2;
+      num_entries.add(await _read8Bytes(index_ds));
+
+      /// Get first word
+      var first_length = (await _read2Bytes(index_ds));
+      if (_isNewVersion) {
+        first_length++;
+        if (!utf8) first_length = first_length * 2;
       }
       // ignore: unused_local_variable
       var first_word =
           await index_ds.readString(size: first_length, utf8: utf8);
-      var last_length = (await index_ds.readUint16()) + 1;
-      if (!utf8) {
-        last_length = last_length * 2;
+
+      /// Get second word
+      var last_length = (await _read2Bytes(index_ds));
+      if (_isNewVersion) {
+        last_length++;
+        if (!utf8) last_length = last_length * 2;
       }
-      // print('Last length: $last_length\n utf8: $utf8\n\n');
       // ignore: unused_local_variable
       var last_word = await index_ds.readString(size: last_length, utf8: utf8);
-      comp_size.add(await index_ds.readUint64());
-      decomp_size.add(await index_ds.readUint64());
+
+      /// Compressed Size & Decompressed Size
+      comp_size.add(await _read8Bytes(index_ds));
+      decomp_size.add(await _read8Bytes(index_ds));
     }
+
     var key_list = <Key>[];
     for (var i = 0; i < key_num_blocks; i++) {
       var key_comp_block = await _in.readBytes(comp_size[i]);
       var block_in = _decompress_block(key_comp_block);
-      for (var j = 0; j < num_entries[i]; j++) {
-        var offset = await block_in.readUint64();
-        var word = await block_in.readString(utf8: utf8);
-        if (key_list.isNotEmpty) {
-          key_list[key_list.length - 1].length =
-              offset - key_list[key_list.length - 1].offset;
-        }
-        key_list.add(Key(word, offset));
-      }
+      print('3242');
+      // var block_in = _isNewVersion
+      //     ? _decompress_block(key_comp_block)
+      //     : BytesInputStream(key_comp_block);
+      // for (var j = 0; j < num_entries[i]; j++) {
+      //   var offset = await _read8Bytes(block_in); //  block_in.readUint64();
+      //   var word = await block_in.readString(utf8: utf8);
+      //   if (key_list.isNotEmpty) {
+      //     key_list[key_list.length - 1].length =
+      //         offset - key_list[key_list.length - 1].offset;
+      //   }
+      //   key_list.add(Key(word, offset));
+      // }
     }
     return key_list;
   }
@@ -150,7 +185,11 @@ class MdictReader {
   }
 
   Future<dynamic> _read_record(
-      String word, int offset, int length, bool mdd) async {
+    String word,
+    int offset,
+    int length,
+    bool mdd,
+  ) async {
     var compressed_offset = 0;
     var decompressed_offset = 0;
     var compressed_size = 0;
@@ -211,5 +250,21 @@ class MdictReader {
     var key = Uint8List(16);
     ripemd128.doFinal(key, 0);
     return key;
+  }
+
+  Future<int> _read2Bytes(InputStream _in) async {
+    if (_isNewVersion) {
+      return await _in.readUint16();
+    } else {
+      return await _in.readByte();
+    }
+  }
+
+  Future<int> _read8Bytes(InputStream _in) async {
+    if (_isNewVersion) {
+      return await _in.readUint64();
+    } else {
+      return await _in.readUint32();
+    }
   }
 }
