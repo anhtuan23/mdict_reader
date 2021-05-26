@@ -35,6 +35,9 @@ class MdictReader {
   Future<void> init() async {
     var _in = await FileInputStream.create(path, bufferSize: 64 * 1024);
     _header = await _read_header(_in);
+    if (double.parse(_header['GeneratedByEngineVersion'] ?? '2') < 2) {
+      throw 'This program does not support mdict version 1.x';
+    }
     _key_list = await _read_keys(_in);
     _record_list = await _read_records(_in);
     _record_block_offset = _in.position;

@@ -8,8 +8,12 @@ class MdictManager {
   static Future<MdictManager> create(List<String> pathList) async {
     final mdictList = <MdictReader>[];
     for (var path in pathList) {
-      final mdict = await MdictReader.create(path);
-      mdictList.add(mdict);
+      try {
+        final mdict = await MdictReader.create(path);
+        mdictList.add(mdict);
+      } catch (e) {
+        print('Error with $path: $e');
+      }
     }
     return MdictManager._(mdictList);
   }
