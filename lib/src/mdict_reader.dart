@@ -23,6 +23,7 @@ class MdictReader {
   late List<Key> _key_list;
   late List<Record> _record_list;
   late int _record_block_offset;
+  late String? name;
 
   MdictReader._(this.path);
 
@@ -38,6 +39,7 @@ class MdictReader {
     if (double.parse(_header['GeneratedByEngineVersion'] ?? '2') < 2) {
       throw 'This program does not support mdict version 1.x';
     }
+    name = _header['Title'];
     _key_list = await _read_keys(_in);
     _record_list = await _read_records(_in);
     _record_block_offset = _in.position;
