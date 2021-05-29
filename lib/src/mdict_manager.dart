@@ -28,4 +28,13 @@ class MdictManager {
     }
     return resultList;
   }
+
+  MdictManager reOrder(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final item = mdictList.removeAt(oldIndex);
+    mdictList.insert(newIndex, item);
+    return MdictManager._(mdictList);
+  }
 }
