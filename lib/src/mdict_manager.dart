@@ -18,15 +18,30 @@ class MdictManager {
     return MdictManager._(mdictList);
   }
 
-  Future<List<String>> query(String word) async {
-    final resultList = <String>[];
+  Map<String, List<String>> search(String term) {
+    final result = <String, List<String>>{};
     for (var mdict in mdictList) {
-      final record = await mdict.query(word);
-      if (record is String) {
-        resultList.add(record);
+      final keys = mdict.search(term);
+      for (var key in keys) {
+        final currentDictList = result[key] ?? [];
+        result[key] = currentDictList..add(mdict.name);
       }
     }
-    return resultList;
+    return result;
+  }
+
+  Future<Map<String, String>> query(String word) async {
+    final result = <String, String>{};
+    for (var mdict in mdictList) {
+      final record = await mdict.query(word);
+      if (record != null && record is String) {
+        final trimmed = record.trim();
+        if (trimmed.isNotEmpty) {
+          result[mdict.name] = trimmed;
+        }
+      }
+    }
+    return result;
   }
 
   MdictManager reOrder(int oldIndex, int newIndex) {

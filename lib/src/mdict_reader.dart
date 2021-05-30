@@ -23,7 +23,11 @@ class MdictReader {
   late List<Key> _key_list;
   late List<Record> _record_list;
   late int _record_block_offset;
-  late String? name;
+  late String? _name;
+
+  bool get isMdd => path.endsWith('.mdd');
+
+  String get name => _name ?? 'Untitled';
 
   MdictReader._(this.path);
 
@@ -39,7 +43,7 @@ class MdictReader {
     if (double.parse(_header['GeneratedByEngineVersion'] ?? '2') < 2) {
       throw 'This program does not support mdict version 1.x';
     }
-    name = _header['Title'];
+    _name = _header['Title'];
     _key_list = await _read_keys(_in);
     _record_list = await _read_records(_in);
     _record_block_offset = _in.position;
@@ -50,15 +54,22 @@ class MdictReader {
     return _key_list.map((key) => key.key).toList();
   }
 
-  Future<dynamic> query(String word) async {
-    var mdd = path.endsWith('.mdd');
-    var keys = _key_list.where((key) => key.key == word).toList();
+  List<String> search(String term) {
+    final relevantKeys = _key_list
+        .where((key) => key.key.startsWith(term))
+        .map((e) => e.key)
+        .toList();
+    return relevantKeys;
+  }
+
+  Future<dynamic> query(String keyWord) async {
+    var keys = _key_list.where((key) => key.key == keyWord).toList();
     final records = [];
     for (var key in keys) {
-      final record = await _read_record(key.key, key.offset, key.length, mdd);
+      final record = await _read_record(key.key, key.offset, key.length, isMdd);
       records.add(record);
     }
-    if (mdd) {
+    if (isMdd) {
       return records[0];
     }
     return records.join('\n---\n');
@@ -155,7 +166,7 @@ class MdictReader {
   }
 
   Future<dynamic> _read_record(
-      String word, int offset, int length, bool mdd) async {
+      String word, int offset, int length, bool isMdd) async {
     var compressed_offset = 0;
     var decompressed_offset = 0;
     var compressed_size = 0;
@@ -175,7 +186,7 @@ class MdictReader {
     await _in.close();
     var block_in = _decompress_block(block);
     await block_in.skip(offset - decompressed_offset);
-    if (mdd) {
+    if (isMdd) {
       var record_block = await block_in.toUint8List();
       if (length > 0) {
         return record_block.sublist(0, length);
