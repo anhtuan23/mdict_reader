@@ -54,12 +54,11 @@ class MdictReader {
     return _key_list.map((key) => key.key).toList();
   }
 
-  List<String> search(String term) {
-    final relevantKeys = _key_list
+  Future<List<String>> search(String term) {
+    return Future(()=>_key_list
         .where((key) => key.key.startsWith(term))
         .map((e) => e.key)
-        .toList();
-    return relevantKeys;
+        .toList());
   }
 
   Future<dynamic> query(String keyWord) async {

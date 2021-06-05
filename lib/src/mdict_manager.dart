@@ -18,10 +18,10 @@ class MdictManager {
     return MdictManager._(mdictList);
   }
 
-  Map<String, List<String>> search(String term) {
+  Future<Map<String, List<String>>> search(String term) async {
     final result = <String, List<String>>{};
     for (var mdict in mdictList) {
-      final keys = mdict.search(term);
+      final keys = await mdict.search(term);
       for (var key in keys) {
         final currentDictList = result[key] ?? [];
         result[key] = currentDictList..add(mdict.name);
