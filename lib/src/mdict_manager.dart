@@ -1,9 +1,12 @@
 import 'package:mdict_reader/mdict_reader.dart';
 
 class MdictManager {
-  final List<MdictReader> mdictList;
+  const MdictManager._(this._mdictList);
 
-  MdictManager._(this.mdictList);
+  final List<MdictReader> _mdictList;
+
+  Map<String, String> get pathNameMap =>
+      {for (final mdict in _mdictList) mdict.path: mdict.name};
 
   static Future<MdictManager> create(List<String> pathList) async {
     final mdictList = <MdictReader>[];
@@ -20,7 +23,7 @@ class MdictManager {
 
   Future<Map<String, List<String>>> search(String term) async {
     final result = <String, List<String>>{};
-    for (var mdict in mdictList) {
+    for (var mdict in _mdictList) {
       final keys = await mdict.search(term);
       for (var key in keys) {
         final currentDictList = result[key] ?? [];
@@ -32,7 +35,7 @@ class MdictManager {
 
   Future<Map<String, String>> query(String word) async {
     final result = <String, String>{};
-    for (var mdict in mdictList) {
+    for (var mdict in _mdictList) {
       final record = await mdict.query(word);
       if (record != null && record is String) {
         final trimmed = record.trim();
@@ -45,11 +48,13 @@ class MdictManager {
   }
 
   MdictManager reOrder(int oldIndex, int newIndex) {
+    if (oldIndex == newIndex) return this;
+
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
-    final item = mdictList.removeAt(oldIndex);
-    mdictList.insert(newIndex, item);
-    return MdictManager._(mdictList);
+    final item = _mdictList.removeAt(oldIndex);
+    _mdictList.insert(newIndex, item);
+    return MdictManager._(_mdictList);
   }
 }
