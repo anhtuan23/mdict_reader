@@ -20,7 +20,7 @@ void main(List<String> args) async {
     }
   }).toList();
   for (var word in words.where((word) => word.isNotEmpty)) {
-    var record = await mdict.query(word);
+    var record = await mdict.legacyQuery(word);
     if ('sounds' == command) {
       var sounds = parseSounds(record);
       print('$word\t${sounds.join(",")}');

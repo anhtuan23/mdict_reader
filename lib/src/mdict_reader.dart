@@ -19,7 +19,9 @@ class Record {
 }
 
 class MdictReader {
-  String path;
+  final String path;
+  final String _cssPath;
+  late String _cssContent;
   late Map<String, String> _header;
   late List<Key> _key_list;
   late List<Record> _record_list;
@@ -30,16 +32,17 @@ class MdictReader {
 
   String get name => _name ?? 'Untitled';
 
-  MdictReader._(this.path);
+  MdictReader._(this.path, this._cssPath);
 
-  static Future<MdictReader> create(String path) async {
-    final mdict = MdictReader._(path);
+  static Future<MdictReader> create(String path, [String cssPath = '']) async {
+    final mdict = MdictReader._(path, cssPath);
     await mdict.init();
     return mdict;
   }
 
   Future<void> init() async {
     var _in = await FileInputStream.create(path, bufferSize: 64 * 1024);
+    _cssContent = await _readCss();
     _header = await _read_header(_in);
     if (double.parse(_header['GeneratedByEngineVersion'] ?? '2') < 2) {
       throw 'This program does not support mdict version 1.x';
@@ -72,7 +75,21 @@ class MdictReader {
     });
   }
 
-  Future<dynamic> query(String keyWord) async {
+  /// * Should only be used in a mdx reader
+  /// Return [html, css] of result
+  Future<List<String>> query(String keyWord) async {
+    var keys = _key_list.where((key) => key.key == keyWord).toList();
+    final records = <String>[];
+    for (var key in keys) {
+      final record = await _read_record(key.key, key.offset, key.length, isMdd);
+
+      records.add(record.trim());
+    }
+
+    return [records.where((e) => e.isNotEmpty).join('\n---\n'), _cssContent];
+  }
+
+  Future<dynamic> legacyQuery(String keyWord) async {
     var keys = _key_list.where((key) => key.key == keyWord).toList();
     final records = [];
     for (var key in keys) {
@@ -83,6 +100,14 @@ class MdictReader {
       return records[0];
     }
     return records.join('\n---\n');
+  }
+
+  Future<String> _readCss() async {
+    final file = File(_cssPath);
+    if (await file.exists()) {
+      return file.readAsString();
+    }
+    return '';
   }
 
   Future<Map<String, String>> _read_header(FileInputStream _in) async {

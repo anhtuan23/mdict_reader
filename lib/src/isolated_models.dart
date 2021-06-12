@@ -1,11 +1,13 @@
 import 'package:equatable/equatable.dart';
 
 class InitManagerInput extends Equatable {
-  const InitManagerInput(this.pathList);
-  final List<String> pathList;
+  const InitManagerInput(this.dictPathList);
+
+  /// [dictPathList] is a list of [mdxPath, cssPath]
+  final List<List<String>> dictPathList;
 
   @override
-  List<Object?> get props => [pathList];
+  List<Object?> get props => [dictPathList];
 }
 
 class PathNameMapResult implements Result {
@@ -45,7 +47,7 @@ class QueryResult implements Result {
 
   @override
   final int inputHashCode;
-  final Map<String, String> queryResult;
+  final Map<String, List<String>> queryResult;
 }
 
 class ReOrderInput extends Equatable {

@@ -8,16 +8,19 @@ class MdictManager {
   Map<String, String> get pathNameMap =>
       {for (final mdict in _mdictList) mdict.path: mdict.name};
 
-  static Future<MdictManager> create(List<String> pathList) async {
+  /// [dictPaths] is a list of [mdxPath, cssPath]
+  static Future<MdictManager> create(List<List<String>> dictPaths) async {
     final mdictList = <MdictReader>[];
-    for (var path in pathList) {
+    for (var i = 0; i < dictPaths.length; i++) {
       try {
-        final mdict = await MdictReader.create(path);
+        final mdict =
+            await MdictReader.create(dictPaths[i][0], dictPaths[i][1]);
         mdictList.add(mdict);
       } catch (e) {
-        print('Error with $path: $e');
+        print('Error with ${dictPaths[i][0]}: $e');
       }
     }
+
     return MdictManager._(mdictList);
   }
 
@@ -40,15 +43,14 @@ class MdictManager {
     return startsWithMap..addAll(containsMap);
   }
 
-  Future<Map<String, String>> query(String word) async {
-    final result = <String, String>{};
+  /// returns {dictName: [html, css]}
+  Future<Map<String, List<String>>> query(String word) async {
+    final result = <String, List<String>>{};
     for (var mdict in _mdictList) {
-      final record = await mdict.query(word);
-      if (record != null && record is String) {
-        final trimmed = record.trim();
-        if (trimmed.isNotEmpty) {
-          result[mdict.name] = trimmed;
-        }
+      final htmlCssList = await mdict.query(word);
+
+      if (htmlCssList[0].isNotEmpty) {
+        result[mdict.name] = htmlCssList;
       }
     }
     return result;

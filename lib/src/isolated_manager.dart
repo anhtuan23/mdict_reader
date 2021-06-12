@@ -15,13 +15,14 @@ class IsolatedManager {
 
   static Completer<Null>? managerInitializedCompleter = Completer<Null>();
 
-  static Future<IsolatedManager> init(List<String> pathList) async {
+  /// [dictPathList] is a list of [mdxPath, cssPath]
+  static Future<IsolatedManager> init(List<List<String>> dictPathList) async {
     final _resultStreamController = StreamController<dynamic>.broadcast();
 
     final toIsolateSendPort = await _initIsolate(_resultStreamController);
 
     /// Begin to create manager right away
-    final input = InitManagerInput(pathList);
+    final input = InitManagerInput(dictPathList);
     toIsolateSendPort.send(input);
 
     return IsolatedManager(
@@ -67,7 +68,7 @@ class IsolatedManager {
     mainToIsolateStream.listen((data) async {
       // First data is mdict paths to init dictionary
       if (data is InitManagerInput) {
-        manager = await MdictManager.create(data.pathList);
+        manager = await MdictManager.create(data.dictPathList);
         isolateToMainStream
             .send(PathNameMapResult(data.hashCode, manager!.pathNameMap));
       } else if (data is SearchInput) {
@@ -111,7 +112,8 @@ class IsolatedManager {
     return (result as SearchResult).searchResult;
   }
 
-  Future<Map<String, String>> query(String word) async {
+  /// returns {dictName: [html, css]}
+  Future<Map<String, List<String>>> query(String word) async {
     final input = QueryInput(word);
     final result = await _doWork(input);
     return (result as QueryResult).queryResult;
@@ -123,8 +125,9 @@ class IsolatedManager {
     return (result as PathNameMapResult).pathNamePath;
   }
 
-  Future<Map<String, String>> reload(List<String> pathList) async {
-    final input = InitManagerInput(pathList);
+  /// [dictPathList] is a list of [mdxPath, cssPath]
+  Future<Map<String, String>> reload(List<List<String>> dictPathList) async {
+    final input = InitManagerInput(dictPathList);
     final result = await _doWork(input);
     return (result as PathNameMapResult).pathNamePath;
   }
