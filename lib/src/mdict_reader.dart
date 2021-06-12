@@ -63,10 +63,12 @@ class MdictReader {
       final startsWithList = <String>[];
       final containsList = <String>[];
 
+      term = term.trim().toLowerCase();
+
       for (var key in _key_list) {
-        if (key.key.startsWith(term)) {
+        if (key.key.toLowerCase().startsWith(term)) {
           startsWithList.add(key.key);
-        } else if (key.key.contains(term)) {
+        } else if (key.key.toLowerCase().contains(term)) {
           containsList.add(key.key);
         }
       }
