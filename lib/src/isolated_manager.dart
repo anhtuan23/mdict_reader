@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:mdict_reader/src/models.dart';
+import 'package:mdict_reader/src/isolated_models.dart';
 
 import '../mdict_reader.dart';
 

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:pointycastle/api.dart';
 import 'package:xml/xml.dart';
 import 'input_stream.dart';
+import 'models.dart';
 
 class Key {
   String key;
@@ -54,11 +55,21 @@ class MdictReader {
     return _key_list.map((key) => key.key).toList();
   }
 
-  Future<List<String>> search(String term) {
-    return Future(()=>_key_list
-        .where((key) => key.key.startsWith(term))
-        .map((e) => e.key)
-        .toList());
+  Future<MdictSearchResult> search(String term) {
+    return Future(() {
+      final startsWithList = <String>[];
+      final containsList = <String>[];
+
+      for (var key in _key_list) {
+        if (key.key.startsWith(term)) {
+          startsWithList.add(key.key);
+        } else if (key.key.contains(term)) {
+          containsList.add(key.key);
+        }
+      }
+
+      return MdictSearchResult(startsWithList, containsList);
+    });
   }
 
   Future<dynamic> query(String keyWord) async {

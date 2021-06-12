@@ -22,15 +22,22 @@ class MdictManager {
   }
 
   Future<Map<String, List<String>>> search(String term) async {
-    final result = <String, List<String>>{};
+    final startsWithMap = <String, List<String>>{};
+    final containsMap = <String, List<String>>{};
     for (var mdict in _mdictList) {
-      final keys = await mdict.search(term);
-      for (var key in keys) {
-        final currentDictList = result[key] ?? [];
-        result[key] = currentDictList..add(mdict.name);
+      final mdictSearchResult = await mdict.search(term);
+
+      for (var key in mdictSearchResult.startsWithList) {
+        final currentDictList = startsWithMap[key] ?? [];
+        startsWithMap[key] = currentDictList..add(mdict.name);
+      }
+
+      for (var key in mdictSearchResult.containsList) {
+        final currentDictList = containsMap[key] ?? [];
+        containsMap[key] = currentDictList..add(mdict.name);
       }
     }
-    return result;
+    return startsWithMap..addAll(containsMap);
   }
 
   Future<Map<String, String>> query(String word) async {
