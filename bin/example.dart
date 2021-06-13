@@ -30,7 +30,7 @@ void main() async {
     print(key);
     if (key.contains('css')) {
       var file = File(key);
-      file.writeAsBytes(await mdict.legacyQuery(key));
+      await file.writeAsBytes(await mdict.legacyQuery(key));
     }
     // sink.writeln(key);
     // print(key);
