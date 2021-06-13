@@ -21,17 +21,23 @@ void main() async {
   // }
 
   // MdictReader example
-  var file = File('keys.txt');
-  var sink = file.openWrite();
+  // var file = File('keys.txt');
+  // var sink = file.openWrite();
 
-  final mdict = await MdictReader.create('dict/CC-CEDICT.mdd');
+  final mdict = await MdictReader.create('dict/OALD_8th.mdd');
 
   for (var key in mdict.keys()) {
-    sink.writeln(key);
+    print(key);
+    if (key.contains('css')) {
+      var file = File(key);
+      file.writeAsBytes(await mdict.legacyQuery(key));
+    }
+    // sink.writeln(key);
+    // print(key);
   }
 
   // final record = await mdict.query('coup');
   // print(record);
 
-  await sink.close();
+  // await sink.close();
 }
