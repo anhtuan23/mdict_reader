@@ -122,9 +122,9 @@ class MdictReader {
   Map<String, String> _parseHeader(String header) {
     var attributes = <String, String>{};
     var doc = XmlDocument.parse(header);
-    doc.rootElement.attributes.forEach((a) {
+    for (var a in doc.rootElement.attributes) {
       attributes[a.name.local] = a.value;
-    });
+    }
     return attributes;
   }
 
