@@ -13,7 +13,7 @@ class IsolatedManager {
 
   // Stream<dynamic> get resultStream => resultStreamController.broadcast();
 
-  static Completer<Null>? managerInitializedCompleter = Completer<Null>();
+  static Completer<void>? managerInitializedCompleter = Completer<void>();
 
   /// [dictPathList] is a list of [mdxPath, cssPath]
   static Future<IsolatedManager> init(List<List<String>> dictPathList) async {
