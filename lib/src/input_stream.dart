@@ -57,11 +57,10 @@ class BytesInputStream extends InputStream {
 
   /// Create a InputStream for reading from a List<int>
   BytesInputStream(Uint8List data,
-      {this.byteOrder = ByteOrder.bigEndian, int start = 0, int? length})
+      {this.byteOrder = ByteOrder.bigEndian, this.start = 0, int? length})
       : buffer =
             Uint8List.view(data.buffer, data.offsetInBytes, data.lengthInBytes),
-        offset = start,
-        start = start {
+        offset = start {
     _length = length ?? buffer.length;
   }
 
