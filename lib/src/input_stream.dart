@@ -3,8 +3,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 enum ByteOrder {
-  little_endian,
-  big_endian,
+  littleEndian,
+  bigEndian,
 }
 
 abstract class InputStream {
@@ -57,7 +57,7 @@ class BytesInputStream extends InputStream {
 
   /// Create a InputStream for reading from a List<int>
   BytesInputStream(Uint8List data,
-      {this.byteOrder = ByteOrder.big_endian, int start = 0, int? length})
+      {this.byteOrder = ByteOrder.bigEndian, int start = 0, int? length})
       : buffer =
             Uint8List.view(data.buffer, data.offsetInBytes, data.lengthInBytes),
         offset = start,
@@ -191,7 +191,7 @@ class BytesInputStream extends InputStream {
   Future<int> readUint16() async {
     final b1 = buffer[offset++] & 0xff;
     final b2 = buffer[offset++] & 0xff;
-    if (byteOrder == ByteOrder.big_endian) {
+    if (byteOrder == ByteOrder.bigEndian) {
       return (b1 << 8) | b2;
     }
     return (b2 << 8) | b1;
@@ -204,7 +204,7 @@ class BytesInputStream extends InputStream {
     final b2 = buffer[offset++] & 0xff;
     final b3 = buffer[offset++] & 0xff;
     final b4 = buffer[offset++] & 0xff;
-    if (byteOrder == ByteOrder.big_endian) {
+    if (byteOrder == ByteOrder.bigEndian) {
       return (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
     }
     return (b4 << 24) | (b3 << 16) | (b2 << 8) | b1;
@@ -221,7 +221,7 @@ class BytesInputStream extends InputStream {
     final b6 = buffer[offset++] & 0xff;
     final b7 = buffer[offset++] & 0xff;
     final b8 = buffer[offset++] & 0xff;
-    if (byteOrder == ByteOrder.big_endian) {
+    if (byteOrder == ByteOrder.bigEndian) {
       return (b1 << 56) |
           (b2 << 48) |
           (b3 << 40) |
@@ -275,7 +275,7 @@ class FileInputStream extends InputStream {
 
   static Future<FileInputStream> create(
     String path, {
-    ByteOrder byteOrder = ByteOrder.big_endian,
+    ByteOrder byteOrder = ByteOrder.bigEndian,
     int bufferSize = _kDefaultBufferSize,
   }) async {
     final fileInputStream = FileInputStream._(
@@ -383,7 +383,7 @@ class FileInputStream extends InputStream {
       b1 = await readByte();
       b2 = await readByte();
     }
-    if (byteOrder == ByteOrder.big_endian) {
+    if (byteOrder == ByteOrder.bigEndian) {
       return (b1 << 8) | b2;
     }
     return (b2 << 8) | b1;
@@ -408,7 +408,7 @@ class FileInputStream extends InputStream {
       b4 = await readByte();
     }
 
-    if (byteOrder == ByteOrder.big_endian) {
+    if (byteOrder == ByteOrder.bigEndian) {
       return (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
     }
     return (b4 << 24) | (b3 << 16) | (b2 << 8) | b1;
@@ -445,7 +445,7 @@ class FileInputStream extends InputStream {
       b8 = await readByte();
     }
 
-    if (byteOrder == ByteOrder.big_endian) {
+    if (byteOrder == ByteOrder.bigEndian) {
       return (b1 << 56) |
           (b2 << 48) |
           (b3 << 40) |
