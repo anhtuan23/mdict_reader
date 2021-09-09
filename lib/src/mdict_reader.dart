@@ -6,19 +6,23 @@ import 'input_stream.dart';
 import 'models.dart';
 
 class Key {
+  Key(this.key, this.offset, [this.length = -1]);
+
   String key;
   int offset;
   int length;
-  Key(this.key, this.offset, [this.length = -1]);
 }
 
 class Record {
+  Record(this.compSize, this.decompSize);
+
   int compSize;
   int decompSize;
-  Record(this.compSize, this.decompSize);
 }
 
 class MdictReader {
+  MdictReader._(this.path, this._cssPath);
+
   final String path;
   final String _cssPath;
   late String _cssContent;
@@ -31,8 +35,6 @@ class MdictReader {
   bool get isMdd => path.endsWith('.mdd');
 
   String get name => _name ?? 'Untitled';
-
-  MdictReader._(this.path, this._cssPath);
 
   static Future<MdictReader> create(String path, [String cssPath = '']) async {
     final mdict = MdictReader._(path, cssPath);

@@ -3,8 +3,9 @@ include: package:lints/recommended.yaml
 linter:
   rules:
     - prefer_single_quotes
-    - sort_child_properties_last
     - unawaited_futures
+    - sort_child_properties_last
+    - sort_constructors_first
 
 analyzer:
   exclude:

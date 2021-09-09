@@ -50,11 +50,6 @@ abstract class InputStream {
 
 /// A buffer that can be read as a stream of bytes
 class BytesInputStream extends InputStream {
-  Uint8List buffer;
-  late int offset;
-  late int start;
-  ByteOrder byteOrder;
-
   /// Create a InputStream for reading from a List<int>
   BytesInputStream(Uint8List data,
       {this.byteOrder = ByteOrder.bigEndian, this.start = 0, int? length})
@@ -63,6 +58,11 @@ class BytesInputStream extends InputStream {
         offset = start {
     _length = length ?? buffer.length;
   }
+
+  Uint8List buffer;
+  late int offset;
+  late int start;
+  ByteOrder byteOrder;
 
   ///  The current read position relative to the start of the buffer.
   @override
@@ -255,6 +255,12 @@ class BytesInputStream extends InputStream {
 }
 
 class FileInputStream extends InputStream {
+  FileInputStream._(
+    this.path, {
+    required this.byteOrder,
+    required int bufferSize,
+  });
+
   final String path;
   final ByteOrder byteOrder;
   late RandomAccessFile _file;
@@ -265,12 +271,6 @@ class FileInputStream extends InputStream {
   int _bufferPosition = 0;
   late int _maxBufferSize;
   static const int _kDefaultBufferSize = 4096;
-
-  FileInputStream._(
-    this.path, {
-    required this.byteOrder,
-    required int bufferSize,
-  });
 
   static Future<FileInputStream> create(
     String path, {
