@@ -342,9 +342,9 @@ class FileInputStream extends InputStream {
   }
 
   @override
-  Future<void> rewind([int count = 1]) async {
-    if (_bufferPosition - count < 0) {
-      var remaining = (_bufferPosition - count).abs();
+  Future<void> rewind([int length = 1]) async {
+    if (_bufferPosition - length < 0) {
+      var remaining = (_bufferPosition - length).abs();
       _filePosition = _filePosition - _bufferSize - remaining;
       if (_filePosition < 0) {
         _filePosition = 0;
@@ -353,7 +353,7 @@ class FileInputStream extends InputStream {
       await _readBuffer();
       return;
     }
-    _bufferPosition -= count;
+    _bufferPosition -= length;
   }
 
   @override
@@ -465,7 +465,7 @@ class FileInputStream extends InputStream {
   }
 
   @override
-  Future<Uint8List> readBytes(int length) async {
+  Future<Uint8List> readBytes(int count) async {
     if (isEOS) {
       return Uint8List.fromList(<int>[]);
     }
@@ -474,32 +474,32 @@ class FileInputStream extends InputStream {
       await _readBuffer();
     }
 
-    if (_remainingBufferSize >= length) {
-      final bytes = _buffer.sublist(_bufferPosition, _bufferPosition + length);
-      _bufferPosition += length;
+    if (_remainingBufferSize >= count) {
+      final bytes = _buffer.sublist(_bufferPosition, _bufferPosition + count);
+      _bufferPosition += count;
       return bytes;
     }
 
     var totalRemaining = fileRemaining + _remainingBufferSize;
-    if (length > totalRemaining) {
-      length = totalRemaining;
+    if (count > totalRemaining) {
+      count = totalRemaining;
     }
 
-    final bytes = Uint8List(length);
+    final bytes = Uint8List(count);
 
     var offset = 0;
-    while (length > 0) {
+    while (count > 0) {
       var remaining = _bufferSize - _bufferPosition;
-      var end = (length > remaining) ? _bufferSize : (_bufferPosition + length);
+      var end = (count > remaining) ? _bufferSize : (_bufferPosition + count);
       final l = _buffer.sublist(_bufferPosition, end);
       // TODO probably better to use bytes.setRange here.
       for (var i = 0; i < l.length; ++i) {
         bytes[offset + i] = l[i];
       }
       offset += l.length;
-      length -= l.length;
+      count -= l.length;
       _bufferPosition = end;
-      if (length > 0 && _bufferPosition == _bufferSize) {
+      if (count > 0 && _bufferPosition == _bufferSize) {
         await _readBuffer();
         if (_bufferSize == 0) {
           break;
