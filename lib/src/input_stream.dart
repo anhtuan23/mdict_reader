@@ -481,9 +481,9 @@ class FileInputStream extends InputStream {
       return bytes;
     }
 
-    var total_remaining = fileRemaining + _remainingBufferSize;
-    if (length > total_remaining) {
-      length = total_remaining;
+    var totalRemaining = fileRemaining + _remainingBufferSize;
+    if (length > totalRemaining) {
+      length = totalRemaining;
     }
 
     final bytes = Uint8List(length);

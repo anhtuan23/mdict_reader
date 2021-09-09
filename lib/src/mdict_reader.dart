@@ -13,9 +13,9 @@ class Key {
 }
 
 class Record {
-  int comp_size;
-  int decomp_size;
-  Record(this.comp_size, this.decomp_size);
+  int compSize;
+  int decompSize;
+  Record(this.compSize, this.decompSize);
 }
 
 class MdictReader {
@@ -23,9 +23,9 @@ class MdictReader {
   final String _cssPath;
   late String _cssContent;
   late Map<String, String> _header;
-  late List<Key> _key_list;
-  late List<Record> _record_list;
-  late int _record_block_offset;
+  late List<Key> _keyList;
+  late List<Record> _recordList;
+  late int _recordBlockOffset;
   late String? _name;
 
   bool get isMdd => path.endsWith('.mdd');
@@ -43,19 +43,19 @@ class MdictReader {
   Future<void> init() async {
     var _in = await FileInputStream.create(path, bufferSize: 64 * 1024);
     _cssContent = await _readCss();
-    _header = await _read_header(_in);
+    _header = await _readHeader(_in);
     if (double.parse(_header['GeneratedByEngineVersion'] ?? '2') < 2) {
       throw 'This program does not support mdict version 1.x';
     }
     _name = _header['Title'];
-    _key_list = await _read_keys(_in);
-    _record_list = await _read_records(_in);
-    _record_block_offset = _in.position;
+    _keyList = await _readKeys(_in);
+    _recordList = await _readRecords(_in);
+    _recordBlockOffset = _in.position;
     await _in.close();
   }
 
   List<String> keys() {
-    return _key_list.map((key) => key.key).toList();
+    return _keyList.map((key) => key.key).toList();
   }
 
   Future<MdictSearchResult> search(String term) {
@@ -65,7 +65,7 @@ class MdictReader {
 
       term = term.trim().toLowerCase();
 
-      for (var key in _key_list) {
+      for (var key in _keyList) {
         if (key.key.toLowerCase().startsWith(term)) {
           startsWithList.add(key.key);
         } else if (key.key.toLowerCase().contains(term)) {
@@ -80,10 +80,10 @@ class MdictReader {
   /// * Should only be used in a mdx reader
   /// Return [html, css] of result
   Future<List<String>> query(String keyWord) async {
-    var keys = _key_list.where((key) => key.key == keyWord).toList();
+    var keys = _keyList.where((key) => key.key == keyWord).toList();
     final records = <String>[];
     for (var key in keys) {
-      final record = await _read_record(key.key, key.offset, key.length, isMdd);
+      final record = await _readRecord(key.key, key.offset, key.length, isMdd);
 
       records.add(record.trim());
     }
@@ -92,10 +92,10 @@ class MdictReader {
   }
 
   Future<dynamic> legacyQuery(String keyWord) async {
-    var keys = _key_list.where((key) => key.key == keyWord).toList();
+    var keys = _keyList.where((key) => key.key == keyWord).toList();
     final records = [];
     for (var key in keys) {
-      final record = await _read_record(key.key, key.offset, key.length, isMdd);
+      final record = await _readRecord(key.key, key.offset, key.length, isMdd);
       records.add(record);
     }
     if (isMdd) {
@@ -112,14 +112,14 @@ class MdictReader {
     return '';
   }
 
-  Future<Map<String, String>> _read_header(FileInputStream _in) async {
-    var header_length = await _in.readUint32();
-    var header = await _in.readString(size: header_length, utf8: false);
+  Future<Map<String, String>> _readHeader(FileInputStream _in) async {
+    var headerLength = await _in.readUint32();
+    var header = await _in.readString(size: headerLength, utf8: false);
     await _in.skip(4);
-    return _parse_header(header);
+    return _parseHeader(header);
   }
 
-  Map<String, String> _parse_header(String header) {
+  Map<String, String> _parseHeader(String header) {
     var attributes = <String, String>{};
     var doc = XmlDocument.parse(header);
     doc.rootElement.attributes.forEach((a) {
@@ -128,117 +128,117 @@ class MdictReader {
     return attributes;
   }
 
-  Future<List<Key>> _read_keys(FileInputStream _in) async {
+  Future<List<Key>> _readKeys(FileInputStream _in) async {
     var encrypted = _header['Encrypted'] == '2';
     var utf8 = _header['Encoding'] == 'UTF-8';
-    var key_num_blocks = await _in.readUint64();
+    var keyNumBlocks = await _in.readUint64();
     // ignore: unused_local_variable
-    var key_num_entries = await _in.readUint64();
+    var keyNumEntries = await _in.readUint64();
     // ignore: unused_local_variable
-    var key_index_decomp_len = await _in.readUint64();
-    var key_index_comp_len = await _in.readUint64();
+    var keyIndexDecompLen = await _in.readUint64();
+    var keyIndexCompLen = await _in.readUint64();
     // ignore: unused_local_variable
-    var key_blocks_len = await _in.readUint64();
+    var keyBlocksLen = await _in.readUint64();
     await _in.skip(4);
-    var comp_size = List.filled(key_num_blocks, -1);
-    var decomp_size = List.filled(key_num_blocks, -1);
-    var num_entries = List.filled(key_num_blocks, -1);
-    var index_comp_block = await _in.readBytes(key_index_comp_len);
+    var compSize = List.filled(keyNumBlocks, -1);
+    var decompSize = List.filled(keyNumBlocks, -1);
+    var numEntries = List.filled(keyNumBlocks, -1);
+    var indexCompBlock = await _in.readBytes(keyIndexCompLen);
     if (encrypted) {
-      var key = _compute_key(index_comp_block);
-      _decrypt_block(key, index_comp_block, 8);
+      var key = _computeKey(indexCompBlock);
+      _decryptBlock(key, indexCompBlock, 8);
     }
-    var index_ds = _decompress_block(index_comp_block);
-    for (var i = 0; i < key_num_blocks; i++) {
-      num_entries[i] = await index_ds.readUint64();
-      var first_length = (await index_ds.readUint16()) + 1;
+    var indexDs = _decompressBlock(indexCompBlock);
+    for (var i = 0; i < keyNumBlocks; i++) {
+      numEntries[i] = await indexDs.readUint64();
+      var firstLength = (await indexDs.readUint16()) + 1;
       if (!utf8) {
-        first_length = first_length * 2;
+        firstLength = firstLength * 2;
       }
       // ignore: unused_local_variable
-      var first_word =
-          await index_ds.readString(size: first_length, utf8: utf8);
-      var last_length = (await index_ds.readUint16()) + 1;
+      var firstWord =
+          await indexDs.readString(size: firstLength, utf8: utf8);
+      var lastLength = (await indexDs.readUint16()) + 1;
       if (!utf8) {
-        last_length = last_length * 2;
+        lastLength = lastLength * 2;
       }
       // print('Last length: $last_length\n utf8: $utf8\n\n');
       // ignore: unused_local_variable
-      var last_word = await index_ds.readString(size: last_length, utf8: utf8);
-      comp_size[i] = await index_ds.readUint64();
-      decomp_size[i] = await index_ds.readUint64();
+      var lastWord = await indexDs.readString(size: lastLength, utf8: utf8);
+      compSize[i] = await indexDs.readUint64();
+      decompSize[i] = await indexDs.readUint64();
     }
-    var key_list = <Key>[];
-    for (var i = 0; i < key_num_blocks; i++) {
-      var key_comp_block = await _in.readBytes(comp_size[i]);
-      var block_in = _decompress_block(key_comp_block);
-      for (var j = 0; j < num_entries[i]; j++) {
-        var offset = await block_in.readUint64();
-        var word = await block_in.readString(utf8: utf8);
-        if (key_list.isNotEmpty) {
-          key_list[key_list.length - 1].length =
-              offset - key_list[key_list.length - 1].offset;
+    var keyList = <Key>[];
+    for (var i = 0; i < keyNumBlocks; i++) {
+      var keyCompBlock = await _in.readBytes(compSize[i]);
+      var blockIn = _decompressBlock(keyCompBlock);
+      for (var j = 0; j < numEntries[i]; j++) {
+        var offset = await blockIn.readUint64();
+        var word = await blockIn.readString(utf8: utf8);
+        if (keyList.isNotEmpty) {
+          keyList[keyList.length - 1].length =
+              offset - keyList[keyList.length - 1].offset;
         }
-        key_list.add(Key(word, offset));
+        keyList.add(Key(word, offset));
       }
     }
-    return key_list;
+    return keyList;
   }
 
-  Future<List<Record>> _read_records(FileInputStream _in) async {
-    var record_num_blocks = await _in.readUint64();
+  Future<List<Record>> _readRecords(FileInputStream _in) async {
+    var recordNumBlocks = await _in.readUint64();
     // ignore: unused_local_variable
-    var record_num_entries = await _in.readUint64();
+    var recordNumEntries = await _in.readUint64();
     // ignore: unused_local_variable
-    var record_index_len = await _in.readUint64();
+    var recordIndexLen = await _in.readUint64();
     // ignore: unused_local_variable
-    var record_blocks_len = await _in.readUint64();
-    var record_list = <Record>[];
-    for (var i = 0; i < record_num_blocks; i++) {
-      var record_block_comp_size = await _in.readUint64();
-      var record_block_decomp_size = await _in.readUint64();
-      record_list.add(Record(record_block_comp_size, record_block_decomp_size));
+    var recordBlocksLen = await _in.readUint64();
+    var recordList = <Record>[];
+    for (var i = 0; i < recordNumBlocks; i++) {
+      var recordBlockCompSize = await _in.readUint64();
+      var recordBlockDecompSize = await _in.readUint64();
+      recordList.add(Record(recordBlockCompSize, recordBlockDecompSize));
     }
-    return record_list;
+    return recordList;
   }
 
-  Future<dynamic> _read_record(
+  Future<dynamic> _readRecord(
       String word, int offset, int length, bool isMdd) async {
-    var compressed_offset = 0;
-    var decompressed_offset = 0;
-    var compressed_size = 0;
-    var decompressed_size = 0;
-    for (var record in _record_list) {
-      compressed_size = record.comp_size;
-      decompressed_size = record.decomp_size;
-      if ((decompressed_offset + decompressed_size) > offset) {
+    var compressedOffset = 0;
+    var decompressedOffset = 0;
+    var compressedSize = 0;
+    var decompressedSize = 0;
+    for (var record in _recordList) {
+      compressedSize = record.compSize;
+      decompressedSize = record.decompSize;
+      if ((decompressedOffset + decompressedSize) > offset) {
         break;
       }
-      decompressed_offset += decompressed_size;
-      compressed_offset += compressed_size;
+      decompressedOffset += decompressedSize;
+      compressedOffset += compressedSize;
     }
     var _in = await File(path).open();
-    await _in.setPosition(_record_block_offset + compressed_offset);
-    var block = await _in.read(compressed_size);
+    await _in.setPosition(_recordBlockOffset + compressedOffset);
+    var block = await _in.read(compressedSize);
     await _in.close();
-    var block_in = _decompress_block(block);
-    await block_in.skip(offset - decompressed_offset);
+    var blockIn = _decompressBlock(block);
+    await blockIn.skip(offset - decompressedOffset);
     if (isMdd) {
-      var record_block = await block_in.toUint8List();
+      var recordBlock = await blockIn.toUint8List();
       if (length > 0) {
-        return record_block.sublist(0, length);
+        return recordBlock.sublist(0, length);
       } else {
-        return record_block;
+        return recordBlock;
       }
     } else {
       var utf8 = _header['Encoding'] == 'UTF-8';
-      return block_in.readString(size: length, utf8: utf8);
+      return blockIn.readString(size: length, utf8: utf8);
     }
   }
 
-  InputStream _decompress_block(Uint8List comp_block) {
-    var flag = comp_block[0];
-    var data = comp_block.sublist(8);
+  InputStream _decompressBlock(Uint8List compBlock) {
+    var flag = compBlock[0];
+    var data = compBlock.sublist(8);
     if (flag == 2) {
       return BytesInputStream(zlib.decoder.convert(data) as Uint8List);
     } else {
@@ -246,7 +246,7 @@ class MdictReader {
     }
   }
 
-  void _decrypt_block(Uint8List key, Uint8List data, int offset) {
+  void _decryptBlock(Uint8List key, Uint8List data, int offset) {
     var previous = 0x36;
     for (var i = 0; i < data.length - offset; i++) {
       var t = (data[i + offset] >> 4 | data[i + offset] << 4) & 0xff;
@@ -256,7 +256,7 @@ class MdictReader {
     }
   }
 
-  Uint8List _compute_key(Uint8List data) {
+  Uint8List _computeKey(Uint8List data) {
     var ripemd128 = Digest('RIPEMD-128');
     ripemd128.update(data, 4, 4);
     ripemd128.update(
