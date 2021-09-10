@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:equatable/equatable.dart';
 import 'package:pointycastle/api.dart';
 import 'package:xml/xml.dart';
 import 'input_stream.dart';
@@ -19,11 +20,15 @@ class Record {
   int decompSize;
 }
 
-class MdictFiles {
+/// Need a stable hash to work with IsolatedManager's reload
+class MdictFiles extends Equatable {
   const MdictFiles(this.mdxPath, [this.cssPath = '']);
 
   final String mdxPath;
   final String cssPath;
+
+  @override
+  List<Object?> get props => [mdxPath, cssPath];
 }
 
 class MdictSearchResultLists {
