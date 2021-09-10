@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:pointycastle/api.dart';
 import 'package:xml/xml.dart';
 import 'input_stream.dart';
-import 'models.dart';
 
 class Key {
   Key(this.key, this.offset, [this.length = -1]);
@@ -25,6 +24,13 @@ class MdictFiles {
 
   final String mdxPath;
   final String cssPath;
+}
+
+class MdictSearchResult {
+  const MdictSearchResult(this.startsWithList, this.containsList);
+
+  final List<String> startsWithList;
+  final List<String> containsList;
 }
 
 class MdictReader {

@@ -1,5 +1,14 @@
 import 'package:mdict_reader/mdict_reader.dart';
 
+class SearchReturn {
+  SearchReturn(this.word);
+
+  final String word;
+  final List<String> dictNames = [];
+
+  void addDictName(String dictName) => dictNames.add(dictName);
+}
+
 class QueryReturn {
   const QueryReturn(this.word, this.dictName, this.html, this.css);
 
@@ -31,23 +40,23 @@ class MdictManager {
     return MdictManager._(mdictList);
   }
 
-  Future<Map<String, List<String>>> search(String term) async {
-    final startsWithMap = <String, List<String>>{};
-    final containsMap = <String, List<String>>{};
+  Future<List<SearchReturn>> search(String term) async {
+    final startsWithMap = <String, SearchReturn>{};
+    final containsMap = <String, SearchReturn>{};
     for (var mdict in _mdictList) {
       final mdictSearchResult = await mdict.search(term);
 
       for (var key in mdictSearchResult.startsWithList) {
-        final currentDictList = startsWithMap[key] ?? [];
-        startsWithMap[key] = currentDictList..add(mdict.name);
+        final currentValue = startsWithMap[key] ?? SearchReturn(key);
+        startsWithMap[key] = currentValue..addDictName(mdict.name);
       }
 
       for (var key in mdictSearchResult.containsList) {
-        final currentDictList = containsMap[key] ?? [];
-        containsMap[key] = currentDictList..add(mdict.name);
+        final currentValue = containsMap[key] ?? SearchReturn(key);
+        containsMap[key] = currentValue..addDictName(mdict.name);
       }
     }
-    return startsWithMap..addAll(containsMap);
+    return [...startsWithMap.values, ...containsMap.values];
   }
 
   Future<List<QueryReturn>> query(String word) async {

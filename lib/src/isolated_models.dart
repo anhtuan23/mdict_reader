@@ -27,11 +27,11 @@ class SearchInput extends Equatable {
 }
 
 class SearchResult implements Result {
-  const SearchResult(this.inputHashCode, this.searchResult);
+  const SearchResult(this.inputHashCode, this.searchReturnList);
 
   @override
   final int inputHashCode;
-  final Map<String, List<String>> searchResult;
+  final List<SearchReturn> searchReturnList;
 }
 
 class QueryInput extends Equatable {

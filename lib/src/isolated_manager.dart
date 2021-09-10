@@ -67,8 +67,8 @@ class IsolatedManager {
         mainSendPort
             .send(PathNameMapResult(data.hashCode, manager.pathNameMap));
       } else if (data is SearchInput) {
-        final searchResult = await manager.search(data.term);
-        mainSendPort.send(SearchResult(data.hashCode, searchResult));
+        final searchReturnList = await manager.search(data.term);
+        mainSendPort.send(SearchResult(data.hashCode, searchReturnList));
       } else if (data is QueryInput) {
         final queryResult = await manager.query(data.word);
         mainSendPort.send(QueryResult(data.hashCode, queryResult));
@@ -101,10 +101,10 @@ class IsolatedManager {
     }
   }
 
-  Future<Map<String, List<String>>> search(String term) async {
+  Future<List<SearchReturn>> search(String term) async {
     final input = SearchInput(term);
     final result = await _doWork(input);
-    return (result as SearchResult).searchResult;
+    return (result as SearchResult).searchReturnList;
   }
 
   Future<List<QueryReturn>> query(String word) async {
