@@ -65,7 +65,7 @@ class MdictReader {
     _cssContent = await _readCss();
     _header = await _readHeader(_in);
     if (double.parse(_header['GeneratedByEngineVersion'] ?? '2') < 2) {
-      throw 'This program does not support mdict version 1.x';
+      throw Exception('This program does not support mdict version 1.x');
     }
     _name = _header['Title'];
     _keyList = await _readKeys(_in);
