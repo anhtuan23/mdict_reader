@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:mdict_reader/mdict_reader.dart';
 
@@ -13,10 +12,10 @@ void main() async {
   // final word = '哽咽';
 
   final mdictManager = await MdictManager.create(mdxPaths);
-  final records = await mdictManager.query(word);
+  final queryReturnList = await mdictManager.query(word);
 
-  for (var record in records.keys) {
-    print(record);
+  for (var queryReturn in queryReturnList) {
+    print(queryReturn.html);
     print('--------------------------------');
   }
 

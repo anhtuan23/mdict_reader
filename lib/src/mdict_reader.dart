@@ -31,6 +31,11 @@ class MdictSearchResult {
 
   final List<String> startsWithList;
   final List<String> containsList;
+
+  @override
+  String toString() {
+    return 'startsWithList: $startsWithList\ncontainsList: $containsList';
+  }
 }
 
 class MdictReader {
