@@ -7,6 +7,11 @@ class SearchReturn {
   final List<String> dictNames = [];
 
   void addDictName(String dictName) => dictNames.add(dictName);
+
+  @override
+  String toString() {
+    return 'Word: $word\nDict names: $dictNames\n';
+  }
 }
 
 class QueryReturn {
@@ -16,6 +21,11 @@ class QueryReturn {
   final String dictName;
   final String html;
   final String css;
+
+  @override
+  String toString() {
+    return 'Word: $word\nDictname: $dictName\nHtml: $html\nCss: $css\n';
+  }
 }
 
 class MdictManager {
