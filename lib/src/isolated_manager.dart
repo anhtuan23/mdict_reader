@@ -6,27 +6,25 @@ import 'package:mdict_reader/src/isolated_models.dart';
 import '../mdict_reader.dart';
 
 class IsolatedManager {
-  IsolatedManager(this.toIsolateSender, this.resultStreamController);
+  IsolatedManager(this.isolateSendPort, this.resultStreamController);
 
-  final SendPort toIsolateSender;
+  final SendPort isolateSendPort;
   final StreamController<dynamic> resultStreamController;
 
-  // Stream<dynamic> get resultStream => resultStreamController.broadcast();
-
-  static Completer<void>? managerInitializedCompleter = Completer<void>();
+  static Completer<void>? managerInitCompleter = Completer<void>();
 
   /// [dictPathList] is a list of [mdxPath, cssPath]
   static Future<IsolatedManager> init(List<List<String>> dictPathList) async {
     final _resultStreamController = StreamController<dynamic>.broadcast();
 
-    final toIsolateSendPort = await _initIsolate(_resultStreamController);
+    final isolateSendPort = await _initIsolate(_resultStreamController);
 
     /// Begin to create manager right away
     final input = InitManagerInput(dictPathList);
-    toIsolateSendPort.send(input);
+    isolateSendPort.send(input);
 
     return IsolatedManager(
-      toIsolateSendPort,
+      isolateSendPort,
       _resultStreamController,
     );
   }
@@ -34,64 +32,62 @@ class IsolatedManager {
   static Future<SendPort> _initIsolate(
     StreamController<dynamic> resultStreamController,
   ) async {
-    final completer = Completer<SendPort>();
-    final isolateToMainStream = ReceivePort();
+    final isolateSendPortCompleter = Completer<SendPort>();
+    final mainReceivePort = ReceivePort();
 
-    isolateToMainStream.listen((data) {
+    mainReceivePort.listen((data) {
       if (data is SendPort) {
-        final mainToIsolateStream = data;
-        completer.complete(mainToIsolateStream);
+        isolateSendPortCompleter.complete(data);
       }
 
       /// On initial init a [PathNameMapResult] will be returned
       /// use this value to mark completer as completed
-      /// data is PathNameMapResult means manager is initialized
-      else if (data is PathNameMapResult &&
-          managerInitializedCompleter != null) {
-        managerInitializedCompleter?.complete();
-        managerInitializedCompleter = null;
+      /// Data is PathNameMapResult means manager is initialized
+      else if (data is PathNameMapResult && managerInitCompleter != null) {
+        managerInitCompleter?.complete();
+        managerInitCompleter = null;
       } else {
         resultStreamController.add(data);
       }
     });
 
-    await Isolate.spawn(_myIsolate, isolateToMainStream.sendPort);
-    return completer.future;
+    await Isolate.spawn(_myIsolate, mainReceivePort.sendPort);
+    return isolateSendPortCompleter.future;
   }
 
-  static void _myIsolate(SendPort isolateToMainStream) {
-    final mainToIsolateStream = ReceivePort();
-    isolateToMainStream.send(mainToIsolateStream.sendPort);
+  static void _myIsolate(SendPort mainSendPort) {
+    final isolateReceivePort = ReceivePort();
+    mainSendPort.send(isolateReceivePort.sendPort);
 
-    MdictManager? manager;
+    late MdictManager manager;
 
-    mainToIsolateStream.listen((data) async {
+    isolateReceivePort.listen((data) async {
       // First data is mdict paths to init dictionary
       if (data is InitManagerInput) {
         manager = await MdictManager.create(data.dictPathList);
-        isolateToMainStream
-            .send(PathNameMapResult(data.hashCode, manager!.pathNameMap));
+        mainSendPort
+            .send(PathNameMapResult(data.hashCode, manager.pathNameMap));
       } else if (data is SearchInput) {
-        final searchResult = await manager!.search(data.term);
-        isolateToMainStream.send(SearchResult(data.hashCode, searchResult));
+        final searchResult = await manager.search(data.term);
+        mainSendPort.send(SearchResult(data.hashCode, searchResult));
       } else if (data is QueryInput) {
-        final queryResult = await manager!.query(data.word);
-        isolateToMainStream.send(QueryResult(data.hashCode, queryResult));
+        final queryResult = await manager.query(data.word);
+        mainSendPort.send(QueryResult(data.hashCode, queryResult));
       } else if (data is ReOrderInput) {
-        manager = manager!.reOrder(data.oldIndex, data.newIndex);
-        isolateToMainStream
-            .send(PathNameMapResult(data.hashCode, manager!.pathNameMap));
+        manager = manager.reOrder(data.oldIndex, data.newIndex);
+        mainSendPort
+            .send(PathNameMapResult(data.hashCode, manager.pathNameMap));
       }
     });
   }
 
   Future<Result> _doWork<I>(I input) async {
-    final _completer = managerInitializedCompleter;
+    final _completer = managerInitCompleter;
     if (_completer != null) {
       await _completer.future;
       return _doWork(input);
     } else {
-      toIsolateSender.send(input);
+      isolateSendPort.send(input);
 
       final completer = Completer<Result>();
       StreamSubscription? streamSubscription;
