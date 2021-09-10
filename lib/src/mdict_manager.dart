@@ -9,18 +9,16 @@ class MdictManager {
       {for (final mdict in _mdictList) mdict.path: mdict.name};
 
   /// [dictPaths] is a list of [mdxPath, cssPath]
-  static Future<MdictManager> create(List<List<String>> dictPaths) async {
+  static Future<MdictManager> create(List<MdictFiles> mdictFilesList) async {
     final mdictList = <MdictReader>[];
-    for (var i = 0; i < dictPaths.length; i++) {
+    for (var mdictFiles in mdictFilesList) {
       try {
-        final mdict =
-            await MdictReader.create(dictPaths[i][0], dictPaths[i][1]);
+        final mdict = await MdictReader.create(mdictFiles);
         mdictList.add(mdict);
       } catch (e) {
-        print('Error with ${dictPaths[i][0]}: $e');
+        print('Error with ${mdictFiles.cssPath}: $e');
       }
     }
-
     return MdictManager._(mdictList);
   }
 

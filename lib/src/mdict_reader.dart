@@ -20,6 +20,13 @@ class Record {
   int decompSize;
 }
 
+class MdictFiles {
+  const MdictFiles(this.mdxPath, [this.cssPath = '']);
+
+  final String mdxPath;
+  final String cssPath;
+}
+
 class MdictReader {
   MdictReader._(this.path, this._cssPath);
 
@@ -36,8 +43,8 @@ class MdictReader {
 
   String get name => _name ?? 'Untitled';
 
-  static Future<MdictReader> create(String path, [String cssPath = '']) async {
-    final mdict = MdictReader._(path, cssPath);
+  static Future<MdictReader> create(MdictFiles mdictFiles) async {
+    final mdict = MdictReader._(mdictFiles.mdxPath, mdictFiles.cssPath);
     await mdict.init();
     return mdict;
   }
@@ -107,6 +114,8 @@ class MdictReader {
   }
 
   Future<String> _readCss() async {
+    // * Check file.exists() of empty path cause CRASH: Stack dump aborted because InitialRegisterCheck failed
+    if (_cssPath.isEmpty) return '';
     final file = File(_cssPath);
     if (await file.exists()) {
       return file.readAsString();
@@ -158,8 +167,7 @@ class MdictReader {
         firstLength = firstLength * 2;
       }
       // ignore: unused_local_variable
-      var firstWord =
-          await indexDs.readString(size: firstLength, utf8: utf8);
+      var firstWord = await indexDs.readString(size: firstLength, utf8: utf8);
       var lastLength = (await indexDs.readUint16()) + 1;
       if (!utf8) {
         lastLength = lastLength * 2;

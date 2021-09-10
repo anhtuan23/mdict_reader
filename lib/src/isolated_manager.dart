@@ -13,14 +13,13 @@ class IsolatedManager {
 
   static Completer<void>? managerInitCompleter = Completer<void>();
 
-  /// [dictPathList] is a list of [mdxPath, cssPath]
-  static Future<IsolatedManager> init(List<List<String>> dictPathList) async {
+  static Future<IsolatedManager> init(List<MdictFiles> mdictFilesList) async {
     final _resultStreamController = StreamController<dynamic>.broadcast();
 
     final isolateSendPort = await _initIsolate(_resultStreamController);
 
     /// Begin to create manager right away
-    final input = InitManagerInput(dictPathList);
+    final input = InitManagerInput(mdictFilesList);
     isolateSendPort.send(input);
 
     return IsolatedManager(
@@ -64,7 +63,7 @@ class IsolatedManager {
     isolateReceivePort.listen((data) async {
       // First data is mdict paths to init dictionary
       if (data is InitManagerInput) {
-        manager = await MdictManager.create(data.dictPathList);
+        manager = await MdictManager.create(data.mdictFilesList);
         mainSendPort
             .send(PathNameMapResult(data.hashCode, manager.pathNameMap));
       } else if (data is SearchInput) {
@@ -121,9 +120,8 @@ class IsolatedManager {
     return (result as PathNameMapResult).pathNamePath;
   }
 
-  /// [dictPathList] is a list of [mdxPath, cssPath]
-  Future<Map<String, String>> reload(List<List<String>> dictPathList) async {
-    final input = InitManagerInput(dictPathList);
+  Future<Map<String, String>> reload(List<MdictFiles> mdictFilesList) async {
+    final input = InitManagerInput(mdictFilesList);
     final result = await _doWork(input);
     return (result as PathNameMapResult).pathNamePath;
   }
