@@ -1,5 +1,14 @@
 import 'package:mdict_reader/mdict_reader.dart';
 
+class QueryReturn {
+  const QueryReturn(this.word, this.dictName, this.html, this.css);
+
+  final String word;
+  final String dictName;
+  final String html;
+  final String css;
+}
+
 class MdictManager {
   const MdictManager._(this._mdictList);
 
@@ -41,14 +50,18 @@ class MdictManager {
     return startsWithMap..addAll(containsMap);
   }
 
-  /// returns {dictName: [html, css]}
-  Future<Map<String, List<String>>> query(String word) async {
-    final result = <String, List<String>>{};
+  Future<List<QueryReturn>> query(String word) async {
+    final result = <QueryReturn>[];
     for (var mdict in _mdictList) {
       final htmlCssList = await mdict.query(word);
 
       if (htmlCssList[0].isNotEmpty) {
-        result[mdict.name] = htmlCssList;
+        result.add(QueryReturn(
+          word,
+          mdict.name,
+          htmlCssList[0],
+          htmlCssList[1],
+        ));
       }
     }
     return result;

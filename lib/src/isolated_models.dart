@@ -43,11 +43,11 @@ class QueryInput extends Equatable {
 }
 
 class QueryResult implements Result {
-  const QueryResult(this.inputHashCode, this.queryResult);
+  const QueryResult(this.inputHashCode, this.queryReturns);
 
   @override
   final int inputHashCode;
-  final Map<String, List<String>> queryResult;
+  final List<QueryReturn> queryReturns;
 }
 
 class ReOrderInput extends Equatable {

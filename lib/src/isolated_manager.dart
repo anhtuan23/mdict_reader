@@ -107,11 +107,10 @@ class IsolatedManager {
     return (result as SearchResult).searchResult;
   }
 
-  /// returns {dictName: [html, css]}
-  Future<Map<String, List<String>>> query(String word) async {
+  Future<List<QueryReturn>> query(String word) async {
     final input = QueryInput(word);
     final result = await _doWork(input);
-    return (result as QueryResult).queryResult;
+    return (result as QueryResult).queryReturns;
   }
 
   Future<Map<String, String>> reOrder(int oldIndex, int newIndex) async {
