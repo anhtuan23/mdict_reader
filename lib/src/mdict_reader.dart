@@ -26,8 +26,8 @@ class MdictFiles {
   final String cssPath;
 }
 
-class MdictSearchResult {
-  const MdictSearchResult(this.startsWithList, this.containsList);
+class MdictSearchResultLists {
+  const MdictSearchResultLists(this.startsWithList, this.containsList);
 
   final List<String> startsWithList;
   final List<String> containsList;
@@ -78,7 +78,7 @@ class MdictReader {
     return _keyList.map((key) => key.key).toList();
   }
 
-  Future<MdictSearchResult> search(String term) {
+  Future<MdictSearchResultLists> search(String term) {
     return Future(() {
       final startsWithList = <String>[];
       final containsList = <String>[];
@@ -93,7 +93,7 @@ class MdictReader {
         }
       }
 
-      return MdictSearchResult(startsWithList, containsList);
+      return MdictSearchResultLists(startsWithList, containsList);
     });
   }
 
