@@ -10,6 +10,9 @@ void main() {
     MdictFiles(
       'test/assets/jmdict_v2.mdx',
     ),
+    MdictFiles(
+      'test/assets/wordnet20_v2.mdx',
+    ),
   ];
 
   final word = '勉強';
@@ -48,5 +51,14 @@ void main() {
     expect(secondDictReturn.dictName, equals('JMDict'));
     expect(secondDictReturn.html, isNotEmpty);
     expect(secondDictReturn.css, isEmpty);
+  });
+
+  test('reOrder function', () async {
+    var pathNameMap = mdictManager.pathNameMap;
+    expect(pathNameMap.values, equals(['CC-CEDICT', 'JMDict', 'WordNet 2.0']));
+
+    mdictManager = mdictManager.reOrder(2, 0);
+    pathNameMap = mdictManager.pathNameMap;
+    expect(pathNameMap.values, equals(['WordNet 2.0', 'CC-CEDICT', 'JMDict']));
   });
 }
