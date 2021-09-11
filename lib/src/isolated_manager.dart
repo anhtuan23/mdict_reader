@@ -16,7 +16,8 @@ class IsolatedManager {
 
   final Completer<void> managerInitCompleter;
 
-  static Future<IsolatedManager> init(Iterable<MdictFiles> mdictFilesIter) async {
+  static Future<IsolatedManager> init(
+      Iterable<MdictFiles> mdictFilesIter) async {
     final _resultStreamController = StreamController<dynamic>.broadcast();
     final managerInitCompleter = Completer<void>();
 
@@ -124,7 +125,8 @@ class IsolatedManager {
     return (result as PathNameMapResult).pathNamePath;
   }
 
-  Future<Map<String, String>> reload(List<MdictFiles> mdictFilesList) async {
+  Future<Map<String, String>> reload(
+      Iterable<MdictFiles> mdictFilesList) async {
     final input = InitManagerInput(mdictFilesList);
     final result = await _doWork(input);
     return (result as PathNameMapResult).pathNamePath;
