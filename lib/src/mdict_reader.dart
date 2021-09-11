@@ -22,13 +22,14 @@ class Record {
 
 /// Need a stable hash to work with IsolatedManager's reload
 class MdictFiles extends Equatable {
-  const MdictFiles(this.mdxPath, [this.cssPath = '']);
+  const MdictFiles(this.mdictFilePath, [this.cssPath = '']);
 
-  final String mdxPath;
+  /// Can be a mdx or mdd file
+  final String mdictFilePath;
   final String cssPath;
 
   @override
-  List<Object?> get props => [mdxPath, cssPath];
+  List<Object?> get props => [mdictFilePath, cssPath];
 }
 
 class MdictSearchResultLists {
@@ -60,7 +61,7 @@ class MdictReader {
   String get name => _name ?? 'Untitled';
 
   static Future<MdictReader> create(MdictFiles mdictFiles) async {
-    final mdict = MdictReader._(mdictFiles.mdxPath, mdictFiles.cssPath);
+    final mdict = MdictReader._(mdictFiles.mdictFilePath, mdictFiles.cssPath);
     await mdict.init();
     return mdict;
   }
