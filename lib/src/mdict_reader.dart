@@ -5,8 +5,8 @@ import 'package:pointycastle/api.dart';
 import 'package:xml/xml.dart';
 import 'input_stream.dart';
 
-class Key {
-  Key(this.key, this.offset, [this.length = -1]);
+class MdictKey {
+  MdictKey(this.key, this.offset, [this.length = -1]);
 
   String key;
   int offset;
@@ -51,7 +51,7 @@ class MdictReader {
   final String _cssPath;
   late String _cssContent;
   late Map<String, String> _header;
-  late List<Key> _keyList;
+  late List<MdictKey> _keyList;
   late List<Record> _recordList;
   late int _recordBlockOffset;
   late String? _name;
@@ -156,7 +156,7 @@ class MdictReader {
     return attributes;
   }
 
-  Future<List<Key>> _readKeys(FileInputStream _in) async {
+  Future<List<MdictKey>> _readKeys(FileInputStream _in) async {
     var encrypted = _header['Encrypted'] == '2';
     var utf8 = _header['Encoding'] == 'UTF-8';
     var keyNumBlocks = await _in.readUint64();
@@ -195,7 +195,7 @@ class MdictReader {
       compSize[i] = await indexDs.readUint64();
       decompSize[i] = await indexDs.readUint64();
     }
-    var keyList = <Key>[];
+    var keyList = <MdictKey>[];
     for (var i = 0; i < keyNumBlocks; i++) {
       var keyCompBlock = await _in.readBytes(compSize[i]);
       var blockIn = _decompressBlock(keyCompBlock);
@@ -206,7 +206,7 @@ class MdictReader {
           keyList[keyList.length - 1].length =
               offset - keyList[keyList.length - 1].offset;
         }
-        keyList.add(Key(word, offset));
+        keyList.add(MdictKey(word, offset));
       }
     }
     return keyList;
