@@ -2,12 +2,12 @@ import 'package:equatable/equatable.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 
 class InitManagerInput extends Equatable {
-  const InitManagerInput(this.mdictFilesList);
+  const InitManagerInput(this.mdictFilesIter);
 
-  final List<MdictFiles> mdictFilesList;
+  final Iterable<MdictFiles> mdictFilesIter;
 
   @override
-  List<Object?> get props => [mdictFilesList];
+  List<Object?> get props => [mdictFilesIter];
 }
 
 class PathNameMapResult implements Result {

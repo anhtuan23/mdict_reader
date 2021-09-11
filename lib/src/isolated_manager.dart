@@ -16,7 +16,7 @@ class IsolatedManager {
 
   final Completer<void> managerInitCompleter;
 
-  static Future<IsolatedManager> init(List<MdictFiles> mdictFilesList) async {
+  static Future<IsolatedManager> init(Iterable<MdictFiles> mdictFilesIter) async {
     final _resultStreamController = StreamController<dynamic>.broadcast();
     final managerInitCompleter = Completer<void>();
 
@@ -24,7 +24,7 @@ class IsolatedManager {
         await _initIsolate(_resultStreamController, managerInitCompleter);
 
     /// Begin to create manager right away
-    final input = InitManagerInput(mdictFilesList);
+    final input = InitManagerInput(mdictFilesIter);
     isolateSendPort.send(input);
 
     return IsolatedManager(
@@ -69,7 +69,7 @@ class IsolatedManager {
     isolateReceivePort.listen((data) async {
       // First data is mdict paths to init dictionary
       if (data is InitManagerInput) {
-        manager = await MdictManager.create(data.mdictFilesList);
+        manager = await MdictManager.create(data.mdictFilesIter);
         mainSendPort
             .send(PathNameMapResult(data.hashCode, manager.pathNameMap));
       } else if (data is SearchInput) {

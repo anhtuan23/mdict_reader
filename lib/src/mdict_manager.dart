@@ -37,9 +37,9 @@ class MdictManager {
       {for (final mdict in _mdictList) mdict.path: mdict.name};
 
   /// [dictPaths] is a list of [mdxPath, cssPath]
-  static Future<MdictManager> create(List<MdictFiles> mdictFilesList) async {
+  static Future<MdictManager> create(Iterable<MdictFiles> mdictFilesIter) async {
     final mdictList = <MdictReader>[];
-    for (var mdictFiles in mdictFilesList) {
+    for (var mdictFiles in mdictFilesIter) {
       try {
         final mdict = await MdictReader.create(mdictFiles);
         mdictList.add(mdict);
