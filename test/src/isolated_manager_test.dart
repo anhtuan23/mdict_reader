@@ -74,7 +74,6 @@ void main() {
     ];
 
     final newPathNameMap = await isolatedManager.reload(newMdictFilesList);
-    expect(
-        newPathNameMap.values, equals(['CC-CEDICT']));
+    expect(newPathNameMap.values, equals(['CC-CEDICT']));
   });
 }

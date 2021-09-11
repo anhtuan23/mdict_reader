@@ -1,22 +1,27 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/isolated_models.dart';
 
-import '../mdict_reader.dart';
-
 class IsolatedManager {
-  IsolatedManager(this.isolateSendPort, this.resultStreamController);
+  IsolatedManager(
+    this.isolateSendPort,
+    this.resultStreamController,
+    this.managerInitCompleter,
+  );
 
   final SendPort isolateSendPort;
   final StreamController<dynamic> resultStreamController;
 
-  static Completer<void>? managerInitCompleter = Completer<void>();
+  final Completer<void> managerInitCompleter;
 
   static Future<IsolatedManager> init(List<MdictFiles> mdictFilesList) async {
     final _resultStreamController = StreamController<dynamic>.broadcast();
+    final managerInitCompleter = Completer<void>();
 
-    final isolateSendPort = await _initIsolate(_resultStreamController);
+    final isolateSendPort =
+        await _initIsolate(_resultStreamController, managerInitCompleter);
 
     /// Begin to create manager right away
     final input = InitManagerInput(mdictFilesList);
@@ -25,11 +30,13 @@ class IsolatedManager {
     return IsolatedManager(
       isolateSendPort,
       _resultStreamController,
+      managerInitCompleter,
     );
   }
 
   static Future<SendPort> _initIsolate(
     StreamController<dynamic> resultStreamController,
+    Completer<void> managerInitCompleter,
   ) async {
     final isolateSendPortCompleter = Completer<SendPort>();
     final mainReceivePort = ReceivePort();
@@ -42,9 +49,8 @@ class IsolatedManager {
       /// On initial init a [PathNameMapResult] will be returned
       /// use this value to mark completer as completed
       /// Data is PathNameMapResult means manager is initialized
-      else if (data is PathNameMapResult && managerInitCompleter != null) {
-        managerInitCompleter?.complete();
-        managerInitCompleter = null;
+      else if (data is PathNameMapResult && !managerInitCompleter.isCompleted) {
+        managerInitCompleter.complete();
       } else {
         resultStreamController.add(data);
       }
@@ -81,9 +87,8 @@ class IsolatedManager {
   }
 
   Future<Result> _doWork<I>(I input) async {
-    final _completer = managerInitCompleter;
-    if (_completer != null) {
-      await _completer.future;
+    if (!managerInitCompleter.isCompleted) {
+      await managerInitCompleter.future;
       return _doWork(input);
     } else {
       isolateSendPort.send(input);
