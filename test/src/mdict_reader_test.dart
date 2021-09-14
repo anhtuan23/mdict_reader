@@ -51,4 +51,30 @@ void main() {
       }
     });
   });
+
+  group('Special query', () {
+    final mdictFiles = MdictFiles(
+      'test/assets/cc_cedict_v2.mdx',
+    );
+
+    late MdictReader mdictReader;
+
+    setUp(() async {
+      mdictReader = await MdictReader.create(mdictFiles);
+    });
+
+    test('correctly result @@@LINK= in query function', () async {
+      final queryResult = await mdictReader.query('iPhone');
+
+      printOnFailure(queryResult.toString());
+
+      expect(queryResult, hasLength(2));
+
+      final htmlString = queryResult[0];
+      expect(htmlString, isNotEmpty, reason: 'html content is not empty');
+
+      expect(htmlString, isNot(contains('@@@LINK=')));
+      expect(htmlString, contains('<font color="red">機 </font>'));
+    });
+  });
 }

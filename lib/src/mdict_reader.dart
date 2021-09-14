@@ -106,15 +106,26 @@ class MdictReader {
   /// * Should only be used in a mdx reader
   /// Return [html, css] of result
   Future<List<String>> query(String keyWord) async {
-    var keys = _keyList.where((key) => key.key == keyWord).toList();
-    final records = <String>[];
-    for (var key in keys) {
-      final record = await _readRecord(key.key, key.offset, key.length, isMdd);
+    final definitionHtmlString =
+        (await _queryHtmls(keyWord)).join('<br/>- - - - -<br/>');
+    return [definitionHtmlString, _cssContent];
+  }
 
-      records.add(record.trim());
+  /// Find Html definitions of a [keyWord]
+  /// Can be called recursively to resolve `@@@LINK=`
+  Future<List<String>> _queryHtmls(String keyWord) async {
+    var records = <String>[];
+
+    for (var key in _keyList.where((key) => key.key == keyWord)) {
+      String record = await _readRecord(key.key, key.offset, key.length, isMdd);
+      if (record.startsWith('@@@LINK=')) {
+        final _keyWord = record.substring(8).trim();
+        records.addAll(await _queryHtmls(_keyWord));
+      } else {
+        records.add(record.trim());
+      }
     }
-
-    return [records.where((e) => e.isNotEmpty).join('\n---\n'), _cssContent];
+    return records;
   }
 
   Future<dynamic> legacyQuery(String keyWord) async {
