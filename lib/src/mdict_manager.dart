@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:html_unescape/html_unescape_small.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 
 class SearchReturn {
@@ -29,31 +32,37 @@ class QueryReturn {
 }
 
 class MdictManager {
-  const MdictManager._(this._mdictList);
+  const MdictManager._(this._mdxList, this._mddList);
 
-  final List<MdictReader> _mdictList;
+  final List<MdictReader> _mdxList;
+  final List<MdictReader> _mddList;
 
   Map<String, String> get pathNameMap =>
-      {for (final mdict in _mdictList) mdict.path: mdict.name};
+      {for (final mdict in _mdxList) mdict.path: mdict.name};
 
-  /// [dictPaths] is a list of [mdxPath, cssPath]
-  static Future<MdictManager> create(Iterable<MdictFiles> mdictFilesIter) async {
-    final mdictList = <MdictReader>[];
+  static Future<MdictManager> create(
+      Iterable<MdictFiles> mdictFilesIter) async {
+    final mdxList = <MdictReader>[];
+    final mddList = <MdictReader>[];
     for (var mdictFiles in mdictFilesIter) {
       try {
         final mdict = await MdictReader.create(mdictFiles);
-        mdictList.add(mdict);
+        if (mdictFiles.mdictFilePath.endsWith('.mdx')) {
+          mdxList.add(mdict);
+        } else {
+          mddList.add(mdict);
+        }
       } catch (e) {
         print('Error with ${mdictFiles.cssPath}: $e');
       }
     }
-    return MdictManager._(mdictList);
+    return MdictManager._(mdxList, mddList);
   }
 
   Future<List<SearchReturn>> search(String term) async {
     final startsWithMap = <String, SearchReturn>{};
     final containsMap = <String, SearchReturn>{};
-    for (var mdict in _mdictList) {
+    for (var mdict in _mdxList) {
       final mdictSearchResult = await mdict.search(term);
 
       for (var key in mdictSearchResult.startsWithList) {
@@ -71,8 +80,8 @@ class MdictManager {
 
   Future<List<QueryReturn>> query(String word) async {
     final result = <QueryReturn>[];
-    for (var mdict in _mdictList) {
-      final htmlCssList = await mdict.query(word);
+    for (var mdict in _mdxList) {
+      final htmlCssList = await mdict.queryMdx(word);
 
       if (htmlCssList[0].isNotEmpty) {
         result.add(QueryReturn(
@@ -86,14 +95,32 @@ class MdictManager {
     return result;
   }
 
+  Future<Uint8List?> queryResource(String resourceUri) async {
+    final resourceKey = _parseResourceUri(resourceUri);
+    for (var mdict in _mddList) {
+      final data = await mdict.queryMdd(resourceKey);
+      if (data != null) return data;
+    }
+  }
+
   MdictManager reOrder(int oldIndex, int newIndex) {
     if (oldIndex == newIndex) return this;
 
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
-    final item = _mdictList.removeAt(oldIndex);
-    _mdictList.insert(newIndex, item);
-    return MdictManager._(_mdictList);
+    final item = _mdxList.removeAt(oldIndex);
+    _mdxList.insert(newIndex, item);
+    return MdictManager._(_mdxList, _mddList);
   }
+}
+
+final _unescaper = HtmlUnescape();
+
+/// Example [uriStr]: sound://media/english/us_pron/u/u_s/u_s__/u_s__1_us_2_abbr.mp3
+String _parseResourceUri(String uriStr) {
+  var text = _unescaper.convert(uriStr);
+  final uri = Uri.parse(text);
+  final key = Uri.decodeFull('/${uri.host}${uri.path}');
+  return key.replaceAll('/', '\\');
 }

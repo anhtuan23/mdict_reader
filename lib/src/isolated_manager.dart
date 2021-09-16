@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/isolated_models.dart';
@@ -79,6 +80,9 @@ class IsolatedManager {
       } else if (data is QueryInput) {
         final queryResult = await manager.query(data.word);
         mainSendPort.send(QueryResult(data.hashCode, queryResult));
+      } else if (data is ResourceQueryInput) {
+        final resourceData = await manager.queryResource(data.resourceUri);
+        mainSendPort.send(ResourceQueryResult(data.hashCode, resourceData));
       } else if (data is ReOrderInput) {
         manager = manager.reOrder(data.oldIndex, data.newIndex);
         mainSendPort
@@ -117,6 +121,12 @@ class IsolatedManager {
     final input = QueryInput(word);
     final result = await _doWork(input);
     return (result as QueryResult).queryReturns;
+  }
+
+  Future<Uint8List?> queryResource(String resourceUri) async {
+    final input = ResourceQueryInput(resourceUri);
+    final result = await _doWork(input);
+    return (result as ResourceQueryResult).resourceData;
   }
 
   Future<Map<String, String>> reOrder(int oldIndex, int newIndex) async {

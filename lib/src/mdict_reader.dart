@@ -105,9 +105,9 @@ class MdictReader {
 
   /// * Should only be used in a mdx reader
   /// Return [html, css] of result
-  Future<List<String>> query(String keyWord) async {
+  Future<List<String>> queryMdx(String keyWord) async {
     final definitionHtmlString =
-        (await _queryHtmls(keyWord)).join('<br/>- - - - -<br/>');
+        (await _queryHtmls(keyWord)).join('<p> ********** </p>');
     return [definitionHtmlString, _cssContent];
   }
 
@@ -126,6 +126,15 @@ class MdictReader {
       }
     }
     return records;
+  }
+
+  Future<Uint8List?> queryMdd(String resourceKey) async {
+    var keys = _keyList.where((key) => key.key == resourceKey).toList();
+    for (var key in keys) {
+      final Uint8List data =
+          await _readRecord(key.key, key.offset, key.length, isMdd);
+      return data;
+    }
   }
 
   Future<dynamic> legacyQuery(String keyWord) async {
@@ -241,7 +250,11 @@ class MdictReader {
   }
 
   Future<dynamic> _readRecord(
-      String word, int offset, int length, bool isMdd) async {
+    String word,
+    int offset,
+    int length,
+    bool isMdd,
+  ) async {
     var compressedOffset = 0;
     var decompressedOffset = 0;
     var compressedSize = 0;

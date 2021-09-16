@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 
@@ -48,6 +50,22 @@ class QueryResult implements Result {
   @override
   final int inputHashCode;
   final List<QueryReturn> queryReturns;
+}
+
+class ResourceQueryInput extends Equatable {
+  const ResourceQueryInput(this.resourceUri);
+  final String resourceUri;
+
+  @override
+  List<Object?> get props => [resourceUri];
+}
+
+class ResourceQueryResult implements Result {
+  const ResourceQueryResult(this.inputHashCode, this.resourceData);
+
+  @override
+  final int inputHashCode;
+  final Uint8List? resourceData;
 }
 
 class ReOrderInput extends Equatable {

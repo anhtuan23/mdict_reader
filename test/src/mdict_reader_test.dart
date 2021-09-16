@@ -26,7 +26,7 @@ void main() {
     });
 
     test('query function', () async {
-      final queryResult = await mdictReader.query(word);
+      final queryResult = await mdictReader.queryMdx(word);
 
       printOnFailure(queryResult.toString());
 
@@ -64,7 +64,7 @@ void main() {
     });
 
     test('correctly result @@@LINK= in query function', () async {
-      final queryResult = await mdictReader.query('iPhone');
+      final queryResult = await mdictReader.queryMdx('iPhone');
 
       printOnFailure(queryResult.toString());
 
@@ -75,6 +75,24 @@ void main() {
 
       expect(htmlString, isNot(contains('@@@LINK=')));
       expect(htmlString, contains('<font color="red">機 </font>'));
+    });
+  });
+
+  group('Query resource', () {
+    final mdictFiles = MdictFiles('test/assets/Sound-zh_CN.mdd');
+
+    late MdictReader mdictReader;
+
+    setUp(() async {
+      mdictReader = await MdictReader.create(mdictFiles);
+    });
+
+    test('correctly query sound resource', () async {
+      final data = await mdictReader.queryMdd('\\状态.spx');
+
+      printOnFailure(data.toString());
+
+      expect(data, isNotEmpty);
     });
   });
 }
