@@ -20,10 +20,12 @@ void main() async {
   // }
 
   /// *** MdictReader ***
-  final mdictReader = await MdictReader.create(MdictFiles('./dict/Sound-zh_CN.mdd'));
+  final mdictReader = await MdictReader.create('./dict/OALD9/OALD9.mdx', null);
 
-  for (var key in mdictReader.keys()) {
-    print(key);
+  final result = await mdictReader.queryMdx('gazebo');
+  print(result[0]);
 
-  }
+  // for (var key in mdictReader.keys()) {
+  //   print(key);
+  // }
 }

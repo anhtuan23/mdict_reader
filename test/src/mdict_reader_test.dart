@@ -3,17 +3,15 @@ import 'package:test/test.dart';
 
 void main() {
   group('Normal mdict', () {
-    final mdictFiles = MdictFiles(
-      'test/assets/CC-CEDICT/CC-CEDICT.mdx',
-      'test/assets/CC-CEDICT/CC-CEDICT.css',
-    );
-
     final word = '狗';
 
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader = await MdictReader.create(mdictFiles);
+      mdictReader = await MdictReader.create(
+        'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+        'test/assets/CC-CEDICT/CC-CEDICT.css',
+      );
     });
 
     test('search function', () async {
@@ -36,13 +34,9 @@ void main() {
     });
   });
   group('v1 mdict file', () {
-    final mdictFiles = MdictFiles(
-      'test/assets/jmdict.mdx',
-    );
-
     test('should throw error', () async {
       try {
-        await MdictReader.create(mdictFiles);
+        await MdictReader.create('test/assets/jmdict.mdx', null);
       } on Exception catch (e) {
         expect(
           e.toString(),
@@ -53,14 +47,11 @@ void main() {
   });
 
   group('Special query', () {
-    final mdictFiles = MdictFiles(
-      'test/assets/cc_cedict_v2.mdx',
-    );
-
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader = await MdictReader.create(mdictFiles);
+      mdictReader =
+          await MdictReader.create('test/assets/cc_cedict_v2.mdx', null);
     });
 
     test('correctly result @@@LINK= in query function', () async {
@@ -79,12 +70,11 @@ void main() {
   });
 
   group('Query resource', () {
-    final mdictFiles = MdictFiles('test/assets/Sound-zh_CN.mdd');
-
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader = await MdictReader.create(mdictFiles);
+      mdictReader =
+          await MdictReader.create('test/assets/Sound-zh_CN.mdd', null);
     });
 
     test('correctly query sound resource', () async {

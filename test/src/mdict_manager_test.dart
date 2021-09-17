@@ -6,13 +6,18 @@ void main() {
     final mdictFilesList = [
       MdictFiles(
         'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+        'test/assets/CC-CEDICT/CC-CEDICT.mdd',
         'test/assets/CC-CEDICT/CC-CEDICT.css',
       ),
       MdictFiles(
         'test/assets/jmdict_v2.mdx',
+        null,
+        null,
       ),
       MdictFiles(
         'test/assets/wordnet20_v2.mdx',
+        null,
+        null,
       ),
     ];
 
@@ -70,10 +75,13 @@ void main() {
     final mdictFilesList = [
       MdictFiles(
         'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+        'test/assets/CC-CEDICT/CC-CEDICT.mdd',
         'test/assets/CC-CEDICT/CC-CEDICT.css',
       ),
       MdictFiles(
+        'test/assets/cc_cedict_v2.mdx',
         'test/assets/Sound-zh_CN.mdd',
+        null,
       ),
     ];
 
@@ -84,8 +92,7 @@ void main() {
     });
 
     test('query for sound', () async {
-      final soundUri =
-          'sound://犯浑.spx';
+      final soundUri = 'sound://犯浑.spx';
       final data = await mdictManager.queryResource(soundUri);
 
       printOnFailure(data.toString());

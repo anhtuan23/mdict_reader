@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:equatable/equatable.dart';
 import 'package:pointycastle/api.dart';
 import 'package:xml/xml.dart';
 import 'input_stream.dart';
@@ -20,18 +19,6 @@ class Record {
   int decompSize;
 }
 
-/// Need a stable hash to work with IsolatedManager's reload
-class MdictFiles extends Equatable {
-  const MdictFiles(this.mdictFilePath, [this.cssPath = '']);
-
-  /// Can be a mdx or mdd file
-  final String mdictFilePath;
-  final String cssPath;
-
-  @override
-  List<Object?> get props => [mdictFilePath, cssPath];
-}
-
 class MdictSearchResultLists {
   const MdictSearchResultLists(this.startsWithList, this.containsList);
 
@@ -48,7 +35,7 @@ class MdictReader {
   MdictReader._(this.path, this._cssPath);
 
   final String path;
-  final String _cssPath;
+  final String? _cssPath;
   late String _cssContent;
   late Map<String, String> _header;
   late List<MdictKey> _keyList;
@@ -58,10 +45,13 @@ class MdictReader {
 
   bool get isMdd => path.endsWith('.mdd');
 
-  String get name => _name ?? 'Untitled';
+  String? get name => _name;
 
-  static Future<MdictReader> create(MdictFiles mdictFiles) async {
-    final mdict = MdictReader._(mdictFiles.mdictFilePath, mdictFiles.cssPath);
+  static Future<MdictReader> create(
+    String mdictFilePath,
+    String? cssPath,
+  ) async {
+    final mdict = MdictReader._(mdictFilePath, cssPath);
     await mdict.init();
     return mdict;
   }
@@ -152,8 +142,8 @@ class MdictReader {
 
   Future<String> _readCss() async {
     // * Check file.exists() of empty path cause CRASH: Stack dump aborted because InitialRegisterCheck failed
-    if (_cssPath.isEmpty) return '';
-    final file = File(_cssPath);
+    if (_cssPath == null) return '';
+    final file = File(_cssPath!);
     if (await file.exists()) {
       return file.readAsString();
     }

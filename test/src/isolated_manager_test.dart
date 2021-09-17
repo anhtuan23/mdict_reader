@@ -5,13 +5,18 @@ void main() {
   final mdictFilesList = [
     MdictFiles(
       'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+      'test/assets/CC-CEDICT/CC-CEDICT.mdd',
       'test/assets/CC-CEDICT/CC-CEDICT.css',
     ),
     MdictFiles(
       'test/assets/jmdict_v2.mdx',
+      null,
+      null,
     ),
     MdictFiles(
       'test/assets/wordnet20_v2.mdx',
+      null,
+      null,
     ),
   ];
 
@@ -69,6 +74,7 @@ void main() {
     final newMdictFilesList = [
       MdictFiles(
         'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+        'test/assets/CC-CEDICT/CC-CEDICT.mdd',
         'test/assets/CC-CEDICT/CC-CEDICT.css',
       ),
     ];
