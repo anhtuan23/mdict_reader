@@ -91,9 +91,32 @@ void main() {
       mdictManager = await MdictManager.create(mdictFilesList);
     });
 
-    test('query for sound', () async {
+    test('query for sound without mdx path', () async {
       final soundUri = 'sound://犯浑.spx';
-      final data = await mdictManager.queryResource(soundUri);
+      final data = await mdictManager.queryResource(soundUri, null);
+
+      printOnFailure(data.toString());
+
+      expect(data, isNotNull);
+      expect(data, isNotEmpty);
+    });
+
+    test('query for sound with wrong mdx path', () async {
+      final soundUri = 'sound://犯浑.spx';
+      final data =
+          await mdictManager.queryResource(soundUri, 'test/assets/CC-CEDICT/CC-CEDICT.mdx');
+
+      printOnFailure(data.toString());
+
+      expect(data, isNull);
+    });
+
+    test('query for sound with mdxPath', () async {
+      final soundUri = 'sound://犯浑.spx';
+      final data = await mdictManager.queryResource(
+        soundUri,
+        'test/assets/cc_cedict_v2.mdx',
+      );
 
       printOnFailure(data.toString());
 

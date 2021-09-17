@@ -72,21 +72,30 @@ class IsolatedManager {
       // First data is mdict paths to init dictionary
       if (data is InitManagerInput) {
         manager = await MdictManager.create(data.mdictFilesIter);
-        mainSendPort
-            .send(PathNameMapResult(data.hashCode, manager.pathNameMap));
+        mainSendPort.send(
+          PathNameMapResult(data.hashCode, manager.pathNameMap),
+        );
       } else if (data is SearchInput) {
         final searchReturnList = await manager.search(data.term);
         mainSendPort.send(SearchResult(data.hashCode, searchReturnList));
       } else if (data is QueryInput) {
         final queryResult = await manager.query(data.word);
-        mainSendPort.send(QueryResult(data.hashCode, queryResult));
+        mainSendPort.send(
+          QueryResult(data.hashCode, queryResult),
+        );
       } else if (data is ResourceQueryInput) {
-        final resourceData = await manager.queryResource(data.resourceUri);
-        mainSendPort.send(ResourceQueryResult(data.hashCode, resourceData));
+        final resourceData = await manager.queryResource(
+          data.resourceUri,
+          data.mdxPath,
+        );
+        mainSendPort.send(
+          ResourceQueryResult(data.hashCode, resourceData),
+        );
       } else if (data is ReOrderInput) {
         manager = manager.reOrder(data.oldIndex, data.newIndex);
-        mainSendPort
-            .send(PathNameMapResult(data.hashCode, manager.pathNameMap));
+        mainSendPort.send(
+          PathNameMapResult(data.hashCode, manager.pathNameMap),
+        );
       }
     });
   }
@@ -123,8 +132,9 @@ class IsolatedManager {
     return (result as QueryResult).queryReturns;
   }
 
-  Future<Uint8List?> queryResource(String resourceUri) async {
-    final input = ResourceQueryInput(resourceUri);
+  /// [mdxPath] act as a key when we want to query resource from a specific dictionary
+  Future<Uint8List?> queryResource(String resourceUri, String? mdxPath) async {
+    final input = ResourceQueryInput(resourceUri, mdxPath);
     final result = await _doWork(input);
     return (result as ResourceQueryResult).resourceData;
   }

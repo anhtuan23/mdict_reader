@@ -107,9 +107,14 @@ class MdictManager {
     return result;
   }
 
-  Future<Uint8List?> queryResource(String resourceUri) async {
+  /// [mdxPath] act as a key when we want to query resource from a specific dictionary
+  Future<Uint8List?> queryResource(
+    String resourceUri,
+    String? mdxPath,
+  ) async {
     final resourceKey = _parseResourceUri(resourceUri);
     for (var dictionary in _dictionaryList) {
+      if (mdxPath != null && mdxPath != dictionary.mdxPath) continue;
       final data = await dictionary.queryResource(resourceKey);
       if (data != null) return data;
     }
