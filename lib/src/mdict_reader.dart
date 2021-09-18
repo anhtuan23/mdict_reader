@@ -20,14 +20,14 @@ class Record {
 }
 
 class MdictSearchResultLists {
-  const MdictSearchResultLists(this.startsWithList, this.containsList);
+  const MdictSearchResultLists(this.startsWithSet, this.containsSet);
 
-  final List<String> startsWithList;
-  final List<String> containsList;
+  final Set<String> startsWithSet;
+  final Set<String> containsSet;
 
   @override
   String toString() {
-    return 'startsWithList: $startsWithList\ncontainsList: $containsList';
+    return 'startsWithSet: $startsWithSet\ncontainsSet: $containsSet';
   }
 }
 
@@ -76,20 +76,20 @@ class MdictReader {
 
   Future<MdictSearchResultLists> search(String term) {
     return Future(() {
-      final startsWithList = <String>[];
-      final containsList = <String>[];
+      final startsWithSet = <String>{};
+      final containsSet = <String>{};
 
       term = term.trim().toLowerCase();
 
       for (var key in _keyList) {
         if (key.key.toLowerCase().startsWith(term)) {
-          startsWithList.add(key.key);
+          startsWithSet.add(key.key);
         } else if (key.key.toLowerCase().contains(term)) {
-          containsList.add(key.key);
+          containsSet.add(key.key);
         }
       }
 
-      return MdictSearchResultLists(startsWithList, containsList);
+      return MdictSearchResultLists(startsWithSet, containsSet);
     });
   }
 

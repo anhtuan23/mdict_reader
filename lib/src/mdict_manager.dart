@@ -24,7 +24,7 @@ class SearchReturn {
   SearchReturn(this.word);
 
   final String word;
-  final List<String> dictNames = [];
+  final Set<String> dictNames = {};
 
   void addDictName(String dictName) => dictNames.add(dictName);
 
@@ -84,12 +84,12 @@ class MdictManager {
     for (var dictionary in _dictionaryList) {
       final mdictSearchResult = await dictionary.search(term);
 
-      for (var key in mdictSearchResult.startsWithList) {
+      for (var key in mdictSearchResult.startsWithSet) {
         final currentValue = startsWithMap[key] ?? SearchReturn(key);
         startsWithMap[key] = currentValue..addDictName(dictionary.name);
       }
 
-      for (var key in mdictSearchResult.containsList) {
+      for (var key in mdictSearchResult.containsSet) {
         final currentValue = containsMap[key] ?? SearchReturn(key);
         containsMap[key] = currentValue..addDictName(dictionary.name);
       }

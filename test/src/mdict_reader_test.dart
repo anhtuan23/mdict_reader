@@ -19,8 +19,8 @@ void main() {
 
       printOnFailure(searchResult.toString());
 
-      expect(searchResult.startsWithList, hasLength(75));
-      expect(searchResult.containsList, hasLength(95));
+      expect(searchResult.startsWithSet, hasLength(75));
+      expect(searchResult.containsSet, hasLength(95));
     });
 
     test('query function', () async {

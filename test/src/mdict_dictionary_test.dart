@@ -24,10 +24,10 @@ void main() {
 
       printOnFailure(searchReturnList.toString());
 
-      expect(searchReturnList.startsWithList, hasLength(1));
-      expect(searchReturnList.containsList, hasLength(1));
-      expect(searchReturnList.startsWithList.first, equals('勉強'));
-      expect(searchReturnList.containsList.first, equals('勉勉強強'));
+      expect(searchReturnList.startsWithSet, hasLength(1));
+      expect(searchReturnList.containsSet, hasLength(1));
+      expect(searchReturnList.startsWithSet.first, equals('勉強'));
+      expect(searchReturnList.containsSet.first, equals('勉勉強強'));
     });
 
     test('query function', () async {
