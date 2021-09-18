@@ -35,10 +35,17 @@ class SearchReturn {
 }
 
 class QueryReturn {
-  const QueryReturn(this.word, this.dictName, this.html, this.css);
+  const QueryReturn(
+    this.word,
+    this.dictName,
+    this.mdxPath,
+    this.html,
+    this.css,
+  );
 
   final String word;
   final String dictName;
+  final String mdxPath;
   final String html;
   final String css;
 
@@ -96,12 +103,15 @@ class MdictManager {
       final htmlCssList = await dictionary.queryMdx(word);
 
       if (htmlCssList[0].isNotEmpty) {
-        result.add(QueryReturn(
-          word,
-          dictionary.name,
-          htmlCssList[0],
-          htmlCssList[1],
-        ));
+        result.add(
+          QueryReturn(
+            word,
+            dictionary.name,
+            dictionary.mdxPath,
+            htmlCssList[0],
+            htmlCssList[1],
+          ),
+        );
       }
     }
     return result;
