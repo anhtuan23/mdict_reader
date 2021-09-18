@@ -71,7 +71,7 @@ class MdictDictionary {
         img.attributes['src'] = 'data:image/$extension;base64,$base64Data';
       }
 
-      queryResult[0] = document.outerHtml;
+      queryResult[0] = document.body?.innerHtml ?? queryResult[0];
     } on Exception catch (e) {
       print(e);
     }
