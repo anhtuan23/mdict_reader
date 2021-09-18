@@ -8,10 +8,8 @@ void main() {
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader = await MdictReader.create(
-        'test/assets/CC-CEDICT/CC-CEDICT.mdx',
-        'test/assets/CC-CEDICT/CC-CEDICT.css',
-      );
+      mdictReader =
+          await MdictReader.create('test/assets/CC-CEDICT/CC-CEDICT.mdx');
     });
 
     test('search function', () async {
@@ -24,19 +22,17 @@ void main() {
     });
 
     test('query function', () async {
-      final queryResult = await mdictReader.queryMdx(word);
+      final html = await mdictReader.queryMdx(word);
 
-      printOnFailure(queryResult.toString());
+      printOnFailure(html);
 
-      expect(queryResult, hasLength(2));
-      expect(queryResult[0], isNotEmpty, reason: 'html content is not empty');
-      expect(queryResult[1], isNotEmpty, reason: 'css content is not empty');
+      expect(html, isNotEmpty, reason: 'html content is not empty');
     });
   });
   group('v1 mdict file', () {
     test('should throw error', () async {
       try {
-        await MdictReader.create('test/assets/jmdict.mdx', null);
+        await MdictReader.create('test/assets/jmdict.mdx');
       } on Exception catch (e) {
         expect(
           e.toString(),
@@ -50,22 +46,18 @@ void main() {
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader =
-          await MdictReader.create('test/assets/cc_cedict_v2.mdx', null);
+      mdictReader = await MdictReader.create('test/assets/cc_cedict_v2.mdx');
     });
 
     test('correctly result @@@LINK= in query function', () async {
-      final queryResult = await mdictReader.queryMdx('iPhone');
+      final html = await mdictReader.queryMdx('iPhone');
 
-      printOnFailure(queryResult.toString());
+      printOnFailure(html);
 
-      expect(queryResult, hasLength(2));
+      expect(html, isNotEmpty, reason: 'html content is not empty');
 
-      final htmlString = queryResult[0];
-      expect(htmlString, isNotEmpty, reason: 'html content is not empty');
-
-      expect(htmlString, isNot(contains('@@@LINK=')));
-      expect(htmlString, contains('<font color="red">機 </font>'));
+      expect(html, isNot(contains('@@@LINK=')));
+      expect(html, contains('<font color="red">機 </font>'));
     });
   });
 
@@ -73,8 +65,7 @@ void main() {
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader =
-          await MdictReader.create('test/assets/Sound-zh_CN.mdd', null);
+      mdictReader = await MdictReader.create('test/assets/Sound-zh_CN.mdd');
     });
 
     test('correctly query sound resource', () async {

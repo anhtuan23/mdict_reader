@@ -11,11 +11,11 @@ class MdictDictionary {
     required this.name,
     required this.mdxReader,
     required this.mddReader,
+    required this.cssContent,
   });
 
   static Future<MdictDictionary> create(MdictFiles mdictFiles) async {
-    final mdxReader =
-        await MdictReader.create(mdictFiles.mdxPath, mdictFiles.cssPath);
+    final mdxReader = await MdictReader.create(mdictFiles.mdxPath);
 
     String name = mdxReader.name ?? '';
     if (name.isEmpty) {
@@ -24,20 +24,25 @@ class MdictDictionary {
 
     MdictReader? mddReader;
     if (mdictFiles.mddPath != null) {
-      mddReader =
-          await MdictReader.create(mdictFiles.mddPath!, mdictFiles.cssPath);
+      mddReader = await MdictReader.create(mdictFiles.mddPath!);
     }
+
+    final cssFileContent =
+        await MdictHelpers.readFileContent(mdictFiles.cssPath) ?? '';
+    final cssMddContent = await mddReader?.extractCss() ?? '';
 
     return MdictDictionary._(
       name: name,
       mdxReader: mdxReader,
       mddReader: mddReader,
+      cssContent: '$cssFileContent\n$cssMddContent'.trim(),
     );
   }
 
   final String name;
   final MdictReader mdxReader;
   final MdictReader? mddReader;
+  final String cssContent;
 
   String get mdxPath => mdxReader.path;
 
@@ -45,9 +50,10 @@ class MdictDictionary {
 
   /// Return [html, css] of result
   Future<List<String>> queryMdx(String keyWord) async {
-    final queryResult = await mdxReader.queryMdx(keyWord);
-    final html = queryResult[0];
-    if (mddReader == null || queryResult[0].isEmpty) return queryResult;
+    var html = await mdxReader.queryMdx(keyWord);
+    if (mddReader == null || html.isEmpty) {
+      return [html, cssContent];
+    }
 
     try {
       final document = parse(html);
@@ -71,12 +77,12 @@ class MdictDictionary {
         img.attributes['src'] = 'data:image/$extension;base64,$base64Data';
       }
 
-      queryResult[0] = document.body?.innerHtml ?? queryResult[0];
+      html = document.body?.innerHtml ?? html;
     } on Exception catch (e) {
       print(e);
     }
 
-    return queryResult;
+    return [html, cssContent];
   }
 
   Future<Uint8List?> queryResource(String resourceKey) async =>

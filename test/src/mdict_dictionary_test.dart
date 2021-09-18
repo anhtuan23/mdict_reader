@@ -80,5 +80,24 @@ void main() {
         expect(img.attributes['src'], startsWith('data:image/png;base64,'));
       }
     });
+
+    test('css string has both content in css file and mdd css entry', () async {
+      final mdictDictionary = await MdictDictionary.create(
+        MdictFiles(
+          'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+          'test/assets/CC-CEDICT/CC-CEDICT.mdd',
+          'test/assets/CC-CEDICT/CC-CEDICT.css',
+        ),
+      );
+      final resultList = await mdictDictionary.queryMdx('歌词');
+
+      final css = resultList[1];
+
+      printOnFailure(css);
+
+      expect(css, contains('/* sample content */'),
+          reason: 'Must contains css from file');
+      expect(css, contains('div.hz{'), reason: 'Must contains css from mdd');
+    });
   });
 }

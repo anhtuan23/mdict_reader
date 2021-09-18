@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:pointycastle/api.dart';
@@ -32,11 +33,9 @@ class MdictSearchResultLists {
 }
 
 class MdictReader {
-  MdictReader._(this.path, this._cssPath);
+  MdictReader._(this.path);
 
   final String path;
-  final String? _cssPath;
-  late String _cssContent;
   late Map<String, String> _header;
   late List<MdictKey> _keyList;
   late List<Record> _recordList;
@@ -47,18 +46,14 @@ class MdictReader {
 
   String? get name => _name;
 
-  static Future<MdictReader> create(
-    String mdictFilePath,
-    String? cssPath,
-  ) async {
-    final mdict = MdictReader._(mdictFilePath, cssPath);
+  static Future<MdictReader> create(String mdictFilePath) async {
+    final mdict = MdictReader._(mdictFilePath);
     await mdict.init();
     return mdict;
   }
 
   Future<void> init() async {
     var _in = await FileInputStream.create(path, bufferSize: 64 * 1024);
-    _cssContent = await _readCss();
     _header = await _readHeader(_in);
     if (double.parse(_header['generatedbyengineversion'] ?? '2') < 2) {
       throw Exception('This program does not support mdict version 1.x');
@@ -94,11 +89,14 @@ class MdictReader {
   }
 
   /// * Should only be used in a mdx reader
-  /// Return [html, css] of result
-  Future<List<String>> queryMdx(String keyWord) async {
+  /// Return of result html
+  Future<String> queryMdx(String keyWord) async {
+    if (isMdd) {
+      throw Exception('Only call queryMdx in a mdx file');
+    }
     final definitionHtmlString =
         (await _queryHtmls(keyWord)).join('<p> ********** </p>');
-    return [definitionHtmlString, _cssContent];
+    return definitionHtmlString;
   }
 
   /// Find Html definitions of a [keyWord]
@@ -130,6 +128,21 @@ class MdictReader {
     }
   }
 
+  /// Extract css content from mdd file if available
+  Future<String?> extractCss() async {
+    if (!isMdd) {
+      throw Exception('Only try to extract css from mdd file');
+    }
+    for (var key in _keyList) {
+      if (key.key.endsWith('.css')) {
+        final data = await queryMdd(key.key);
+        if (data != null) {
+          return Utf8Decoder().convert(data);
+        }
+      }
+    }
+  }
+
   Future<dynamic> legacyQuery(String keyWord) async {
     var keys = _keyList.where((key) => key.key == keyWord).toList();
     final records = [];
@@ -141,16 +154,6 @@ class MdictReader {
       return records[0];
     }
     return records.join('\n---\n');
-  }
-
-  Future<String> _readCss() async {
-    // * Check file.exists() of empty path cause CRASH: Stack dump aborted because InitialRegisterCheck failed
-    if (_cssPath == null) return '';
-    final file = File(_cssPath!);
-    if (await file.exists()) {
-      return file.readAsString();
-    }
-    return '';
   }
 
   Future<Map<String, String>> _readHeader(FileInputStream _in) async {

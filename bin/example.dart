@@ -20,12 +20,14 @@ void main() async {
   // }
 
   /// *** MdictReader ***
-  final mdictReader = await MdictReader.create('./dict/mtBab EV v1.0/mtBab EV v1.0.mdd', null);
+  // final mdictReader = await MdictReader.create('./dict/mtBab EV v1.0/mtBab EV v1.0.mdd', null);
+  // final mdictReader = await MdictReader.create('./dict/OALD9/oald9.mdd', null);
+  final mdictReader = await MdictReader.create('./dict/CC-CEDICT.mdd');
 
   // final result = await mdictReader.queryMdx('aardvark');
   // print(result[0]);
 
   for (var key in mdictReader.keys()) {
-    print(key);
+    if (key.endsWith('css')) print(key);
   }
 }

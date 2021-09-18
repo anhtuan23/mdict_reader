@@ -103,8 +103,8 @@ void main() {
 
     test('query for sound with wrong mdx path', () async {
       final soundUri = 'sound://犯浑.spx';
-      final data =
-          await mdictManager.queryResource(soundUri, 'test/assets/CC-CEDICT/CC-CEDICT.mdx');
+      final data = await mdictManager.queryResource(
+          soundUri, 'test/assets/CC-CEDICT/CC-CEDICT.mdx');
 
       printOnFailure(data.toString());
 
