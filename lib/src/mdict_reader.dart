@@ -119,7 +119,10 @@ class MdictReader {
   }
 
   Future<Uint8List?> queryMdd(String resourceKey) async {
-    var keys = _keyList.where((key) => key.key == resourceKey).toList();
+    resourceKey = resourceKey.toLowerCase();
+    var keys = _keyList
+        .where((key) => key.key.toLowerCase().contains(resourceKey))
+        .toList();
     for (var key in keys) {
       final Uint8List data =
           await _readRecord(key.key, key.offset, key.length, isMdd);

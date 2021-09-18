@@ -9,9 +9,10 @@ environment:
 dependencies:
   args: ^2.1.0
   equatable: ^2.0.2
+  html: ^0.15.0
   html_unescape: ^2.0.0
   pointycastle: ^3.0.1
-  xml: ^5.1.0
+  xml: ^5.3.0
 
 dev_dependencies:
   lints: ^1.0.1

@@ -1,6 +1,7 @@
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary.dart';
 import 'package:test/test.dart';
+import 'package:html/parser.dart' show parse;
 
 void main() {
   group('standard tests', () {
@@ -43,27 +44,41 @@ void main() {
   });
 
   group('query resource tests', () {
-    late MdictDictionary mdictDictionary;
-
-    setUp(
-      () async {
-        mdictDictionary = await MdictDictionary.create(
-          MdictFiles(
-            'test/assets/cc_cedict_v2.mdx',
-            'test/assets/Sound-zh_CN.mdd',
-            null,
-          ),
-        );
-      },
-    );
-
     test('query for sound', () async {
+      final mdictDictionary = await MdictDictionary.create(
+        MdictFiles(
+          'test/assets/cc_cedict_v2.mdx',
+          'test/assets/Sound-zh_CN.mdd',
+          null,
+        ),
+      );
+
       final data = await mdictDictionary.queryResource('\\犯浑.spx');
 
       printOnFailure(data.toString());
 
       expect(data, isNotNull);
       expect(data, isNotEmpty);
+    });
+
+    test('query result has base64 img src', () async {
+      final mdictDictionary = await MdictDictionary.create(
+        MdictFiles(
+          'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdx',
+          'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdd',
+          null,
+        ),
+      );
+      final resultList = await mdictDictionary.queryMdx('aardvark');
+
+      printOnFailure(resultList.toString());
+
+      final html = resultList[0];
+      final document = parse(html);
+      final images = document.getElementsByTagName('img');
+      for (var img in images) {
+        expect(img.attributes['src'], startsWith('data:image/png;base64,'));
+      }
     });
   });
 }

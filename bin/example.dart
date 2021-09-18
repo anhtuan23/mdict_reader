@@ -20,12 +20,12 @@ void main() async {
   // }
 
   /// *** MdictReader ***
-  final mdictReader = await MdictReader.create('./dict/OALD9/OALD9.mdx', null);
+  final mdictReader = await MdictReader.create('./dict/mtBab EV v1.0/mtBab EV v1.0.mdd', null);
 
-  final result = await mdictReader.queryMdx('gazebo');
-  print(result[0]);
+  // final result = await mdictReader.queryMdx('aardvark');
+  // print(result[0]);
 
-  // for (var key in mdictReader.keys()) {
-  //   print(key);
-  // }
+  for (var key in mdictReader.keys()) {
+    print(key);
+  }
 }
