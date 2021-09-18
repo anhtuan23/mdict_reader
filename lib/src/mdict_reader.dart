@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:pointycastle/api.dart';
-import 'package:xml/xml.dart';
+import 'package:html/parser.dart' show parseFragment;
 import 'input_stream.dart';
 
 class MdictKey {
@@ -60,10 +60,10 @@ class MdictReader {
     var _in = await FileInputStream.create(path, bufferSize: 64 * 1024);
     _cssContent = await _readCss();
     _header = await _readHeader(_in);
-    if (double.parse(_header['GeneratedByEngineVersion'] ?? '2') < 2) {
+    if (double.parse(_header['generatedbyengineversion'] ?? '2') < 2) {
       throw Exception('This program does not support mdict version 1.x');
     }
-    _name = _header['Title'];
+    _name = _header['title'];
     _keyList = await _readKeys(_in);
     _recordList = await _readRecords(_in);
     _recordBlockOffset = _in.position;
@@ -162,16 +162,16 @@ class MdictReader {
 
   Map<String, String> _parseHeader(String header) {
     var attributes = <String, String>{};
-    var doc = XmlDocument.parse(header);
-    for (var a in doc.rootElement.attributes) {
-      attributes[a.name.local] = a.value;
+    var doc = parseFragment(header);
+    for (var entry in doc.nodes.first.attributes.entries) {
+      attributes[entry.key.toString()] = entry.value;
     }
     return attributes;
   }
 
   Future<List<MdictKey>> _readKeys(FileInputStream _in) async {
-    var encrypted = _header['Encrypted'] == '2';
-    var utf8 = _header['Encoding'] == 'UTF-8';
+    var encrypted = _header['encrypted'] == '2';
+    var utf8 = _header['encoding'] == 'UTF-8';
     var keyNumBlocks = await _in.readUint64();
     // ignore: unused_local_variable
     var keyNumEntries = await _in.readUint64();
@@ -275,7 +275,7 @@ class MdictReader {
         return recordBlock;
       }
     } else {
-      var utf8 = _header['Encoding'] == 'UTF-8';
+      var utf8 = _header['encoding'] == 'UTF-8';
       return blockIn.readString(size: length, utf8: utf8);
     }
   }
