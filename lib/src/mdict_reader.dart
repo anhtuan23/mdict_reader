@@ -40,11 +40,10 @@ class MdictReader {
   late List<MdictKey> _keyList;
   late List<Record> _recordList;
   late int _recordBlockOffset;
-  late String? _name;
 
   bool get isMdd => path.endsWith('.mdd');
 
-  String? get name => _name;
+  String? get name => _header['title'];
 
   static Future<MdictReader> create(String mdictFilePath) async {
     final mdict = MdictReader._(mdictFilePath);
@@ -58,7 +57,6 @@ class MdictReader {
     if (double.parse(_header['generatedbyengineversion'] ?? '2') < 2) {
       throw Exception('This program does not support mdict version 1.x');
     }
-    _name = _header['title'];
     _keyList = await _readKeys(_in);
     _recordList = await _readRecords(_in);
     _recordBlockOffset = _in.position;
