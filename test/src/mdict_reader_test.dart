@@ -1,15 +1,29 @@
 import 'package:mdict_reader/mdict_reader.dart';
+import 'package:sqlite3/open.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
+import 'test_utils.dart';
 
 void main() {
+  open.overrideFor(OperatingSystem.windows, openSqliteOnWindows);
+  Database? db;
+
+  setUp(() {
+    db = sqlite3.openInMemory();
+  });
+
+  tearDown(() {
+    db?.dispose();
+  });
+
   group('Normal mdict', () {
     final word = '狗';
 
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader =
-          await MdictReader.create('test/assets/CC-CEDICT/CC-CEDICT.mdx');
+      mdictReader = await MdictReaderHelper.init(
+          'test/assets/CC-CEDICT/CC-CEDICT.mdx', [], db!);
     });
 
     test('search function', () async {
@@ -28,15 +42,23 @@ void main() {
 
       expect(html, isNotEmpty, reason: 'html content is not empty');
     });
+
+    test('get all keys function', () async {
+      final keys = await mdictReader.getAllKeys();
+
+      printOnFailure(keys.toString());
+
+      expect(keys, hasLength(182173));
+    });
   });
   group('v1 mdict file', () {
     test('should throw error', () async {
       try {
-        await MdictReader.create('test/assets/jmdict.mdx');
+        await MdictReaderHelper.init('test/assets/jmdict.mdx', [], db!);
       } on Exception catch (e) {
         expect(
           e.toString(),
-          equals('Exception: This program does not support mdict version 1.x'),
+          startsWith('Exception: This program does not support mdict version'),
         );
       }
     });
@@ -46,7 +68,11 @@ void main() {
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader = await MdictReader.create('test/assets/cc_cedict_v2.mdx');
+      mdictReader = await MdictReaderHelper.init(
+        'test/assets/cc_cedict_v2.mdx',
+        [],
+        db!,
+      );
     });
 
     test('correctly result @@@LINK= in query function', () async {
@@ -65,10 +91,15 @@ void main() {
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader = await MdictReader.create('test/assets/Sound-zh_CN.mdd');
+      mdictReader = await MdictReaderHelper.init(
+        'test/assets/Sound-zh_CN.mdd',
+        [],
+        db!,
+      );
     });
 
     test('correctly query sound resource', () async {
+
       final data = await mdictReader.queryMdd('\\状态.spx');
 
       printOnFailure(data.toString());

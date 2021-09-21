@@ -25,7 +25,7 @@ void main() {
   late IsolatedManager isolatedManager;
 
   setUp(() async {
-    isolatedManager = await IsolatedManager.init(mdictFilesList);
+    isolatedManager = await IsolatedManager.init(mdictFilesList, null);
   });
 
   test('search function', () async {
@@ -79,7 +79,8 @@ void main() {
       ),
     ];
 
-    final newPathNameMap = await isolatedManager.reload(newMdictFilesList);
+    final newPathNameMap =
+        await isolatedManager.reload(newMdictFilesList, null);
     expect(newPathNameMap.values, equals(['CC-CEDICT']));
   });
 }

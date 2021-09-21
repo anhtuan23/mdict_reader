@@ -3,28 +3,36 @@ import 'dart:typed_data';
 
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_reader.dart';
+import 'package:mdict_reader/src/mdict_reader_models.dart';
 import 'package:path/path.dart' as p;
 import 'package:html/parser.dart' show parse;
+import 'package:sqlite3/sqlite3.dart';
 
 class MdictDictionary {
   MdictDictionary._({
-    required this.name,
     required this.mdxReader,
     required this.mddReader,
     required this.cssContent,
   });
 
-  static Future<MdictDictionary> create(MdictFiles mdictFiles) async {
-    final mdxReader = await MdictReader.create(mdictFiles.mdxPath);
-
-    String name = mdxReader.name ?? '';
-    if (name.isEmpty) {
-      name = MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
-    }
+  static Future<MdictDictionary> create(
+    MdictFiles mdictFiles,
+    Iterable<String> currentTableNames,
+    Database db,
+  ) async {
+    final mdxReader = await MdictReaderHelper.init(
+      mdictFiles.mdxPath,
+      currentTableNames,
+      db,
+    );
 
     MdictReader? mddReader;
     if (mdictFiles.mddPath != null) {
-      mddReader = await MdictReader.create(mdictFiles.mddPath!);
+      mddReader = await MdictReaderHelper.init(
+        mdictFiles.mddPath!,
+        currentTableNames,
+        db,
+      );
     }
 
     final cssFileContent =
@@ -32,17 +40,17 @@ class MdictDictionary {
     final cssMddContent = await mddReader?.extractCss() ?? '';
 
     return MdictDictionary._(
-      name: name,
       mdxReader: mdxReader,
       mddReader: mddReader,
       cssContent: '$cssFileContent\n$cssMddContent'.trim(),
     );
   }
 
-  final String name;
   final MdictReader mdxReader;
   final MdictReader? mddReader;
   final String cssContent;
+
+  String get name => mdxReader.name;
 
   String get mdxPath => mdxReader.path;
 

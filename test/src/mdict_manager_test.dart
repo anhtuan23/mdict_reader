@@ -26,7 +26,7 @@ void main() {
     late MdictManager mdictManager;
 
     setUp(() async {
-      mdictManager = await MdictManager.create(mdictFilesList);
+      mdictManager = await MdictManager.create(mdictFilesList, null);
     });
 
     test('search function', () async {
@@ -88,7 +88,7 @@ void main() {
     late MdictManager mdictManager;
 
     setUp(() async {
-      mdictManager = await MdictManager.create(mdictFilesList);
+      mdictManager = await MdictManager.create(mdictFilesList, null);
     });
 
     test('query for sound without mdx path', () async {

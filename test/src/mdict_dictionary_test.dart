@@ -1,9 +1,19 @@
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 import 'package:html/parser.dart' show parse;
 
 void main() {
+  Database? db;
+  setUp(() {
+    db = sqlite3.openInMemory();
+  });
+
+  tearDown(() {
+    db?.dispose();
+  });
+
   group('standard tests', () {
     final word = '勉強';
 
@@ -16,6 +26,8 @@ void main() {
           'test/assets/CC-CEDICT/CC-CEDICT.mdd',
           'test/assets/CC-CEDICT/CC-CEDICT.css',
         ),
+        [],
+        db!,
       );
     });
 
@@ -51,6 +63,8 @@ void main() {
           'test/assets/Sound-zh_CN.mdd',
           null,
         ),
+        [],
+        db!,
       );
 
       final data = await mdictDictionary.queryResource('\\犯浑.spx');
@@ -68,6 +82,8 @@ void main() {
           'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdd',
           null,
         ),
+        [],
+        db!,
       );
       final resultList = await mdictDictionary.queryMdx('aardvark');
 
@@ -88,6 +104,8 @@ void main() {
           'test/assets/CC-CEDICT/CC-CEDICT.mdd',
           'test/assets/CC-CEDICT/CC-CEDICT.css',
         ),
+        [],
+        db!,
       );
       final resultList = await mdictDictionary.queryMdx('歌词');
 

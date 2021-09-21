@@ -1,6 +1,14 @@
+import 'dart:ffi';
+import 'dart:io';
+
 import 'package:mdict_reader/mdict_reader.dart';
+import 'package:sqlite3/open.dart';
+import 'package:sqlite3/sqlite3.dart';
 
 void main() async {
+  open.overrideFor(OperatingSystem.windows, _openOnWindows);
+  final db = sqlite3.openInMemory();
+
   /// *** MdictManager ***
   // final mdxPaths = [
   //   // 'dict/CC-CEDICT.mdx',
@@ -22,12 +30,23 @@ void main() async {
   /// *** MdictReader ***
   // final mdictReader = await MdictReader.create('./dict/mtBab EV v1.0/mtBab EV v1.0.mdd', null);
   // final mdictReader = await MdictReader.create('./dict/OALD9/oald9.mdd', null);
-  final mdictReader = await MdictReader.create('./dict/CC-CEDICT.mdd');
+  final mdictReader = await MdictReaderHelper.init('./dict/CC-CEDICT.mdx', [], db);
 
-  // final result = await mdictReader.queryMdx('aardvark');
-  // print(result[0]);
+  final searchResults = await mdictReader.search('音');
+  print(searchResults);
 
-  for (var key in mdictReader.keys()) {
-    if (key.endsWith('css')) print(key);
-  }
+  final html = await mdictReader.queryMdx('勉強');
+  print(html);
+
+  // for (var key in mdictReader.keys()) {
+  //   if (key.endsWith('css')) print(key);
+  // }
+
+  db.dispose();
+}
+
+DynamicLibrary _openOnWindows() {
+  final scriptDir = File(Platform.script.toFilePath()).parent;
+  final libraryNextToScript = File('${scriptDir.path}\\sqlite3.dll');
+  return DynamicLibrary.open(libraryNextToScript.path);
 }

@@ -4,12 +4,16 @@ import 'package:equatable/equatable.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 
 class InitManagerInput extends Equatable {
-  const InitManagerInput(this.mdictFilesIter);
+  const InitManagerInput(
+    this.dbPath,
+    this.mdictFilesIter,
+  );
 
+  final String? dbPath;
   final Iterable<MdictFiles> mdictFilesIter;
 
   @override
-  List<Object?> get props => [mdictFilesIter];
+  List<Object?> get props => [dbPath, mdictFilesIter];
 }
 
 class PathNameMapResult implements Result {

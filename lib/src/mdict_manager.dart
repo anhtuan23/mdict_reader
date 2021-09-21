@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:html_unescape/html_unescape_small.dart';
 import 'package:mdict_reader/src/mdict_dictionary.dart';
+import 'package:sqlite3/sqlite3.dart';
 
 /// Need a stable hash to work with IsolatedManager's reload
 class MdictFiles extends Equatable {
@@ -63,18 +64,40 @@ class MdictManager {
   Map<String, String> get pathNameMap =>
       {for (final dict in _dictionaryList) dict.mdxPath: dict.name};
 
+  static Iterable<String> _getTableNames(Database db) {
+    final tableResultSet =
+        db.select("SELECT name FROM sqlite_master WHERE type='table'");
+    return tableResultSet.map((e) => e['name']);
+  }
+
   static Future<MdictManager> create(
     Iterable<MdictFiles> mdictFilesIter,
+    String? dbPath,
   ) async {
     final dictionaryList = <MdictDictionary>[];
+
+    final Database db;
+    if (dbPath == null) {
+      db = sqlite3.openInMemory();
+    } else {
+      db = sqlite3.open(dbPath);
+    }
+    final currentTableNames = _getTableNames(db);
+
     for (var mdictFiles in mdictFilesIter) {
       try {
-        final mdict = await MdictDictionary.create(mdictFiles);
+        final mdict = await MdictDictionary.create(
+          mdictFiles,
+          currentTableNames,
+          db,
+        );
         dictionaryList.add(mdict);
-      } catch (e) {
+      } catch (e, stackTrace) {
         print('Error with ${mdictFiles.mdxPath}: $e');
+        print(stackTrace);
       }
     }
+
     return MdictManager._(dictionaryList);
   }
 
