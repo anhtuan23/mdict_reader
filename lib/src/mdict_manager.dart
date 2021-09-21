@@ -57,9 +57,10 @@ class QueryReturn {
 }
 
 class MdictManager {
-  const MdictManager._(this._dictionaryList);
+  const MdictManager._(this._dictionaryList, this._db);
 
   final List<MdictDictionary> _dictionaryList;
+  final Database _db;
 
   Map<String, String> get pathNameMap =>
       {for (final dict in _dictionaryList) dict.mdxPath: dict.name};
@@ -98,7 +99,7 @@ class MdictManager {
       }
     }
 
-    return MdictManager._(dictionaryList);
+    return MdictManager._(dictionaryList, db);
   }
 
   Future<List<SearchReturn>> search(String term) async {
@@ -161,7 +162,11 @@ class MdictManager {
     }
     final item = _dictionaryList.removeAt(oldIndex);
     _dictionaryList.insert(newIndex, item);
-    return MdictManager._(_dictionaryList);
+    return MdictManager._(_dictionaryList, _db);
+  }
+
+  void dispose() {
+    _db.dispose();
   }
 }
 

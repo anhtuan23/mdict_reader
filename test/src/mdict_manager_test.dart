@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:sqlite3/open.dart';
 import 'package:test/test.dart';
@@ -126,6 +128,50 @@ void main() {
 
       expect(data, isNotNull);
       expect(data, isNotEmpty);
+    });
+  });
+
+  group('reuse index', () {
+    final mdictFilesList = [
+      MdictFiles(
+        'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+        'test/assets/CC-CEDICT/CC-CEDICT.mdd',
+        'test/assets/CC-CEDICT/CC-CEDICT.css',
+      ),
+      MdictFiles(
+        'test/assets/cc_cedict_v2.mdx',
+        'test/assets/Sound-zh_CN.mdd',
+        null,
+      ),
+    ];
+
+    const _tempDbPath = 'test/assets/temp.db';
+
+    MdictManager? mdictManager1;
+    MdictManager? mdictManager2;
+
+    tearDown(() async {
+      mdictManager1?.dispose();
+      mdictManager2?.dispose();
+      final dbFile = File(_tempDbPath);
+      await dbFile.delete();
+    });
+
+    test('query for sound without mdx path', () async {
+      final stopwatch = Stopwatch();
+      stopwatch.start();
+
+      mdictManager1 = await MdictManager.create(mdictFilesList, _tempDbPath);
+      final firstStartDuration = stopwatch.elapsed;
+
+      stopwatch.reset();
+      mdictManager2 = await MdictManager.create(mdictFilesList, _tempDbPath);
+      final secondStartDuration = stopwatch.elapsed;
+
+      printOnFailure('First start duration: $firstStartDuration');
+      printOnFailure('Second start duration: $secondStartDuration');
+
+      expect(secondStartDuration, lessThan(firstStartDuration * (1 / 10)));
     });
   });
 }
