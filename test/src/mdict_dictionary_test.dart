@@ -1,10 +1,14 @@
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary.dart';
+import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 import 'package:html/parser.dart' show parse;
 
+import 'test_utils.dart';
+
 void main() {
+  open.overrideFor(OperatingSystem.windows, openSqliteOnWindows);
   Database? db;
   setUp(() {
     db = sqlite3.openInMemory();
