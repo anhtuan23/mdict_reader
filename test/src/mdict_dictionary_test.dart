@@ -1,5 +1,5 @@
-import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary.dart';
+import 'package:mdict_reader/src/mdict_manager_models.dart';
 import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
@@ -25,13 +25,13 @@ void main() {
 
     setUp(() async {
       mdictDictionary = await MdictDictionary.create(
-        MdictFiles(
+        mdictFiles: MdictFiles(
           'test/assets/CC-CEDICT/CC-CEDICT.mdx',
           'test/assets/CC-CEDICT/CC-CEDICT.mdd',
           'test/assets/CC-CEDICT/CC-CEDICT.css',
         ),
-        [],
-        db!,
+        currentTableNames: [],
+        db: db!,
       );
     });
 
@@ -62,13 +62,13 @@ void main() {
   group('query resource tests', () {
     test('query for sound', () async {
       final mdictDictionary = await MdictDictionary.create(
-        MdictFiles(
+        mdictFiles: MdictFiles(
           'test/assets/cc_cedict_v2.mdx',
           'test/assets/Sound-zh_CN.mdd',
           null,
         ),
-        [],
-        db!,
+        currentTableNames: [],
+        db: db!,
       );
 
       final data = await mdictDictionary.queryResource('\\犯浑.spx');
@@ -81,13 +81,13 @@ void main() {
 
     test('query result has base64 img src', () async {
       final mdictDictionary = await MdictDictionary.create(
-        MdictFiles(
+        mdictFiles: MdictFiles(
           'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdx',
           'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdd',
           null,
         ),
-        [],
-        db!,
+        currentTableNames: [],
+        db: db!,
       );
       final resultList = await mdictDictionary.queryMdx('aardvark');
 
@@ -103,13 +103,13 @@ void main() {
 
     test('css string has both content in css file and mdd css entry', () async {
       final mdictDictionary = await MdictDictionary.create(
-        MdictFiles(
+        mdictFiles: MdictFiles(
           'test/assets/CC-CEDICT/CC-CEDICT.mdx',
           'test/assets/CC-CEDICT/CC-CEDICT.mdd',
           'test/assets/CC-CEDICT/CC-CEDICT.css',
         ),
-        [],
-        db!,
+        currentTableNames: [],
+        db: db!,
       );
       final resultList = await mdictDictionary.queryMdx('歌词');
 

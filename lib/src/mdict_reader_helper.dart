@@ -143,18 +143,28 @@ abstract class MdictReaderHelper {
     return IndexInfo(header, keyList, recordSizes[0], recordSizes[1]);
   }
 
-  static Future<void> _buildIndex(String dictFilePath, Database db) async {
+  static Future<void> _buildIndex({
+    required String dictFilePath,
+    required Database db,
+    StreamController<MdictProgress>? progressController,
+  }) async {
+    final fileName = p.basename(dictFilePath);
     final metaTableName = _getMetaTableName(dictFilePath);
     final keysTableName = _getKeysTableName(dictFilePath);
     final recordsTableName = _getRecordsTableName(dictFilePath);
 
     for (final tableName in [metaTableName, keysTableName, recordsTableName]) {
+      progressController
+          ?.add(MdictProgress('$fileName: Droping $tableName table ...'));
       db.execute("DROP TABLE IF EXISTS '$tableName'");
     }
 
+    progressController?.add(MdictProgress('$fileName: Getting index info ...'));
     final indexInfo = await _getIndexInfo(dictFilePath);
 
     /// META table
+    progressController
+        ?.add(MdictProgress('$fileName: Building meta table ...'));
     db.execute('''
     CREATE TABLE '$metaTableName' (
       ${MdictMeta.keyColumnName} TEXT NOT NULL,
@@ -169,6 +179,9 @@ abstract class MdictReaderHelper {
     metaStmt.dispose();
 
     /// KEYS table
+    final totalKeys = indexInfo.keyList.length;
+    progressController
+        ?.add(MdictProgress('$fileName: Building key table 0/$totalKeys ...'));
     db.execute('''
       CREATE VIRTUAL TABLE '$keysTableName' USING fts5(
         ${MdictKey.wordColumnName},
@@ -194,6 +207,7 @@ abstract class MdictReaderHelper {
     );
     final keysStmt = db.prepare(statementBuilder.toString());
 
+    var insertedCount = 0;
     for (var keyIter
         in partitionedKeyIter.take(partitionedKeyIter.length - 1)) {
       final parameters = keyIter
@@ -201,6 +215,9 @@ abstract class MdictReaderHelper {
               (key) => [key.word, key.offset.toString(), key.length.toString()])
           .toList();
       keysStmt.execute(parameters);
+      insertedCount += countsEachTime;
+      progressController?.add(MdictProgress(
+          '$fileName: Building key table $insertedCount/$totalKeys ...'));
     }
     keysStmt.dispose();
 
@@ -223,9 +240,15 @@ abstract class MdictReaderHelper {
             (key) => [key.word, key.offset.toString(), key.length.toString()])
         .toList();
     remainingKeysStmt.execute(remainingParameters);
+
+    progressController?.add(MdictProgress(
+        '$fileName: Building key table $totalKeys/$totalKeys ...'));
+
     remainingKeysStmt.dispose();
 
     /// RECORDS table
+    progressController
+        ?.add(MdictProgress('$fileName: Building records table ...'));
     db.execute('''
     CREATE TABLE '$recordsTableName' (
       ${MdictRecord.compressedSizeColumnName} BLOB NOT NULL,
@@ -243,6 +266,9 @@ abstract class MdictReaderHelper {
       indexInfo.recordsUncompressedSizes.buffer.asUint8List(),
     ]);
     recordsStmt.dispose();
+
+    progressController
+        ?.add(MdictProgress('$fileName: Finished building index'));
   }
 
   static Future<Map<String, String>> _getHeader(
@@ -277,20 +303,34 @@ abstract class MdictReaderHelper {
     return [compressedSizes, uncompressedSizes];
   }
 
-  static Future<MdictReader> init(
-    String filePath,
-    Iterable<String> currentTableNames,
-    Database db,
-  ) async {
+  static Future<MdictReader> init({
+    required String filePath,
+    required Iterable<String> currentTableNames,
+    required Database db,
+    StreamController<MdictProgress>? progressController,
+  }) async {
+    final fileName = MdictHelpers.getDictNameFromPath(filePath);
     if (!(currentTableNames.contains(_getMetaTableName(filePath)) &&
         currentTableNames.contains(_getKeysTableName(filePath)) &&
-        currentTableNames
-            .contains(_getRecordsTableName(filePath)))) {
-      await _buildIndex(filePath, db);
+        currentTableNames.contains(_getRecordsTableName(filePath)))) {
+      progressController
+          ?.add(MdictProgress('Building index for $fileName ...'));
+
+      await _buildIndex(
+        dictFilePath: filePath,
+        db: db,
+        progressController: progressController,
+      );
     }
+    progressController?.add(MdictProgress('Getting headers of $fileName ...'));
     final header = await _getHeader(filePath, db);
 
+    progressController
+        ?.add(MdictProgress('Getting record list of $fileName ...'));
     final recordSizes = await _getRecordList(filePath, db);
+
+    progressController
+        ?.add(MdictProgress('Finished creating $fileName dictionary'));
     return MdictReader(
       path: filePath,
       db: db,

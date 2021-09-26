@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
-import 'package:mdict_reader/mdict_reader.dart';
+import 'package:mdict_reader/src/mdict_manager_models.dart';
 
 class InitManagerInput extends Equatable {
   const InitManagerInput(

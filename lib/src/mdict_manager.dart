@@ -1,66 +1,23 @@
+import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:equatable/equatable.dart';
 import 'package:html_unescape/html_unescape_small.dart';
+import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary.dart';
+import 'package:mdict_reader/src/mdict_manager_models.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-/// Need a stable hash to work with IsolatedManager's reload
-class MdictFiles extends Equatable {
-  const MdictFiles(
-    this.mdxPath,
-    this.mddPath,
-    this.cssPath,
-  );
-
-  final String mdxPath;
-  final String? mddPath;
-  final String? cssPath;
-
-  @override
-  List<Object?> get props => [mdxPath, mddPath, cssPath];
-}
-
-class SearchReturn {
-  SearchReturn(this.word);
-
-  final String word;
-  final Set<String> dictNames = {};
-
-  void addDictName(String dictName) => dictNames.add(dictName);
-
-  @override
-  String toString() {
-    return 'Word: $word\nDict names: $dictNames\n';
-  }
-}
-
-class QueryReturn {
-  const QueryReturn(
-    this.word,
-    this.dictName,
-    this.mdxPath,
-    this.html,
-    this.css,
-  );
-
-  final String word;
-  final String dictName;
-  final String mdxPath;
-  final String html;
-  final String css;
-
-  @override
-  String toString() {
-    return 'Word: $word\nDictname: $dictName\nHtml: $html\nCss: $css\n';
-  }
-}
-
 class MdictManager {
-  const MdictManager._(this._dictionaryList, this._db);
+  MdictManager._(
+    this._dictionaryList,
+    this._db, [
+    this._progressController,
+  ]);
 
   final List<MdictDictionary> _dictionaryList;
   final Database _db;
+  final StreamController<MdictProgress>? _progressController;
+  Stream<MdictProgress>? get progressStream => _progressController?.stream;
 
   Map<String, String> get pathNameMap =>
       {for (final dict in _dictionaryList) dict.mdxPath: dict.name};
@@ -71,26 +28,34 @@ class MdictManager {
     return tableResultSet.map((e) => e['name']);
   }
 
-  static Future<MdictManager> create(
-    Iterable<MdictFiles> mdictFilesIter,
-    String? dbPath,
-  ) async {
+  static Future<MdictManager> create({
+    required Iterable<MdictFiles> mdictFilesIter,
+    required String? dbPath,
+    StreamController<MdictProgress>? progressController,
+  }) async {
     final dictionaryList = <MdictDictionary>[];
 
+    progressController?.add(const MdictProgress('Opening index database ...'));
     final Database db;
     if (dbPath == null) {
       db = sqlite3.openInMemory();
     } else {
       db = sqlite3.open(dbPath);
     }
+
+    progressController?.add(const MdictProgress('Getting table names ...'));
     final currentTableNames = _getTableNames(db);
 
     for (var mdictFiles in mdictFilesIter) {
       try {
+        final mdxFileName =
+            MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
+        progressController?.add(MdictProgress('Processing $mdxFileName ...'));
         final mdict = await MdictDictionary.create(
-          mdictFiles,
-          currentTableNames,
-          db,
+          mdictFiles: mdictFiles,
+          currentTableNames: currentTableNames,
+          db: db,
+          progressController: progressController,
         );
         dictionaryList.add(mdict);
       } catch (e, stackTrace) {
@@ -99,13 +64,15 @@ class MdictManager {
       }
     }
 
-    return MdictManager._(dictionaryList, db);
+    return MdictManager._(dictionaryList, db, progressController);
   }
 
   Future<List<SearchReturn>> search(String term) async {
     final startsWithMap = <String, SearchReturn>{};
     final containsMap = <String, SearchReturn>{};
     for (var dictionary in _dictionaryList) {
+      _progressController
+          ?.add(MdictProgress('Searching for $term in ${dictionary.name} ...'));
       final mdictSearchResult = await dictionary.search(term);
 
       for (var key in mdictSearchResult.startsWithSet) {
@@ -118,16 +85,19 @@ class MdictManager {
         containsMap[key] = currentValue..addDictName(dictionary.name);
       }
     }
+    _progressController?.add(MdictProgress('Finished searching for $term ...'));
     return [...startsWithMap.values, ...containsMap.values];
   }
 
   Future<List<QueryReturn>> query(String word) async {
-    final result = <QueryReturn>[];
+    final results = <QueryReturn>[];
     for (var dictionary in _dictionaryList) {
+      _progressController
+          ?.add(MdictProgress('Querying for $word in ${dictionary.name} ...'));
       final htmlCssList = await dictionary.queryMdx(word);
 
       if (htmlCssList[0].isNotEmpty) {
-        result.add(
+        results.add(
           QueryReturn(
             word,
             dictionary.name,
@@ -138,7 +108,8 @@ class MdictManager {
         );
       }
     }
-    return result;
+    _progressController?.add(MdictProgress('Finished querying for $word ...'));
+    return results;
   }
 
   /// [mdxPath] act as a key when we want to query resource from a specific dictionary

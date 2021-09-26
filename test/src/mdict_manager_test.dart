@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:mdict_reader/mdict_reader.dart';
+import 'package:mdict_reader/src/mdict_manager_models.dart';
 import 'package:sqlite3/open.dart';
 import 'package:test/test.dart';
 
@@ -32,7 +33,10 @@ void main() {
     late MdictManager mdictManager;
 
     setUp(() async {
-      mdictManager = await MdictManager.create(mdictFilesList, null);
+      mdictManager = await MdictManager.create(
+        mdictFilesIter: mdictFilesList,
+        dbPath: null,
+      );
     });
 
     test('search function', () async {
@@ -94,7 +98,10 @@ void main() {
     late MdictManager mdictManager;
 
     setUp(() async {
-      mdictManager = await MdictManager.create(mdictFilesList, null);
+      mdictManager = await MdictManager.create(
+        mdictFilesIter: mdictFilesList,
+        dbPath: null,
+      );
     });
 
     test('query for sound without mdx path', () async {
@@ -161,11 +168,17 @@ void main() {
       final stopwatch = Stopwatch();
       stopwatch.start();
 
-      mdictManager1 = await MdictManager.create(mdictFilesList, _tempDbPath);
+      mdictManager1 = await MdictManager.create(
+        mdictFilesIter: mdictFilesList,
+        dbPath: _tempDbPath,
+      );
       final firstStartDuration = stopwatch.elapsed;
 
       stopwatch.reset();
-      mdictManager2 = await MdictManager.create(mdictFilesList, _tempDbPath);
+      mdictManager2 = await MdictManager.create(
+        mdictFilesIter: mdictFilesList,
+        dbPath: _tempDbPath,
+      );
       final secondStartDuration = stopwatch.elapsed;
 
       printOnFailure('First start duration: $firstStartDuration');

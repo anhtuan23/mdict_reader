@@ -30,7 +30,11 @@ void main() async {
   /// *** MdictReader ***
   // final mdictReader = await MdictReader.create('./dict/mtBab EV v1.0/mtBab EV v1.0.mdd', null);
   // final mdictReader = await MdictReader.create('./dict/OALD9/oald9.mdd', null);
-  final mdictReader = await MdictReaderHelper.init('./dict/CC-CEDICT.mdx', [], db);
+  final mdictReader = await MdictReaderHelper.init(
+    filePath: './dict/CC-CEDICT.mdx',
+    currentTableNames: [],
+    db: db,
+  );
 
   final searchResults = await mdictReader.search('音');
   print(searchResults);

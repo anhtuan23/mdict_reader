@@ -4,28 +4,35 @@ import 'dart:typed_data';
 
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/isolated_models.dart';
+import 'package:mdict_reader/src/mdict_manager_models.dart';
 
 class IsolatedManager {
   IsolatedManager(
-    this.isolateSendPort,
-    this.resultStreamController,
-    this.managerInitCompleter,
+    this._isolateSendPort,
+    this._resultStreamController,
+    this._progressStreamController,
+    this._managerInitCompleter,
   );
 
-  final SendPort isolateSendPort;
-  final StreamController<dynamic> resultStreamController;
-
-  final Completer<void> managerInitCompleter;
+  final SendPort _isolateSendPort;
+  final Completer<void> _managerInitCompleter;
+  final StreamController<dynamic> _resultStreamController;
+  final StreamController<MdictProgress> _progressStreamController;
+  Stream<MdictProgress> get progressStream => _progressStreamController.stream;
 
   static Future<IsolatedManager> init(
     Iterable<MdictFiles> mdictFilesIter,
     String? dbPath,
   ) async {
     final _resultStreamController = StreamController<dynamic>.broadcast();
+    final _progressStreamController = StreamController<MdictProgress>();
     final managerInitCompleter = Completer<void>();
 
-    final isolateSendPort =
-        await _initIsolate(_resultStreamController, managerInitCompleter);
+    final isolateSendPort = await _initIsolate(
+      _resultStreamController,
+      _progressStreamController,
+      managerInitCompleter,
+    );
 
     /// Begin to create manager right away
     final input = InitManagerInput(dbPath, mdictFilesIter);
@@ -34,12 +41,14 @@ class IsolatedManager {
     return IsolatedManager(
       isolateSendPort,
       _resultStreamController,
+      _progressStreamController,
       managerInitCompleter,
     );
   }
 
   static Future<SendPort> _initIsolate(
     StreamController<dynamic> resultStreamController,
+    StreamController<MdictProgress> progressStreamController,
     Completer<void> managerInitCompleter,
   ) async {
     final isolateSendPortCompleter = Completer<SendPort>();
@@ -55,6 +64,8 @@ class IsolatedManager {
       /// Data is PathNameMapResult means manager is initialized
       else if (data is PathNameMapResult && !managerInitCompleter.isCompleted) {
         managerInitCompleter.complete();
+      } else if (data is MdictProgress) {
+        progressStreamController.add(data);
       } else {
         resultStreamController.add(data);
       }
@@ -68,12 +79,19 @@ class IsolatedManager {
     final isolateReceivePort = ReceivePort();
     mainSendPort.send(isolateReceivePort.sendPort);
 
+    final progressStreamController = StreamController<MdictProgress>();
+    progressStreamController.stream.listen(mainSendPort.send);
+
     late MdictManager manager;
 
     isolateReceivePort.listen((data) async {
       // First data is mdict paths to init dictionary
       if (data is InitManagerInput) {
-        manager = await MdictManager.create(data.mdictFilesIter, data.dbPath);
+        manager = await MdictManager.create(
+          mdictFilesIter: data.mdictFilesIter,
+          dbPath: data.dbPath,
+          progressController: progressStreamController,
+        );
         mainSendPort.send(
           PathNameMapResult(data.hashCode, manager.pathNameMap),
         );
@@ -103,16 +121,16 @@ class IsolatedManager {
   }
 
   Future<Result> _doWork<I>(I input) async {
-    if (!managerInitCompleter.isCompleted) {
-      await managerInitCompleter.future;
+    if (!_managerInitCompleter.isCompleted) {
+      await _managerInitCompleter.future;
       return _doWork(input);
     } else {
-      isolateSendPort.send(input);
+      _isolateSendPort.send(input);
 
       final completer = Completer<Result>();
       StreamSubscription? streamSubscription;
       streamSubscription =
-          resultStreamController.stream.listen((dynamic result) {
+          _resultStreamController.stream.listen((dynamic result) {
         if (result is Result && result.inputHashCode == input.hashCode) {
           completer.complete(result);
           streamSubscription?.cancel();

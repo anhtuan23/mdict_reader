@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:mdict_reader/mdict_reader.dart';
+import 'package:mdict_reader/src/mdict_manager_models.dart';
 import 'package:mdict_reader/src/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_reader_models.dart';
 import 'package:path/path.dart' as p;
@@ -15,30 +17,41 @@ class MdictDictionary {
     required this.cssContent,
   });
 
-  static Future<MdictDictionary> create(
-    MdictFiles mdictFiles,
-    Iterable<String> currentTableNames,
-    Database db,
-  ) async {
+  static Future<MdictDictionary> create({
+    required MdictFiles mdictFiles,
+    required Iterable<String> currentTableNames,
+    required Database db,
+    StreamController<MdictProgress>? progressController,
+  }) async {
+    final mdxFileName = MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
+    progressController?.add(MdictProgress('Processing $mdxFileName mdx ...'));
     final mdxReader = await MdictReaderHelper.init(
-      mdictFiles.mdxPath,
-      currentTableNames,
-      db,
+      filePath: mdictFiles.mdxPath,
+      currentTableNames: currentTableNames,
+      db: db,
+      progressController: progressController,
     );
 
     MdictReader? mddReader;
     if (mdictFiles.mddPath != null) {
+      final mddFileName = MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
+      progressController?.add(MdictProgress('Processing $mddFileName mdd ...'));
       mddReader = await MdictReaderHelper.init(
-        mdictFiles.mddPath!,
-        currentTableNames,
-        db,
+        filePath: mdictFiles.mddPath!,
+        currentTableNames: currentTableNames,
+        db: db,
+        progressController: progressController,
       );
     }
 
+    progressController
+        ?.add(MdictProgress('Gettiing css style of $mdxFileName ...'));
     final cssFileContent =
         await MdictHelpers.readFileContent(mdictFiles.cssPath) ?? '';
     final cssMddContent = await mddReader?.extractCss() ?? '';
 
+    progressController
+        ?.add(MdictProgress('Finished creating $mdxFileName dictionary ...'));
     return MdictDictionary._(
       mdxReader: mdxReader,
       mddReader: mddReader,

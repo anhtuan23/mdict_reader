@@ -6,6 +6,7 @@ linter:
     - unawaited_futures
     - sort_child_properties_last
     - sort_constructors_first
+    - prefer_const_constructors
 
 analyzer:
   exclude:

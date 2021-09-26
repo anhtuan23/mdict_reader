@@ -23,7 +23,10 @@ void main() {
 
     setUp(() async {
       mdictReader = await MdictReaderHelper.init(
-          'test/assets/CC-CEDICT/CC-CEDICT.mdx', [], db!);
+        filePath: 'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+        currentTableNames: [],
+        db: db!,
+      );
     });
 
     test('search function', () async {
@@ -54,7 +57,11 @@ void main() {
   group('v1 mdict file', () {
     test('should throw error', () async {
       try {
-        await MdictReaderHelper.init('test/assets/jmdict.mdx', [], db!);
+        await MdictReaderHelper.init(
+          filePath: 'test/assets/jmdict.mdx',
+          currentTableNames: [],
+          db: db!,
+        );
       } on Exception catch (e) {
         expect(
           e.toString(),
@@ -69,9 +76,9 @@ void main() {
 
     setUp(() async {
       mdictReader = await MdictReaderHelper.init(
-        'test/assets/cc_cedict_v2.mdx',
-        [],
-        db!,
+        filePath: 'test/assets/cc_cedict_v2.mdx',
+        currentTableNames: [],
+        db: db!,
       );
     });
 
@@ -92,14 +99,13 @@ void main() {
 
     setUp(() async {
       mdictReader = await MdictReaderHelper.init(
-        'test/assets/Sound-zh_CN.mdd',
-        [],
-        db!,
+        filePath: 'test/assets/Sound-zh_CN.mdd',
+        currentTableNames: [],
+        db: db!,
       );
     });
 
     test('correctly query sound resource', () async {
-
       final data = await mdictReader.queryMdd('\\状态.spx');
 
       printOnFailure(data.toString());
