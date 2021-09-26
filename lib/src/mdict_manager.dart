@@ -77,12 +77,20 @@ class MdictManager {
 
       for (var key in mdictSearchResult.startsWithSet) {
         final currentValue = startsWithMap[key] ?? SearchReturn(key);
-        startsWithMap[key] = currentValue..addDictName(dictionary.name);
+        startsWithMap[key] = currentValue
+          ..addDictInfo(
+            dictionary.mdxPath,
+            dictionary.name,
+          );
       }
 
       for (var key in mdictSearchResult.containsSet) {
         final currentValue = containsMap[key] ?? SearchReturn(key);
-        containsMap[key] = currentValue..addDictName(dictionary.name);
+        containsMap[key] = currentValue
+          ..addDictInfo(
+            dictionary.mdxPath,
+            dictionary.name,
+          );
       }
     }
     _progressController?.add(MdictProgress('Finished searching for $term ...'));

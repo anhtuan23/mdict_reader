@@ -20,13 +20,14 @@ class SearchReturn {
   SearchReturn(this.word);
 
   final String word;
-  final Set<String> dictNames = {};
+  final Map<String, String> dictPathNameMap = {};
 
-  void addDictName(String dictName) => dictNames.add(dictName);
+  void addDictInfo(String mdxPath, String dictName) =>
+      dictPathNameMap[mdxPath] = dictName;
 
   @override
   String toString() {
-    return 'Word: $word\nDict names: $dictNames\n';
+    return 'Word: $word\nDict names: $dictPathNameMap\n';
   }
 }
 

@@ -46,7 +46,12 @@ void main() {
 
       expect(searchReturnList, hasLength(20));
       expect(searchReturnList[0].word, equals('勉強'));
-      expect(searchReturnList[0].dictNames, equals(['CC-CEDICT', 'JMDict']));
+      expect(
+          searchReturnList[0].dictPathNameMap,
+          equals({
+            'test/assets/CC-CEDICT/CC-CEDICT.mdx': 'CC-CEDICT',
+            'test/assets/jmdict_v2.mdx': 'JMDict'
+          }));
     });
 
     test('query function', () async {
