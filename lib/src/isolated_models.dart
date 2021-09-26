@@ -40,12 +40,15 @@ class SearchResult implements Result {
   final List<SearchReturn> searchReturnList;
 }
 
+/// [mdxPaths] narrow down which dictionary to query if provided
 class QueryInput extends Equatable {
-  const QueryInput(this.word);
+  const QueryInput(this.word, [this.mdxPaths]);
+
   final String word;
+  final Set<String>? mdxPaths;
 
   @override
-  List<Object?> get props => [word];
+  List<Object?> get props => [word, mdxPaths];
 }
 
 class QueryResult implements Result {

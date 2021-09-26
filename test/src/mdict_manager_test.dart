@@ -69,6 +69,28 @@ void main() {
       expect(secondDictReturn.css, isEmpty);
     });
 
+    test('specified query function', () async {
+      final queryReturnList = await mdictManager.query(
+        word,
+        {'test/assets/jmdict_v2.mdx'},
+      );
+
+      printOnFailure(queryReturnList.toString());
+
+      expect(
+        queryReturnList,
+        hasLength(1),
+        reason:
+            'should only query in dict with mdx path specified in query function',
+      );
+
+      final queryReturn = queryReturnList[0];
+      expect(queryReturn.word, equals('勉強'));
+      expect(queryReturn.dictName, equals('JMDict'));
+      expect(queryReturn.html, isNotEmpty);
+      expect(queryReturn.css, isEmpty);
+    });
+
     test('reOrder function', () async {
       var pathNameMap = mdictManager.pathNameMap;
       expect(

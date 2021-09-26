@@ -89,23 +89,29 @@ class MdictManager {
     return [...startsWithMap.values, ...containsMap.values].take(100).toList();
   }
 
-  Future<List<QueryReturn>> query(String word) async {
+  /// [searchDictMdxPath] narrow down which dictionary to query if provided
+  Future<List<QueryReturn>> query(
+    String word, [
+    Set<String>? searchDictMdxPaths,
+  ]) async {
     final results = <QueryReturn>[];
     for (var dictionary in _dictionaryList) {
-      _progressController
-          ?.add(MdictProgress('Querying for $word in ${dictionary.name} ...'));
-      final htmlCssList = await dictionary.queryMdx(word);
+      if (searchDictMdxPaths?.contains(dictionary.mdxPath) ?? true) {
+        _progressController?.add(
+            MdictProgress('Querying for $word in ${dictionary.name} ...'));
+        final htmlCssList = await dictionary.queryMdx(word);
 
-      if (htmlCssList[0].isNotEmpty) {
-        results.add(
-          QueryReturn(
-            word,
-            dictionary.name,
-            dictionary.mdxPath,
-            htmlCssList[0],
-            htmlCssList[1],
-          ),
-        );
+        if (htmlCssList[0].isNotEmpty) {
+          results.add(
+            QueryReturn(
+              word,
+              dictionary.name,
+              dictionary.mdxPath,
+              htmlCssList[0],
+              htmlCssList[1],
+            ),
+          );
+        }
       }
     }
     _progressController?.add(MdictProgress('Finished querying for $word ...'));

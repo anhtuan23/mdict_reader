@@ -99,7 +99,7 @@ class IsolatedManager {
         final searchReturnList = await manager.search(data.term);
         mainSendPort.send(SearchResult(data.hashCode, searchReturnList));
       } else if (data is QueryInput) {
-        final queryResult = await manager.query(data.word);
+        final queryResult = await manager.query(data.word, data.mdxPaths);
         mainSendPort.send(
           QueryResult(data.hashCode, queryResult),
         );
@@ -146,8 +146,9 @@ class IsolatedManager {
     return (result as SearchResult).searchReturnList;
   }
 
-  Future<List<QueryReturn>> query(String word) async {
-    final input = QueryInput(word);
+  /// [mdxPaths] narrow down which dictionary to query if provided
+  Future<List<QueryReturn>> query(String word, [Set<String>? mdxPaths]) async {
+    final input = QueryInput(word, mdxPaths);
     final result = await _doWork(input);
     return (result as QueryResult).queryReturns;
   }
