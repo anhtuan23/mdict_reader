@@ -44,6 +44,8 @@ class MdictReader {
 
   String get _keyTableName => MdictReaderHelper._getKeysTableName(path);
 
+  final _cachedSearchResult = <String, MdictKey>{};
+
   /// **************************************************
 
   Future<Iterable<String>> getAllKeys() async {
@@ -57,18 +59,21 @@ class MdictReader {
       term = term.trim().toLowerCase();
 
       final resultSet = _db.select(
-          "SELECT ${MdictKey.wordColumnName} FROM '$_keyTableName' WHERE ${MdictKey.wordColumnName} LIKE ?",
+          "SELECT * FROM '$_keyTableName' WHERE ${MdictKey.wordColumnName} LIKE ?",
           ['%$term%']);
 
       final startsWithSet = <String>{};
       final containsSet = <String>{};
 
       for (final row in resultSet) {
-        final word = MdictKey.getWordFromRow(row);
-        if (word.startsWith(term)) {
-          startsWithSet.add(word);
+        final mdictKey = MdictKey.fromRow(row);
+
+        _cachedSearchResult[mdictKey.word] = mdictKey;
+
+        if (mdictKey.word.startsWith(term)) {
+          startsWithSet.add(mdictKey.word);
         } else {
-          containsSet.add(word);
+          containsSet.add(mdictKey.word);
         }
       }
       return MdictSearchResultLists(startsWithSet, containsSet);
@@ -90,15 +95,20 @@ class MdictReader {
   Future<List<String>> _queryHtmls(String keyWord) async {
     var htmlStrings = <String>[];
 
-    final resultSet = _db.select(
-        "SELECT * FROM '${MdictReaderHelper._getKeysTableName(path)}' WHERE ${MdictKey.wordColumnName} LIKE ?",
-        [keyWord]);
+    final List<MdictKey> mdictKeys;
+    if (_cachedSearchResult.containsKey(keyWord)) {
+      mdictKeys = [_cachedSearchResult[keyWord]!];
+    } else {
+      final resultSet = _db.select(
+          "SELECT * FROM '${MdictReaderHelper._getKeysTableName(path)}' WHERE ${MdictKey.wordColumnName} LIKE ?",
+          [keyWord]);
+      mdictKeys = resultSet.map((row) => MdictKey.fromRow(row)).toList();
+    }
 
-    for (var row in resultSet) {
-      final key = MdictKey.fromRow(row);
+    for (var mdictKey in mdictKeys) {
       String htmlString = await _readRecord(
-        key.offset,
-        key.length,
+        mdictKey.offset,
+        mdictKey.length,
       );
 
       if (htmlString.startsWith('@@@LINK=')) {
