@@ -86,7 +86,7 @@ class MdictManager {
       }
     }
     _progressController?.add(MdictProgress('Finished searching for $term ...'));
-    return [...startsWithMap.values, ...containsMap.values];
+    return [...startsWithMap.values, ...containsMap.values].take(100).toList();
   }
 
   Future<List<QueryReturn>> query(String word) async {
