@@ -88,7 +88,7 @@ class MdictReader {
   /// Find Html definitions of a [keyWord]
   /// Can be called recursively to resolve `@@@LINK=`
   Future<List<String>> _queryHtmls(String keyWord) async {
-    var htmlStringS = <String>[];
+    var htmlStrings = <String>[];
 
     final resultSet = _db.select(
         "SELECT * FROM '${MdictReaderHelper._getKeysTableName(path)}' WHERE ${MdictKey.wordColumnName} LIKE ?",
@@ -103,12 +103,12 @@ class MdictReader {
 
       if (htmlString.startsWith('@@@LINK=')) {
         final _keyWord = htmlString.substring(8).trim();
-        htmlStringS.addAll(await _queryHtmls(_keyWord));
+        htmlStrings.addAll(await _queryHtmls(_keyWord));
       } else {
-        htmlStringS.add(htmlString.trim());
+        htmlStrings.add(htmlString.trim());
       }
     }
-    return htmlStringS;
+    return htmlStrings;
   }
 
   Future<Uint8List?> queryMdd(String resourceKey) async {
