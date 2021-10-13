@@ -155,7 +155,7 @@ class MdictReader {
       final cssKey = row[MdictKey.wordColumnName];
       final data = await queryMdd(cssKey);
       if (data != null) {
-        return Utf8Decoder().convert(data);
+        return const Utf8Decoder().convert(data);
       }
     }
   }

@@ -182,7 +182,7 @@ class BytesInputStream extends InputStream {
       }
     }
 
-    return utf8! ? Utf8Decoder().convert(codes) : String.fromCharCodes(codes);
+    return utf8! ? const Utf8Decoder().convert(codes) : String.fromCharCodes(codes);
   }
 
   /// Read a 16-bit word from the stream.
@@ -548,7 +548,7 @@ class FileInputStream extends InputStream {
       }
     }
 
-    return utf8! ? Utf8Decoder().convert(codes) : String.fromCharCodes(codes);
+    return utf8! ? const Utf8Decoder().convert(codes) : String.fromCharCodes(codes);
   }
 
   int get _remainingBufferSize => _bufferSize - _bufferPosition;

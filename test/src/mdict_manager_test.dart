@@ -11,17 +11,17 @@ void main() {
   open.overrideFor(OperatingSystem.windows, openSqliteOnWindows);
   group('standard tests', () {
     final mdictFilesList = [
-      MdictFiles(
+      const MdictFiles(
         'test/assets/CC-CEDICT/CC-CEDICT.mdx',
         'test/assets/CC-CEDICT/CC-CEDICT.mdd',
         'test/assets/CC-CEDICT/CC-CEDICT.css',
       ),
-      MdictFiles(
+      const MdictFiles(
         'test/assets/jmdict_v2.mdx',
         null,
         null,
       ),
-      MdictFiles(
+      const MdictFiles(
         'test/assets/wordnet20_v2.mdx',
         null,
         null,
@@ -110,12 +110,12 @@ void main() {
 
   group('query resource tests', () {
     final mdictFilesList = [
-      MdictFiles(
+      const MdictFiles(
         'test/assets/CC-CEDICT/CC-CEDICT.mdx',
         'test/assets/CC-CEDICT/CC-CEDICT.mdd',
         'test/assets/CC-CEDICT/CC-CEDICT.css',
       ),
-      MdictFiles(
+      const MdictFiles(
         'test/assets/cc_cedict_v2.mdx',
         'test/assets/Sound-zh_CN.mdd',
         null,
@@ -167,12 +167,12 @@ void main() {
 
   group('reuse index', () {
     final mdictFilesList = [
-      MdictFiles(
+      const MdictFiles(
         'test/assets/CC-CEDICT/CC-CEDICT.mdx',
         'test/assets/CC-CEDICT/CC-CEDICT.mdd',
         'test/assets/CC-CEDICT/CC-CEDICT.css',
       ),
-      MdictFiles(
+      const MdictFiles(
         'test/assets/cc_cedict_v2.mdx',
         'test/assets/Sound-zh_CN.mdd',
         null,

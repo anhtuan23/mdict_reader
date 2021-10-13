@@ -25,7 +25,7 @@ void main() {
 
     setUp(() async {
       mdictDictionary = await MdictDictionary.create(
-        mdictFiles: MdictFiles(
+        mdictFiles: const MdictFiles(
           'test/assets/CC-CEDICT/CC-CEDICT.mdx',
           'test/assets/CC-CEDICT/CC-CEDICT.mdd',
           'test/assets/CC-CEDICT/CC-CEDICT.css',
@@ -62,7 +62,7 @@ void main() {
   group('query resource tests', () {
     test('query for sound', () async {
       final mdictDictionary = await MdictDictionary.create(
-        mdictFiles: MdictFiles(
+        mdictFiles: const MdictFiles(
           'test/assets/cc_cedict_v2.mdx',
           'test/assets/Sound-zh_CN.mdd',
           null,
@@ -81,7 +81,7 @@ void main() {
 
     test('query result has base64 img src', () async {
       final mdictDictionary = await MdictDictionary.create(
-        mdictFiles: MdictFiles(
+        mdictFiles: const MdictFiles(
           'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdx',
           'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdd',
           null,
@@ -103,7 +103,7 @@ void main() {
 
     test('css string has both content in css file and mdd css entry', () async {
       final mdictDictionary = await MdictDictionary.create(
-        mdictFiles: MdictFiles(
+        mdictFiles: const MdictFiles(
           'test/assets/CC-CEDICT/CC-CEDICT.mdx',
           'test/assets/CC-CEDICT/CC-CEDICT.mdd',
           'test/assets/CC-CEDICT/CC-CEDICT.css',
