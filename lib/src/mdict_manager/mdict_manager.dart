@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:html_unescape/html_unescape_small.dart';
 import 'package:mdict_reader/mdict_reader.dart';
-import 'package:mdict_reader/src/mdict_dictionary.dart';
-import 'package:mdict_reader/src/mdict_manager_models.dart';
+import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
+import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 class MdictManager {

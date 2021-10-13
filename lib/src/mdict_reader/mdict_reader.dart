@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:mdict_reader/src/mdict_manager_models.dart';
-import 'package:mdict_reader/src/mdict_reader_models.dart';
+import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
+import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
 import 'package:mdict_reader/src/utils.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:mdict_reader/mdict_reader.dart';
-import 'package:mdict_reader/src/input_stream.dart';
+import 'package:mdict_reader/src/mdict_reader/input_stream.dart';
 import 'package:html/parser.dart' show parseFragment;
 import 'package:quiver/iterables.dart';
 import 'package:pointycastle/api.dart';

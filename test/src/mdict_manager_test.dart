@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:mdict_reader/mdict_reader.dart';
-import 'package:mdict_reader/src/mdict_manager_models.dart';
+import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
 import 'package:sqlite3/open.dart';
 import 'package:test/test.dart';
 
