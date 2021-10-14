@@ -24,7 +24,8 @@ class SearchReturn {
   factory SearchReturn.fromRow(Row row, Map<String, String> allPathNameMap) {
     final dictPaths = MdictKey.getFilePathsFromRow(row);
     final dictPathNameMap = {
-      for (var path in dictPaths) path: allPathNameMap[path]!
+      for (var path in dictPaths)
+        if (allPathNameMap[path] != null) path: allPathNameMap[path]!
     };
     return SearchReturn._(MdictKey.getWordFromRow(row), dictPathNameMap);
   }
