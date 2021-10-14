@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
+import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
 import 'package:sqlite3/open.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
 import 'test_utils.dart';
@@ -170,13 +172,8 @@ void main() {
     });
   });
 
-  group('reuse index', () {
+  group('index persistency', () {
     final mdictFilesList = [
-      const MdictFiles(
-        'test/assets/CC-CEDICT/CC-CEDICT.mdx',
-        'test/assets/CC-CEDICT/CC-CEDICT.mdd',
-        'test/assets/CC-CEDICT/CC-CEDICT.css',
-      ),
       const MdictFiles(
         'test/assets/cc_cedict_v2.mdx',
         'test/assets/Sound-zh_CN.mdd',
@@ -192,11 +189,12 @@ void main() {
     tearDown(() async {
       mdictManager1?.dispose();
       mdictManager2?.dispose();
+      await Future.delayed(const Duration(seconds: 3));
       final dbFile = File(_tempDbPath);
       await dbFile.delete();
     });
 
-    test('reuse db make manager start up faster', () async {
+    test('reuse index make manager start up faster', () async {
       final stopwatch = Stopwatch();
       stopwatch.start();
 
@@ -207,9 +205,9 @@ void main() {
       final firstStartDuration = stopwatch.elapsed;
 
       // this might fail if the records written in manager1 are not yet committed to the db file
-      // await Future.delayed(Duration(seconds: 3));
       mdictManager1?.dispose();
-      
+      await Future.delayed(const Duration(seconds: 3));
+
       stopwatch.reset();
 
       mdictManager2 = await MdictManager.create(
@@ -217,11 +215,44 @@ void main() {
         dbPath: _tempDbPath,
       );
       final secondStartDuration = stopwatch.elapsed;
+      mdictManager2?.dispose();
 
       printOnFailure('First start duration: $firstStartDuration');
       printOnFailure('Second start duration: $secondStartDuration');
 
       expect(secondStartDuration, lessThan(firstStartDuration * (1 / 10)));
+    });
+
+    test('unused mdict files are discarded from index db', () async {
+      mdictManager1 = await MdictManager.create(
+        mdictFilesIter: mdictFilesList,
+        dbPath: _tempDbPath,
+      );
+
+      mdictManager1?.dispose();
+      // this might fail if the records written in manager1 are not yet committed to the db file
+      await Future.delayed(const Duration(seconds: 2));
+
+      mdictManager2 = await MdictManager.create(
+        mdictFilesIter: [],
+        dbPath: _tempDbPath,
+      );
+
+      mdictManager2?.dispose();
+      await Future.delayed(const Duration(seconds: 2));
+
+      final db = sqlite3.open(_tempDbPath);
+      final deletedRows = db.select(
+        '''
+          SELECT *
+          FROM ${MdictKey.tableName} 
+          WHERE ${MdictKey.filePathColumnName} IN ('test/assets/cc_cedict_v2.mdx', 'test/assets/Sound-zh_CN.mdd')
+        ''',
+      );
+
+      expect(deletedRows, isEmpty);
+
+      db.dispose();
     });
   });
 }

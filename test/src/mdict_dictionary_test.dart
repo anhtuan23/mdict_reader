@@ -13,7 +13,7 @@ void main() {
   Database? db;
   setUp(() {
     db = sqlite3.openInMemory();
-    MdictManager.createTables(db!);
+    MdictManager.createTables(db: db!, mdictFilesIter: []);
   });
 
   tearDown(() {

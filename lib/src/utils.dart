@@ -16,3 +16,12 @@ abstract class MdictHelpers {
     }
   }
 }
+
+extension ListExt<E> on List<E> {
+  List<E> addIfNotNull(E? newValue) {
+    if (newValue != null) {
+      add(newValue);
+    }
+    return this;
+  }
+}

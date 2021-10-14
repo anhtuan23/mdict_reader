@@ -23,8 +23,31 @@ class MdictManager {
   Map<String, String> get pathNameMap =>
       {for (final dict in _dictionaryList) dict.mdxPath: dict.name};
 
+  static void _discardOldMdicts({
+    required List<String> filePaths,
+    required Database db,
+    required String tableName,
+    required String filePathColumnName,
+  }) {
+    var filePathsList = filePaths.map((e) => "'$e'").toList();
+
+    final paths = filePathsList.join(',');
+
+    db.execute('''
+      DELETE FROM $tableName
+      WHERE $filePathColumnName NOT IN (${filePathsList.join(',')}) ;
+    ''');
+  }
+
   /// visible for MdictDictionary test
-  static void createTables(Database db) {
+  static void createTables({
+    required Database db,
+    required Iterable<MdictFiles> mdictFilesIter,
+  }) {
+    final allMdictFilePaths = mdictFilesIter
+        .expand((mdictFiles) =>
+            [mdictFiles.mdxPath].addIfNotNull(mdictFiles.mddPath))
+        .toList();
     db.execute('''
       CREATE TABLE IF NOT EXISTS '${MdictMeta.tableName}' (
         ${MdictMeta.keyColumnName} TEXT NOT NULL,
@@ -32,6 +55,13 @@ class MdictManager {
         ${MdictMeta.filePathColumnName} TEXT NOT NULL
       );
     ''');
+    _discardOldMdicts(
+      db: db,
+      filePathColumnName: MdictMeta.filePathColumnName,
+      tableName: MdictMeta.tableName,
+      filePaths: allMdictFilePaths,
+    );
+
     db.execute('''
       CREATE VIRTUAL TABLE IF NOT EXISTS '${MdictKey.tableName}' USING fts5(
         ${MdictKey.wordColumnName},
@@ -40,6 +70,13 @@ class MdictManager {
         ${MdictKey.filePathColumnName},
       );
       ''');
+    _discardOldMdicts(
+      db: db,
+      filePathColumnName: MdictKey.filePathColumnName,
+      tableName: MdictKey.tableName,
+      filePaths: allMdictFilePaths,
+    );
+
     db.execute('''
       CREATE TABLE IF NOT EXISTS '${MdictRecord.tableName}' (
         ${MdictRecord.compressedSizeColumnName} BLOB NOT NULL,
@@ -51,6 +88,12 @@ class MdictManager {
       CREATE INDEX IF NOT EXISTS idx_${MdictRecord.tableName} 
       ON ${MdictRecord.tableName} (${MdictRecord.filePathColumnName});
     ''');
+    _discardOldMdicts(
+      db: db,
+      filePathColumnName: MdictRecord.filePathColumnName,
+      tableName: MdictRecord.tableName,
+      filePaths: allMdictFilePaths,
+    );
   }
 
   static Future<MdictManager> create({
@@ -68,8 +111,7 @@ class MdictManager {
       db = sqlite3.open(dbPath);
     }
 
-    createTables(db);
-    // TODO: drop all mdx file not in [mdictFilesIter]
+    createTables(db: db, mdictFilesIter: mdictFilesIter);
 
     for (var mdictFiles in mdictFilesIter) {
       try {
@@ -107,7 +149,7 @@ class MdictManager {
 
     final searchReturns =
         resultSet.map((row) => SearchReturn.fromRow(row, pathNameMap));
-        
+
     return searchReturns.take(100).toList();
   }
 
