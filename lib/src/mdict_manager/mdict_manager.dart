@@ -149,7 +149,8 @@ class MdictManager {
         FROM ${MdictKey.tableName} 
         WHERE ${MdictKey.wordColumnName} LIKE ?
         GROUP BY ${MdictKey.wordColumnName}
-        ORDER BY ${MdictKey.wordColumnName}
+        ORDER BY ${MdictKey.wordColumnName} COLLATE NOCASE
+        LIMIT 100;
       ''',
       ['$term%'],
     );
@@ -157,7 +158,7 @@ class MdictManager {
     final searchReturns =
         resultSet.map((row) => SearchReturn.fromRow(row, pathNameMap));
 
-    return searchReturns.take(100).toList();
+    return searchReturns.toList();
   }
 
   /// [searchDictMdxPath] narrow down which dictionary to query if provided
