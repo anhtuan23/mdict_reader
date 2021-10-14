@@ -24,8 +24,10 @@ import 'package:sqlite3/sqlite3.dart';
 // }
 
 abstract class MdictMeta {
+  static const tableName = 'metaTable';
   static const keyColumnName = 'key';
   static const valueColumnName = 'value';
+  static const filePathColumnName = 'filePath';
 }
 
 class MdictKey {
@@ -41,16 +43,26 @@ class MdictKey {
   int offset;
   int length;
 
+  static const tableName = 'keyTable';
   static const wordColumnName = 'word';
   static const offsetColumnName = 'offset';
   static const lengthColumnName = 'length';
+  static const filePathColumnName = 'filePath';
+
+  /// An aggregated comma separated string of all path when use with group by
+  static const filePathsColumnName = 'filePaths';
 
   static String getWordFromRow(Row row) => row[wordColumnName];
+  static String getFilePathFromRow(Row row) => row[filePathColumnName];
+  static List<String> getFilePathsFromRow(Row row) =>
+      (row[filePathsColumnName] as String).split(',');
 }
 
 abstract class MdictRecord {
+  static const tableName = 'recordTable';
   static const compressedSizeColumnName = 'compressedSize';
   static const uncompressedSizeColumnName = 'uncompressedSize';
+  static const filePathColumnName = 'filePath';
 }
 
 class IndexInfo {

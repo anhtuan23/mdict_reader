@@ -5,6 +5,7 @@ import 'package:html_unescape/html_unescape_small.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
 import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
+import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 class MdictManager {
@@ -22,10 +23,40 @@ class MdictManager {
   Map<String, String> get pathNameMap =>
       {for (final dict in _dictionaryList) dict.mdxPath: dict.name};
 
-  static Iterable<String> _getTableNames(Database db) {
-    final tableResultSet =
-        db.select("SELECT name FROM sqlite_master WHERE type='table'");
-    return tableResultSet.map((e) => e['name']);
+  // static Iterable<String> _getTableNames(Database db) {
+  //   final tableResultSet =
+  //       db.select("SELECT name FROM sqlite_master WHERE type='table'");
+  //   return tableResultSet.map((e) => e['name']);
+  // }
+
+  /// visible for MdictDictionary test
+  static void createTables(Database db) {
+    db.execute('''
+      CREATE TABLE IF NOT EXISTS '${MdictMeta.tableName}' (
+        ${MdictMeta.keyColumnName} TEXT NOT NULL,
+        ${MdictMeta.valueColumnName} TEXT NOT NULL,
+        ${MdictMeta.filePathColumnName} TEXT NOT NULL
+      );
+    ''');
+    db.execute('''
+      CREATE VIRTUAL TABLE IF NOT EXISTS '${MdictKey.tableName}' USING fts5(
+        ${MdictKey.wordColumnName},
+        ${MdictKey.offsetColumnName} UNINDEXED,
+        ${MdictKey.lengthColumnName} UNINDEXED,
+        ${MdictKey.filePathColumnName},
+      );
+      ''');
+    db.execute('''
+      CREATE TABLE IF NOT EXISTS '${MdictRecord.tableName}' (
+        ${MdictRecord.compressedSizeColumnName} BLOB NOT NULL,
+        ${MdictRecord.uncompressedSizeColumnName} BLOB NOT NULL,
+        ${MdictRecord.filePathColumnName} TEXT NOT NULL
+      );
+    ''');
+    db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_${MdictRecord.tableName} 
+      ON ${MdictRecord.tableName} (${MdictRecord.filePathColumnName});
+    ''');
   }
 
   static Future<MdictManager> create({
@@ -43,8 +74,8 @@ class MdictManager {
       db = sqlite3.open(dbPath);
     }
 
-    progressController?.add(const MdictProgress('Getting table names ...'));
-    final currentTableNames = _getTableNames(db);
+    createTables(db);
+    // TODO: drop all mdx file not in [mdictFilesIter]
 
     for (var mdictFiles in mdictFilesIter) {
       try {
@@ -53,7 +84,6 @@ class MdictManager {
         progressController?.add(MdictProgress('Processing $mdxFileName ...'));
         final mdict = await MdictDictionary.create(
           mdictFiles: mdictFiles,
-          currentTableNames: currentTableNames,
           db: db,
           progressController: progressController,
         );
@@ -68,33 +98,50 @@ class MdictManager {
   }
 
   Future<List<SearchReturn>> search(String term) async {
-    final startsWithMap = <String, SearchReturn>{};
-    final containsMap = <String, SearchReturn>{};
-    for (var dictionary in _dictionaryList) {
-      _progressController
-          ?.add(MdictProgress('Searching for $term in ${dictionary.name} ...'));
-      final mdictSearchResult = await dictionary.search(term);
+    final resultSet = _db.select(
+      '''
+        SELECT 
+          ${MdictKey.wordColumnName},
+          GROUP_CONCAT(${MdictKey.filePathColumnName}) ${MdictKey.filePathsColumnName}
+        FROM ${MdictKey.tableName} 
+        WHERE ${MdictKey.wordColumnName} MATCH ?
+        GROUP BY ${MdictKey.wordColumnName}
+        ORDER BY ${MdictKey.wordColumnName}
+      ''',
+      ['$term*'],
+    );
 
-      for (var key in mdictSearchResult.startsWithSet) {
-        final currentValue = startsWithMap[key] ?? SearchReturn(key);
-        startsWithMap[key] = currentValue
-          ..addDictInfo(
-            dictionary.mdxPath,
-            dictionary.name,
-          );
-      }
+    final searchReturns =
+        resultSet.map((row) => SearchReturn.fromRow(row, pathNameMap));
 
-      for (var key in mdictSearchResult.containsSet) {
-        final currentValue = containsMap[key] ?? SearchReturn(key);
-        containsMap[key] = currentValue
-          ..addDictInfo(
-            dictionary.mdxPath,
-            dictionary.name,
-          );
-      }
-    }
-    _progressController?.add(MdictProgress('Finished searching for $term ...'));
-    return [...startsWithMap.values, ...containsMap.values].take(100).toList();
+    // final startsWithMap = <String, SearchReturn>{};
+    // final containsMap = <String, SearchReturn>{};
+    // for (var dictionary in _dictionaryList) {
+    //   _progressController
+    //       ?.add(MdictProgress('Searching for $term in ${dictionary.name} ...'));
+    //   final mdictSearchResult = await dictionary.search(term);
+
+    //   for (var key in mdictSearchResult.startsWithSet) {
+    //     final currentValue = startsWithMap[key] ?? SearchReturn(key);
+    //     startsWithMap[key] = currentValue
+    //       ..addDictInfo(
+    //         dictionary.mdxPath,
+    //         dictionary.name,
+    //       );
+    //   }
+
+    //   for (var key in mdictSearchResult.containsSet) {
+    //     final currentValue = containsMap[key] ?? SearchReturn(key);
+    //     containsMap[key] = currentValue
+    //       ..addDictInfo(
+    //         dictionary.mdxPath,
+    //         dictionary.name,
+    //       );
+    //   }
+    // }
+    // _progressController?.add(MdictProgress('Finished searching for $term ...'));
+    // return [...startsWithMap.values, ...containsMap.values].take(100).toList();
+    return searchReturns.take(100).toList();
   }
 
   /// [searchDictMdxPath] narrow down which dictionary to query if provided

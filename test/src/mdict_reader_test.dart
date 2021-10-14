@@ -10,6 +10,7 @@ void main() {
 
   setUp(() {
     db = sqlite3.openInMemory();
+    MdictManager.createTables(db!);
   });
 
   tearDown(() {
@@ -24,18 +25,8 @@ void main() {
     setUp(() async {
       mdictReader = await MdictReaderHelper.init(
         filePath: 'test/assets/CC-CEDICT/CC-CEDICT.mdx',
-        currentTableNames: [],
         db: db!,
       );
-    });
-
-    test('search function', () async {
-      final searchResult = await mdictReader.search(word);
-
-      printOnFailure(searchResult.toString());
-
-      expect(searchResult.startsWithSet, hasLength(75));
-      expect(searchResult.containsSet, hasLength(95));
     });
 
     test('query function', () async {
@@ -59,7 +50,6 @@ void main() {
       try {
         await MdictReaderHelper.init(
           filePath: 'test/assets/jmdict.mdx',
-          currentTableNames: [],
           db: db!,
         );
       } on Exception catch (e) {
@@ -77,7 +67,6 @@ void main() {
     setUp(() async {
       mdictReader = await MdictReaderHelper.init(
         filePath: 'test/assets/cc_cedict_v2.mdx',
-        currentTableNames: [],
         db: db!,
       );
     });
@@ -100,7 +89,6 @@ void main() {
     setUp(() async {
       mdictReader = await MdictReaderHelper.init(
         filePath: 'test/assets/Sound-zh_CN.mdd',
-        currentTableNames: [],
         db: db!,
       );
     });

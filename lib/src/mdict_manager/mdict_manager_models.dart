@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
+import 'package:sqlite3/sqlite3.dart';
 
 /// Need a stable hash to work with IsolatedManager's reload
 class MdictFiles extends Equatable {
@@ -17,13 +19,18 @@ class MdictFiles extends Equatable {
 }
 
 class SearchReturn {
-  SearchReturn(this.word);
+  SearchReturn._(this.word, this.dictPathNameMap);
+
+  factory SearchReturn.fromRow(Row row, Map<String, String> allPathNameMap) {
+    final dictPaths = MdictKey.getFilePathsFromRow(row);
+    final dictPathNameMap = {
+      for (var path in dictPaths) path: allPathNameMap[path]!
+    };
+    return SearchReturn._(MdictKey.getWordFromRow(row), dictPathNameMap);
+  }
 
   final String word;
-  final Map<String, String> dictPathNameMap = {};
-
-  void addDictInfo(String mdxPath, String dictName) =>
-      dictPathNameMap[mdxPath] = dictName;
+  final Map<String, String> dictPathNameMap;
 
   @override
   String toString() {

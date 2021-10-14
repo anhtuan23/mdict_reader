@@ -39,7 +39,7 @@ void main() {
 
       printOnFailure(searchReturnList.toString());
 
-      expect(searchReturnList, hasLength(20));
+      expect(searchReturnList, isNotEmpty);
       expect(searchReturnList[0].word, equals(word));
       expect(
           searchReturnList[0].dictPathNameMap,
@@ -117,56 +117,57 @@ void main() {
             isolatedManager.progressStream,
             emitsInOrder([
               const MdictProgress('Opening index database ...'),
-              const MdictProgress('Getting table names ...'),
               const MdictProgress('Processing cc-cedict ...'),
               const MdictProgress('Processing cc-cedict mdx ...'),
               const MdictProgress('Building index for cc-cedict ...'),
-              const MdictProgress(
-                  'CC-CEDICT.mdx: Droping test/assets/CC-CEDICT/CC-CEDICT.mdx_meta table ...'),
-              const MdictProgress(
-                  'CC-CEDICT.mdx: Droping test/assets/CC-CEDICT/CC-CEDICT.mdx_keys table ...'),
-              const MdictProgress(
-                  'CC-CEDICT.mdx: Droping test/assets/CC-CEDICT/CC-CEDICT.mdx_records table ...'),
               const MdictProgress('CC-CEDICT.mdx: Getting index info ...'),
               const MdictProgress('CC-CEDICT.mdx: Building meta table ...'),
               const MdictProgress(
                   'CC-CEDICT.mdx: Building key table 0/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 10000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 8191/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 20000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 16382/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 30000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 24573/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 40000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 32764/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 50000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 40955/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 60000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 49146/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 70000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 57337/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 80000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 65528/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 90000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 73719/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 100000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 81910/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 110000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 90101/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 120000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 98292/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 130000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 106483/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 140000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 114674/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 150000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 122865/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 160000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 131056/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 170000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 139247/182173 ...'),
               const MdictProgress(
-                  'CC-CEDICT.mdx: Building key table 180000/182173 ...'),
+                  'CC-CEDICT.mdx: Building key table 147438/182173 ...'),
+              const MdictProgress(
+                  'CC-CEDICT.mdx: Building key table 155629/182173 ...'),
+              const MdictProgress(
+                  'CC-CEDICT.mdx: Building key table 163820/182173 ...'),
+              const MdictProgress(
+                  'CC-CEDICT.mdx: Building key table 172011/182173 ...'),
+              const MdictProgress(
+                  'CC-CEDICT.mdx: Building key table 180202/182173 ...'),
               const MdictProgress(
                   'CC-CEDICT.mdx: Building key table 182173/182173 ...'),
               const MdictProgress('CC-CEDICT.mdx: Building records table ...'),
@@ -176,12 +177,6 @@ void main() {
               const MdictProgress('Finished creating cc-cedict dictionary'),
               const MdictProgress('Processing cc-cedict mdd ...'),
               const MdictProgress('Building index for cc-cedict ...'),
-              const MdictProgress(
-                  'CC-CEDICT.mdd: Droping test/assets/CC-CEDICT/CC-CEDICT.mdd_meta table ...'),
-              const MdictProgress(
-                  'CC-CEDICT.mdd: Droping test/assets/CC-CEDICT/CC-CEDICT.mdd_keys table ...'),
-              const MdictProgress(
-                  'CC-CEDICT.mdd: Droping test/assets/CC-CEDICT/CC-CEDICT.mdd_records table ...'),
               const MdictProgress('CC-CEDICT.mdd: Getting index info ...'),
               const MdictProgress('CC-CEDICT.mdd: Building meta table ...'),
               const MdictProgress('CC-CEDICT.mdd: Building key table 0/15 ...'),
@@ -192,73 +187,79 @@ void main() {
               const MdictProgress('Getting headers of cc-cedict ...'),
               const MdictProgress('Getting record list of cc-cedict ...'),
               const MdictProgress('Finished creating cc-cedict dictionary'),
-              const MdictProgress('Gettiing css style of cc-cedict ...'),
+              const MdictProgress('Getting css style of cc-cedict ...'),
               const MdictProgress('Finished creating cc-cedict dictionary ...'),
               const MdictProgress('Processing jmdict_v2 ...'),
               const MdictProgress('Processing jmdict_v2 mdx ...'),
               const MdictProgress('Building index for jmdict_v2 ...'),
-              const MdictProgress(
-                  'jmdict_v2.mdx: Droping test/assets/jmdict_v2.mdx_meta table ...'),
-              const MdictProgress(
-                  'jmdict_v2.mdx: Droping test/assets/jmdict_v2.mdx_keys table ...'),
-              const MdictProgress(
-                  'jmdict_v2.mdx: Droping test/assets/jmdict_v2.mdx_records table ...'),
               const MdictProgress('jmdict_v2.mdx: Getting index info ...'),
               const MdictProgress('jmdict_v2.mdx: Building meta table ...'),
               const MdictProgress(
                   'jmdict_v2.mdx: Building key table 0/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 10000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 8191/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 20000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 16382/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 30000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 24573/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 40000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 32764/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 50000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 40955/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 60000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 49146/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 70000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 57337/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 80000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 65528/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 90000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 73719/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 100000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 81910/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 110000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 90101/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 120000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 98292/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 130000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 106483/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 140000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 114674/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 150000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 122865/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 160000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 131056/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 170000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 139247/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 180000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 147438/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 190000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 155629/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 200000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 163820/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 210000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 172011/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 220000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 180202/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 230000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 188393/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 240000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 196584/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 250000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 204775/267322 ...'),
               const MdictProgress(
-                  'jmdict_v2.mdx: Building key table 260000/267322 ...'),
+                  'jmdict_v2.mdx: Building key table 212966/267322 ...'),
+              const MdictProgress(
+                  'jmdict_v2.mdx: Building key table 221157/267322 ...'),
+              const MdictProgress(
+                  'jmdict_v2.mdx: Building key table 229348/267322 ...'),
+              const MdictProgress(
+                  'jmdict_v2.mdx: Building key table 237539/267322 ...'),
+              const MdictProgress(
+                  'jmdict_v2.mdx: Building key table 245730/267322 ...'),
+              const MdictProgress(
+                  'jmdict_v2.mdx: Building key table 253921/267322 ...'),
+              const MdictProgress(
+                  'jmdict_v2.mdx: Building key table 262112/267322 ...'),
               const MdictProgress(
                   'jmdict_v2.mdx: Building key table 267322/267322 ...'),
               const MdictProgress('jmdict_v2.mdx: Building records table ...'),
@@ -266,49 +267,49 @@ void main() {
               const MdictProgress('Getting headers of jmdict_v2 ...'),
               const MdictProgress('Getting record list of jmdict_v2 ...'),
               const MdictProgress('Finished creating jmdict_v2 dictionary'),
-              const MdictProgress('Gettiing css style of jmdict_v2 ...'),
+              const MdictProgress('Getting css style of jmdict_v2 ...'),
               const MdictProgress('Finished creating jmdict_v2 dictionary ...'),
               const MdictProgress('Processing wordnet20_v2 ...'),
               const MdictProgress('Processing wordnet20_v2 mdx ...'),
               const MdictProgress('Building index for wordnet20_v2 ...'),
-              const MdictProgress(
-                  'wordnet20_v2.mdx: Droping test/assets/wordnet20_v2.mdx_meta table ...'),
-              const MdictProgress(
-                  'wordnet20_v2.mdx: Droping test/assets/wordnet20_v2.mdx_keys table ...'),
-              const MdictProgress(
-                  'wordnet20_v2.mdx: Droping test/assets/wordnet20_v2.mdx_records table ...'),
               const MdictProgress('wordnet20_v2.mdx: Getting index info ...'),
               const MdictProgress('wordnet20_v2.mdx: Building meta table ...'),
               const MdictProgress(
                   'wordnet20_v2.mdx: Building key table 0/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 10000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 8191/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 20000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 16382/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 30000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 24573/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 40000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 32764/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 50000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 40955/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 60000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 49146/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 70000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 57337/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 80000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 65528/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 90000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 73719/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 100000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 81910/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 110000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 90101/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 120000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 98292/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 130000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 106483/144301 ...'),
               const MdictProgress(
-                  'wordnet20_v2.mdx: Building key table 140000/144301 ...'),
+                  'wordnet20_v2.mdx: Building key table 114674/144301 ...'),
+              const MdictProgress(
+                  'wordnet20_v2.mdx: Building key table 122865/144301 ...'),
+              const MdictProgress(
+                  'wordnet20_v2.mdx: Building key table 131056/144301 ...'),
+              const MdictProgress(
+                  'wordnet20_v2.mdx: Building key table 139247/144301 ...'),
               const MdictProgress(
                   'wordnet20_v2.mdx: Building key table 144301/144301 ...'),
               const MdictProgress(
@@ -317,13 +318,9 @@ void main() {
               const MdictProgress('Getting headers of wordnet20_v2 ...'),
               const MdictProgress('Getting record list of wordnet20_v2 ...'),
               const MdictProgress('Finished creating wordnet20_v2 dictionary'),
-              const MdictProgress('Gettiing css style of wordnet20_v2 ...'),
+              const MdictProgress('Getting css style of wordnet20_v2 ...'),
               const MdictProgress(
                   'Finished creating wordnet20_v2 dictionary ...'),
-              const MdictProgress('Searching for 勉強 in CC-CEDICT ...'),
-              const MdictProgress('Searching for 勉強 in JMDict ...'),
-              const MdictProgress('Searching for 勉強 in WordNet 2.0 ...'),
-              const MdictProgress('Finished searching for 勉強 ...'),
               const MdictProgress('Querying for 勉強 in CC-CEDICT ...'),
               const MdictProgress('Querying for 勉強 in JMDict ...'),
               const MdictProgress('Querying for 勉強 in WordNet 2.0 ...'),

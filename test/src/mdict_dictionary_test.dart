@@ -1,4 +1,5 @@
 import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
+import 'package:mdict_reader/src/mdict_manager/mdict_manager.dart';
 import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
 import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -12,6 +13,7 @@ void main() {
   Database? db;
   setUp(() {
     db = sqlite3.openInMemory();
+    MdictManager.createTables(db!);
   });
 
   tearDown(() {
@@ -30,20 +32,8 @@ void main() {
           'test/assets/CC-CEDICT/CC-CEDICT.mdd',
           'test/assets/CC-CEDICT/CC-CEDICT.css',
         ),
-        currentTableNames: [],
         db: db!,
       );
-    });
-
-    test('search function', () async {
-      final searchReturnList = await mdictDictionary.search(word);
-
-      printOnFailure(searchReturnList.toString());
-
-      expect(searchReturnList.startsWithSet, hasLength(1));
-      expect(searchReturnList.containsSet, hasLength(1));
-      expect(searchReturnList.startsWithSet.first, equals('勉強'));
-      expect(searchReturnList.containsSet.first, equals('勉勉強強'));
     });
 
     test('query function', () async {
@@ -67,7 +57,6 @@ void main() {
           'test/assets/Sound-zh_CN.mdd',
           null,
         ),
-        currentTableNames: [],
         db: db!,
       );
 
@@ -86,7 +75,6 @@ void main() {
           'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdd',
           null,
         ),
-        currentTableNames: [],
         db: db!,
       );
       final resultList = await mdictDictionary.queryMdx('aardvark');
@@ -108,7 +96,6 @@ void main() {
           'test/assets/CC-CEDICT/CC-CEDICT.mdd',
           'test/assets/CC-CEDICT/CC-CEDICT.css',
         ),
-        currentTableNames: [],
         db: db!,
       );
       final resultList = await mdictDictionary.queryMdx('歌词');

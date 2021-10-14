@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader.dart';
-import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
 import 'package:path/path.dart' as p;
 import 'package:html/parser.dart' show parse;
 import 'package:sqlite3/sqlite3.dart';
@@ -19,7 +18,6 @@ class MdictDictionary {
 
   static Future<MdictDictionary> create({
     required MdictFiles mdictFiles,
-    required Iterable<String> currentTableNames,
     required Database db,
     StreamController<MdictProgress>? progressController,
   }) async {
@@ -27,7 +25,6 @@ class MdictDictionary {
     progressController?.add(MdictProgress('Processing $mdxFileName mdx ...'));
     final mdxReader = await MdictReaderHelper.init(
       filePath: mdictFiles.mdxPath,
-      currentTableNames: currentTableNames,
       db: db,
       progressController: progressController,
     );
@@ -38,14 +35,13 @@ class MdictDictionary {
       progressController?.add(MdictProgress('Processing $mddFileName mdd ...'));
       mddReader = await MdictReaderHelper.init(
         filePath: mdictFiles.mddPath!,
-        currentTableNames: currentTableNames,
         db: db,
         progressController: progressController,
       );
     }
 
     progressController
-        ?.add(MdictProgress('Gettiing css style of $mdxFileName ...'));
+        ?.add(MdictProgress('Getting css style of $mdxFileName ...'));
     final cssFileContent =
         await MdictHelpers.readFileContent(mdictFiles.cssPath) ?? '';
     final cssMddContent = await mddReader?.extractCss() ?? '';
@@ -67,7 +63,7 @@ class MdictDictionary {
 
   String get mdxPath => mdxReader.path;
 
-  Future<MdictSearchResultLists> search(String term) => mdxReader.search(term);
+  // Future<MdictSearchResultLists> search(String term) => mdxReader.search(term);
 
   /// Return [html, css] of result
   Future<List<String>> queryMdx(String keyWord) async {

@@ -44,7 +44,7 @@ void main() {
 
       printOnFailure(searchReturnList.toString());
 
-      expect(searchReturnList, hasLength(20));
+      expect(searchReturnList, isNotEmpty);
       expect(searchReturnList[0].word, equals('勉強'));
       expect(
           searchReturnList[0].dictPathNameMap,
@@ -120,6 +120,11 @@ void main() {
         'test/assets/Sound-zh_CN.mdd',
         null,
       ),
+      const MdictFiles(
+        'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdx',
+        'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdd',
+        null,
+      ),
     ];
 
     late MdictManager mdictManager;
@@ -191,7 +196,7 @@ void main() {
       await dbFile.delete();
     });
 
-    test('query for sound without mdx path', () async {
+    test('reuse db make manager start up faster', () async {
       final stopwatch = Stopwatch();
       stopwatch.start();
 
@@ -201,7 +206,12 @@ void main() {
       );
       final firstStartDuration = stopwatch.elapsed;
 
+      // this might fail if the records written in manager1 are not yet committed to the db file
+      // await Future.delayed(Duration(seconds: 3));
+      mdictManager1?.dispose();
+      
       stopwatch.reset();
+
       mdictManager2 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
         dbPath: _tempDbPath,

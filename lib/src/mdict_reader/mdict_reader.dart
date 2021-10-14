@@ -42,43 +42,46 @@ class MdictReader {
 
   bool get isMdd => path.endsWith('.mdd');
 
-  String get _keyTableName => MdictReaderHelper._getKeysTableName(path);
+  // String get _keyTableName => MdictReaderHelper._getKeysTableName(path);
 
-  final _cachedSearchResult = <String, MdictKey>{};
+  // final _cachedSearchResult = <String, MdictKey>{};
 
   /// **************************************************
 
+  /// For testing only
   Future<Iterable<String>> getAllKeys() async {
-    final resultSet =
-        _db.select("SELECT ${MdictKey.wordColumnName} FROM '$_keyTableName'");
+    final resultSet = _db.select('''
+        SELECT ${MdictKey.wordColumnName} 
+        FROM '${MdictKey.tableName}'
+        ''');
     return resultSet.map(MdictKey.getWordFromRow);
   }
 
-  Future<MdictSearchResultLists> search(String term) {
-    return Future(() {
-      term = term.trim().toLowerCase();
+  // Future<MdictSearchResultLists> search(String term) {
+  //   return Future(() {
+  //     term = term.trim().toLowerCase();
 
-      final resultSet = _db.select(
-          "SELECT * FROM '$_keyTableName' WHERE ${MdictKey.wordColumnName} LIKE ?",
-          ['%$term%']);
+  //     final resultSet = _db.select(
+  //         "SELECT * FROM '$_keyTableName' WHERE ${MdictKey.wordColumnName} LIKE ?",
+  //         ['%$term%']);
 
-      final startsWithSet = <String>{};
-      final containsSet = <String>{};
+  //     final startsWithSet = <String>{};
+  //     final containsSet = <String>{};
 
-      for (final row in resultSet) {
-        final mdictKey = MdictKey.fromRow(row);
+  //     for (final row in resultSet) {
+  //       final mdictKey = MdictKey.fromRow(row);
 
-        _cachedSearchResult[mdictKey.word] = mdictKey;
+  //       _cachedSearchResult[mdictKey.word] = mdictKey;
 
-        if (mdictKey.word.startsWith(term)) {
-          startsWithSet.add(mdictKey.word);
-        } else {
-          containsSet.add(mdictKey.word);
-        }
-      }
-      return MdictSearchResultLists(startsWithSet, containsSet);
-    });
-  }
+  //       if (mdictKey.word.startsWith(term)) {
+  //         startsWithSet.add(mdictKey.word);
+  //       } else {
+  //         containsSet.add(mdictKey.word);
+  //       }
+  //     }
+  //     return MdictSearchResultLists(startsWithSet, containsSet);
+  //   });
+  // }
 
   /// * Should only be used in a mdx reader
   /// Return of result html
@@ -96,14 +99,20 @@ class MdictReader {
     var htmlStrings = <String>[];
 
     final List<MdictKey> mdictKeys;
-    if (_cachedSearchResult.containsKey(keyWord)) {
-      mdictKeys = [_cachedSearchResult[keyWord]!];
-    } else {
-      final resultSet = _db.select(
-          "SELECT * FROM '${MdictReaderHelper._getKeysTableName(path)}' WHERE ${MdictKey.wordColumnName} LIKE ?",
-          [keyWord]);
-      mdictKeys = resultSet.map((row) => MdictKey.fromRow(row)).toList();
-    }
+    // if (_cachedSearchResult.containsKey(keyWord)) {
+    //   mdictKeys = [_cachedSearchResult[keyWord]!];
+    // } else {
+    final resultSet = _db.select(
+      '''
+        SELECT ${MdictKey.wordColumnName}, ${MdictKey.offsetColumnName}, ${MdictKey.lengthColumnName} 
+        FROM ${MdictKey.tableName} 
+        WHERE ${MdictKey.filePathColumnName} = ?
+          AND ${MdictKey.wordColumnName} = ? 
+      ''',
+      [path, keyWord],
+    );
+    mdictKeys = resultSet.map((row) => MdictKey.fromRow(row)).toList();
+    // }
 
     for (var mdictKey in mdictKeys) {
       String htmlString = await _readRecord(
@@ -127,8 +136,16 @@ class MdictReader {
     resourceKey = resourceKey.toLowerCase();
 
     final resultSet = _db.select(
-        "SELECT * FROM '${MdictReaderHelper._getKeysTableName(path)}' WHERE ${MdictKey.wordColumnName} LIKE ?",
-        ['%$resourceKey%']);
+      // resourceKey usually contains '/' character, therefore we have use LIKE instead of MATCH
+      // https://www.sqlite.org/fts5.html#fts5_strings
+      '''
+        SELECT ${MdictKey.wordColumnName}, ${MdictKey.offsetColumnName}, ${MdictKey.lengthColumnName}
+        FROM ${MdictKey.tableName}
+        WHERE ${MdictKey.filePathColumnName} = ? 
+          AND ${MdictKey.wordColumnName} LIKE ? 
+      ''',
+      [path, '%$resourceKey%'],
+    );
 
     for (var row in resultSet) {
       final key = MdictKey.fromRow(row);
@@ -146,9 +163,11 @@ class MdictReader {
 
     final resultSet = _db.select(
       '''SELECT ${MdictKey.wordColumnName} 
-         FROM '${MdictReaderHelper._getKeysTableName(path)}' 
-         WHERE ${MdictKey.wordColumnName} LIKE ? ''',
-      ['%.css'],
+         FROM '${MdictKey.tableName}' 
+         WHERE ${MdictKey.filePathColumnName} = ? 
+          AND ${MdictKey.wordColumnName} LIKE ? 
+      ''',
+      [path, '%.css'],
     );
 
     for (var row in resultSet) {
