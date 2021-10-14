@@ -43,7 +43,8 @@ class MdictKey {
   int offset;
   int length;
 
-  static const tableName = 'keyTable';
+  // TODO: change back to keyTable
+  static const tableName = 'keyTable_';
   static const wordColumnName = 'word';
   static const offsetColumnName = 'offset';
   static const lengthColumnName = 'length';

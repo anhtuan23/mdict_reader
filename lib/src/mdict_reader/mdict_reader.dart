@@ -74,9 +74,7 @@ class MdictReader {
     var htmlStrings = <String>[];
 
     final List<MdictKey> mdictKeys;
-    // if (_cachedSearchResult.containsKey(keyWord)) {
-    //   mdictKeys = [_cachedSearchResult[keyWord]!];
-    // } else {
+
     final resultSet = _db.select(
       '''
         SELECT ${MdictKey.wordColumnName}, ${MdictKey.offsetColumnName}, ${MdictKey.lengthColumnName} 

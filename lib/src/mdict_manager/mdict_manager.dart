@@ -31,8 +31,6 @@ class MdictManager {
   }) {
     var filePathsList = filePaths.map((e) => "'$e'").toList();
 
-    final paths = filePathsList.join(',');
-
     db.execute('''
       DELETE FROM $tableName
       WHERE $filePathColumnName NOT IN (${filePathsList.join(',')}) ;
@@ -63,13 +61,22 @@ class MdictManager {
     );
 
     db.execute('''
-      CREATE VIRTUAL TABLE IF NOT EXISTS '${MdictKey.tableName}' USING fts5(
-        ${MdictKey.wordColumnName},
-        ${MdictKey.offsetColumnName} UNINDEXED,
-        ${MdictKey.lengthColumnName} UNINDEXED,
-        ${MdictKey.filePathColumnName},
+      CREATE TABLE IF NOT EXISTS '${MdictKey.tableName}' (
+        ${MdictKey.wordColumnName} TEXT NOT NULL,
+        ${MdictKey.offsetColumnName} TEXT NOT NULL,
+        ${MdictKey.lengthColumnName} TEXT NOT NULL,
+        ${MdictKey.filePathColumnName} TEXT NOT NULL
       );
       ''');
+    // COLLATE NOCASE helps LIKE operate on index https://stackoverflow.com/a/8586390/4116924
+    db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_${MdictKey.tableName}_word 
+      ON ${MdictKey.tableName} (${MdictKey.wordColumnName} COLLATE NOCASE);
+    ''');
+    db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_${MdictKey.tableName}_file_word
+      ON ${MdictKey.tableName} (${MdictKey.filePathColumnName}, ${MdictKey.wordColumnName} COLLATE NOCASE);
+    ''');
     _discardOldMdicts(
       db: db,
       filePathColumnName: MdictKey.filePathColumnName,
@@ -140,11 +147,11 @@ class MdictManager {
           ${MdictKey.wordColumnName},
           GROUP_CONCAT(${MdictKey.filePathColumnName}) ${MdictKey.filePathsColumnName}
         FROM ${MdictKey.tableName} 
-        WHERE ${MdictKey.wordColumnName} MATCH ?
+        WHERE ${MdictKey.wordColumnName} LIKE ?
         GROUP BY ${MdictKey.wordColumnName}
         ORDER BY ${MdictKey.wordColumnName}
       ''',
-      [term],
+      ['$term%'],
     );
 
     final searchReturns =
