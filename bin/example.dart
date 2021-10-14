@@ -27,19 +27,44 @@ void main() async {
     ),
   ];
 
-  final word = '勉強';
+  final words = [
+    'c',
+    'co',
+    'con',
+    'cont',
+    'conti',
+    'contin',
+    'contine',
+    'continen',
+    'continent',
+  ];
+
+  final stopWatch = Stopwatch();
+  stopWatch.start();
 
   MdictManager mdictManager = await MdictManager.create(
     mdictFilesIter: mdictFilesList,
     dbPath: null,
   );
+  print('Create manager took ${stopWatch.elapsed}');
 
-  final searchReturnList = await mdictManager.search(word);
-  print(searchReturnList);
+  stopWatch.reset();
+  for (var word in words) {
+    // ignore: unused_local_variable
+    final searchReturnList = await mdictManager.search(word);
+    // print(searchReturnList);
+  }
+  print('Search took ${stopWatch.elapsed}');
 
-  final queryReturnList = await mdictManager.query(word);
-  print(queryReturnList);
+  stopWatch.reset();
+  for (var word in words) {
+    // ignore: unused_local_variable
+    final queryReturnList = await mdictManager.query(word);
+  }
+  print('Query took ${stopWatch.elapsed}');
+  // print(queryReturnList);
 
+  stopWatch.stop();
   db.dispose();
 }
 

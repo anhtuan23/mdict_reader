@@ -144,7 +144,7 @@ class MdictManager {
         GROUP BY ${MdictKey.wordColumnName}
         ORDER BY ${MdictKey.wordColumnName}
       ''',
-      ['$term*'],
+      [term],
     );
 
     final searchReturns =
