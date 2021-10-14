@@ -23,12 +23,6 @@ class MdictManager {
   Map<String, String> get pathNameMap =>
       {for (final dict in _dictionaryList) dict.mdxPath: dict.name};
 
-  // static Iterable<String> _getTableNames(Database db) {
-  //   final tableResultSet =
-  //       db.select("SELECT name FROM sqlite_master WHERE type='table'");
-  //   return tableResultSet.map((e) => e['name']);
-  // }
-
   /// visible for MdictDictionary test
   static void createTables(Database db) {
     db.execute('''
@@ -113,34 +107,7 @@ class MdictManager {
 
     final searchReturns =
         resultSet.map((row) => SearchReturn.fromRow(row, pathNameMap));
-
-    // final startsWithMap = <String, SearchReturn>{};
-    // final containsMap = <String, SearchReturn>{};
-    // for (var dictionary in _dictionaryList) {
-    //   _progressController
-    //       ?.add(MdictProgress('Searching for $term in ${dictionary.name} ...'));
-    //   final mdictSearchResult = await dictionary.search(term);
-
-    //   for (var key in mdictSearchResult.startsWithSet) {
-    //     final currentValue = startsWithMap[key] ?? SearchReturn(key);
-    //     startsWithMap[key] = currentValue
-    //       ..addDictInfo(
-    //         dictionary.mdxPath,
-    //         dictionary.name,
-    //       );
-    //   }
-
-    //   for (var key in mdictSearchResult.containsSet) {
-    //     final currentValue = containsMap[key] ?? SearchReturn(key);
-    //     containsMap[key] = currentValue
-    //       ..addDictInfo(
-    //         dictionary.mdxPath,
-    //         dictionary.name,
-    //       );
-    //   }
-    // }
-    // _progressController?.add(MdictProgress('Finished searching for $term ...'));
-    // return [...startsWithMap.values, ...containsMap.values].take(100).toList();
+        
     return searchReturns.take(100).toList();
   }
 

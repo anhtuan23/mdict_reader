@@ -23,7 +23,7 @@ class MdictDictionary {
   }) async {
     final mdxFileName = MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
     progressController?.add(MdictProgress('Processing $mdxFileName mdx ...'));
-    final mdxReader = await MdictReaderHelper.init(
+    final mdxReader = await MdictReaderInitHelper.init(
       filePath: mdictFiles.mdxPath,
       db: db,
       progressController: progressController,
@@ -33,7 +33,7 @@ class MdictDictionary {
     if (mdictFiles.mddPath != null) {
       final mddFileName = MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
       progressController?.add(MdictProgress('Processing $mddFileName mdd ...'));
-      mddReader = await MdictReaderHelper.init(
+      mddReader = await MdictReaderInitHelper.init(
         filePath: mdictFiles.mddPath!,
         db: db,
         progressController: progressController,
@@ -62,8 +62,6 @@ class MdictDictionary {
   String get name => mdxReader.name;
 
   String get mdxPath => mdxReader.path;
-
-  // Future<MdictSearchResultLists> search(String term) => mdxReader.search(term);
 
   /// Return [html, css] of result
   Future<List<String>> queryMdx(String keyWord) async {

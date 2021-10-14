@@ -23,7 +23,7 @@ void main() {
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader = await MdictReaderHelper.init(
+      mdictReader = await MdictReaderInitHelper.init(
         filePath: 'test/assets/CC-CEDICT/CC-CEDICT.mdx',
         db: db!,
       );
@@ -48,7 +48,7 @@ void main() {
   group('v1 mdict file', () {
     test('should throw error', () async {
       try {
-        await MdictReaderHelper.init(
+        await MdictReaderInitHelper.init(
           filePath: 'test/assets/jmdict.mdx',
           db: db!,
         );
@@ -65,7 +65,7 @@ void main() {
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader = await MdictReaderHelper.init(
+      mdictReader = await MdictReaderInitHelper.init(
         filePath: 'test/assets/cc_cedict_v2.mdx',
         db: db!,
       );
@@ -87,7 +87,7 @@ void main() {
     late MdictReader mdictReader;
 
     setUp(() async {
-      mdictReader = await MdictReaderHelper.init(
+      mdictReader = await MdictReaderInitHelper.init(
         filePath: 'test/assets/Sound-zh_CN.mdd',
         db: db!,
       );

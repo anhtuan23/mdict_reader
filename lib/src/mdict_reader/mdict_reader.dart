@@ -15,6 +15,7 @@ import 'package:pointycastle/api.dart';
 import 'package:path/path.dart' as p;
 
 part 'mdict_reader_helper.dart';
+part 'mdict_reader_init_helper.dart';
 
 class MdictReader {
   MdictReader({
@@ -56,32 +57,6 @@ class MdictReader {
         ''');
     return resultSet.map(MdictKey.getWordFromRow);
   }
-
-  // Future<MdictSearchResultLists> search(String term) {
-  //   return Future(() {
-  //     term = term.trim().toLowerCase();
-
-  //     final resultSet = _db.select(
-  //         "SELECT * FROM '$_keyTableName' WHERE ${MdictKey.wordColumnName} LIKE ?",
-  //         ['%$term%']);
-
-  //     final startsWithSet = <String>{};
-  //     final containsSet = <String>{};
-
-  //     for (final row in resultSet) {
-  //       final mdictKey = MdictKey.fromRow(row);
-
-  //       _cachedSearchResult[mdictKey.word] = mdictKey;
-
-  //       if (mdictKey.word.startsWith(term)) {
-  //         startsWithSet.add(mdictKey.word);
-  //       } else {
-  //         containsSet.add(mdictKey.word);
-  //       }
-  //     }
-  //     return MdictSearchResultLists(startsWithSet, containsSet);
-  //   });
-  // }
 
   /// * Should only be used in a mdx reader
   /// Return of result html
