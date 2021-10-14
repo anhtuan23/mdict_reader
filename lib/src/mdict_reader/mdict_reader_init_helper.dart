@@ -47,6 +47,38 @@ abstract class MdictReaderInitHelper {
     return IndexInfo(header, keyList, recordSizes[0], recordSizes[1]);
   }
 
+  static void _insertKeys({
+    required Database db,
+    required List<MdictKey> keys,
+    required String dictFilePath,
+  }) {
+    final statementBuilder = StringBuffer('''
+          INSERT INTO '${MdictKey.tableName}' 
+            (${MdictKey.wordColumnName}, 
+             ${MdictKey.offsetColumnName}, 
+             ${MdictKey.lengthColumnName},
+             ${MdictKey.filePathColumnName}
+            ) 
+          VALUES 
+        ''');
+    statementBuilder.writeAll(
+      Iterable.generate(keys.length, (_) => '(?, ?, ?, ?)'),
+      ', ',
+    );
+    final keysStmt = db.prepare(statementBuilder.toString());
+
+    final parameters = keys
+        .expand((key) => [
+              key.word,
+              key.offset.toString(),
+              key.length.toString(),
+              dictFilePath,
+            ])
+        .toList();
+    keysStmt.execute(parameters);
+    keysStmt.dispose();
+  }
+
   static Future<void> _buildIndex({
     required String dictFilePath,
     required Database db,
@@ -93,68 +125,13 @@ abstract class MdictReaderInitHelper {
 
     final partitionedKeyIter = partition(indexInfo.keyList, countsEachTime);
 
-    final statementBuilder = StringBuffer('''
-        INSERT INTO '${MdictKey.tableName}' 
-        (${MdictKey.wordColumnName}, 
-         ${MdictKey.offsetColumnName}, 
-         ${MdictKey.lengthColumnName},
-         ${MdictKey.filePathColumnName}
-        ) 
-        VALUES ''');
-    statementBuilder.writeAll(
-      Iterable.generate(countsEachTime, (_) => '(?, ?, ?, ?)'),
-      ', ',
-    );
-    final keysStmt = db.prepare(statementBuilder.toString());
-
     var insertedCount = 0;
-    for (var keyIter
-        in partitionedKeyIter.take(partitionedKeyIter.length - 1)) {
-      final parameters = keyIter
-          .expand((key) => [
-                key.word,
-                key.offset.toString(),
-                key.length.toString(),
-                dictFilePath,
-              ])
-          .toList();
-      keysStmt.execute(parameters);
-      insertedCount += countsEachTime;
+    for (var keyList in partitionedKeyIter) {
+      _insertKeys(db: db, keys: keyList, dictFilePath: dictFilePath);
+      insertedCount += keyList.length;
       progressController?.add(MdictProgress(
           '$fileName: Building key table $insertedCount/$totalKeys ...'));
     }
-    keysStmt.dispose();
-
-    // Insert remaining keys
-    final remainingKeys = partitionedKeyIter.last;
-    final remainingStatementBuilder = StringBuffer('''
-        INSERT INTO '${MdictKey.tableName}' 
-          (${MdictKey.wordColumnName}, 
-           ${MdictKey.offsetColumnName}, 
-           ${MdictKey.lengthColumnName},
-           ${MdictKey.filePathColumnName}
-          ) 
-        VALUES ''');
-    remainingStatementBuilder.writeAll(
-      Iterable.generate(remainingKeys.length, (_) => '(?, ?, ?, ?)'),
-      ', ',
-    );
-    final remainingKeysStmt = db.prepare(remainingStatementBuilder.toString());
-
-    final remainingParameters = remainingKeys
-        .expand((key) => [
-              key.word,
-              key.offset.toString(),
-              key.length.toString(),
-              dictFilePath,
-            ])
-        .toList();
-    remainingKeysStmt.execute(remainingParameters);
-
-    progressController?.add(MdictProgress(
-        '$fileName: Building key table $totalKeys/$totalKeys ...'));
-
-    remainingKeysStmt.dispose();
 
     /// RECORDS table
     progressController
