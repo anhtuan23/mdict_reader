@@ -6,8 +6,10 @@ import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 void main() async {
+  const _tempDbPath = 'bin/example.db';
+
   open.overrideFor(OperatingSystem.windows, _openOnWindows);
-  final db = sqlite3.openInMemory();
+  // final db = sqlite3.open();
 
   final mdictFilesList = [
     const MdictFiles(
@@ -37,6 +39,7 @@ void main() async {
     'contine',
     'continen',
     'continent',
+    'work',
   ];
 
   final stopWatch = Stopwatch();
@@ -44,7 +47,7 @@ void main() async {
 
   MdictManager mdictManager = await MdictManager.create(
     mdictFilesIter: mdictFilesList,
-    dbPath: null,
+    dbPath: _tempDbPath,
   );
   print('Create manager took ${stopWatch.elapsed}');
 
@@ -65,7 +68,7 @@ void main() async {
   // print(queryReturnList);
 
   stopWatch.stop();
-  db.dispose();
+  mdictManager.dispose();
 }
 
 DynamicLibrary _openOnWindows() {
