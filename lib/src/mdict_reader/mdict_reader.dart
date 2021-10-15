@@ -43,10 +43,6 @@ class MdictReader {
 
   bool get isMdd => path.endsWith('.mdd');
 
-  // String get _keyTableName => MdictReaderHelper._getKeysTableName(path);
-
-  // final _cachedSearchResult = <String, MdictKey>{};
-
   /// **************************************************
 
   /// For testing only
@@ -76,11 +72,13 @@ class MdictReader {
     final List<MdictKey> mdictKeys;
 
     final resultSet = _db.select(
+      // since index on [word] is created with COLLATE NOCASE
+      // comparison must use LIKE, or index on [word] won't be used
       '''
         SELECT ${MdictKey.wordColumnName}, ${MdictKey.offsetColumnName}, ${MdictKey.lengthColumnName} 
         FROM ${MdictKey.tableName} 
         WHERE ${MdictKey.filePathColumnName} = ?
-          AND ${MdictKey.wordColumnName} = ? 
+          AND ${MdictKey.wordColumnName} LIKE ? 
       ''',
       [path, keyWord],
     );
@@ -106,18 +104,22 @@ class MdictReader {
   Future<Uint8List?> queryMdd(String resourceKey) async {
     if (!isMdd) throw UnsupportedError('Only call queryMdd in a mdd file');
 
-    resourceKey = resourceKey.toLowerCase();
+    resourceKey = resourceKey;
 
     final resultSet = _db.select(
-      // resourceKey usually contains '/' character, therefore we have use LIKE instead of MATCH
-      // https://www.sqlite.org/fts5.html#fts5_strings
       '''
         SELECT ${MdictKey.wordColumnName}, ${MdictKey.offsetColumnName}, ${MdictKey.lengthColumnName}
         FROM ${MdictKey.tableName}
         WHERE ${MdictKey.filePathColumnName} = ? 
-          AND ${MdictKey.wordColumnName} LIKE ? 
+          AND (${MdictKey.wordColumnName} LIKE ?
+               OR ${MdictKey.wordColumnName} LIKE ?
+              ) 
       ''',
-      [path, '%$resourceKey%'],
+      [
+        path,
+        '$resourceKey%',
+        '\\$resourceKey%',
+      ],
     );
 
     for (var row in resultSet) {
