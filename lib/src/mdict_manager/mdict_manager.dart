@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:html_unescape/html_unescape_small.dart';
+import 'package:japanese_conjugation/japanese_conjugation.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
 import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
@@ -140,20 +141,33 @@ class MdictManager {
     return MdictManager._(dictionaryList, db, progressController);
   }
 
-  Future<List<SearchReturn>> search(String term) async {
-    final resultSet = _db.select(
-      '''
+  Future<ResultSet> _multipleSearch(List<String> terms) async {
+    final whereConditions =
+        terms.map((term) => "(${MdictKey.wordColumnName} LIKE '$term%')");
+    final whereClause = whereConditions.join(' OR ');
+    final resultSet = _db.select('''
         SELECT 
           ${MdictKey.wordColumnName},
           GROUP_CONCAT(${MdictKey.filePathColumnName}) ${MdictKey.filePathsColumnName}
         FROM ${MdictKey.tableName} 
-        WHERE ${MdictKey.wordColumnName} LIKE ?
+        WHERE $whereClause
         GROUP BY ${MdictKey.wordColumnName}
         ORDER BY ${MdictKey.wordColumnName} COLLATE NOCASE
         LIMIT 100;
-      ''',
-      ['$term%'],
-    );
+      ''');
+
+    return resultSet;
+  }
+
+  Future<List<SearchReturn>> search(String term) async {
+    var resultSet = await _multipleSearch([term]);
+
+    // Try to unconjugate for Japanese with no result is found
+    if (resultSet.isEmpty) {
+      resultSet = await _multipleSearch(
+        Conjugator.unconjugateFlatten(term).map((e) => e.word).toList(),
+      );
+    }
 
     final searchReturns =
         resultSet.map((row) => SearchReturn.fromRow(row, pathNameMap));

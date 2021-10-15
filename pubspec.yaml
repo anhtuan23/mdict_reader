@@ -2,11 +2,14 @@ name: mdict_reader
 description: mdict reader.
 version: 0.0.1
 homepage: https://github.com/qingshan/mdict_reader
+publish_to: none
 
 environment:
   sdk: ">=2.13.0 <3.0.0"
 
 dependencies:
+  japanese_conjugation:
+    path: ../japanese_conjugation
   equatable: ^2.0.2
   html: ^0.15.0
   html_unescape: ^2.0.0
