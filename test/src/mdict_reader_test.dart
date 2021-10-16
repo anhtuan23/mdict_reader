@@ -36,14 +36,6 @@ void main() {
 
       expect(html, isNotEmpty, reason: 'html content is not empty');
     });
-
-    test('get all keys function', () async {
-      final keys = await mdictReader.getAllKeys();
-
-      printOnFailure(keys.toString());
-
-      expect(keys, hasLength(182173));
-    });
   });
   group('v1 mdict file', () {
     test('should throw error', () async {

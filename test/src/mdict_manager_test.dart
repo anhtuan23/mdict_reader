@@ -41,6 +41,16 @@ void main() {
       );
     });
 
+    test('keys are inserted fully', () {
+      final resultSet = mdictManager.dbForTest.select(
+        '''
+        SELECT ${MdictKey.wordColumnName} 
+        FROM '${MdictKey.tableName}'
+        ''',
+      );
+      expect(resultSet, hasLength(593811));
+    });
+
     test('search function', () async {
       final searchReturnList = await mdictManager.search(word);
 

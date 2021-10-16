@@ -45,15 +45,6 @@ class MdictReader {
 
   /// **************************************************
 
-  /// For testing only
-  Future<Iterable<String>> getAllKeys() async {
-    final resultSet = _db.select('''
-        SELECT ${MdictKey.wordColumnName} 
-        FROM '${MdictKey.tableName}'
-        ''');
-    return resultSet.map(MdictKey.getWordFromRow);
-  }
-
   /// * Should only be used in a mdx reader
   /// Return of result html
   Future<String> queryMdx(String keyWord) async {

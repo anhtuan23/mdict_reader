@@ -18,6 +18,8 @@ class MdictManager {
 
   final List<MdictDictionary> _dictionaryList;
   final Database _db;
+  // visible for testing
+  Database get dbForTest => _db;
   final StreamController<MdictProgress>? _progressController;
   Stream<MdictProgress>? get progressStream => _progressController?.stream;
 
