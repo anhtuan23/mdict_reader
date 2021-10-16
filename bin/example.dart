@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:sqlite3/open.dart';
-import 'package:sqlite3/sqlite3.dart';
 
 void main() async {
   const _tempDbPath = 'bin/example.db';
@@ -13,17 +12,22 @@ void main() async {
 
   final mdictFilesList = [
     const MdictFiles(
-      'test/assets/CC-CEDICT/CC-CEDICT.mdx',
-      'test/assets/CC-CEDICT/CC-CEDICT.mdd',
-      'test/assets/CC-CEDICT/CC-CEDICT.css',
+      'dict/CC-CEDICT.mdx',
+      'dict/CC-CEDICT.mdd',
+      null,
     ),
     const MdictFiles(
-      'test/assets/jmdict_v2.mdx',
+      'dict/jmdict_v2.mdx',
       null,
       null,
     ),
     const MdictFiles(
-      'test/assets/wordnet20_v2.mdx',
+      'dict/wordnet20_v2.mdx',
+      null,
+      null,
+    ),
+    const MdictFiles(
+      'dict/cc_cedict_v2.mdx',
       null,
       null,
     ),
@@ -40,6 +44,7 @@ void main() async {
     'continen',
     'continent',
     'work',
+    'city',
   ];
 
   final stopWatch = Stopwatch();

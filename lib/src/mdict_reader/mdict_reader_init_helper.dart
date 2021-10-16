@@ -51,8 +51,10 @@ abstract class MdictReaderInitHelper {
     required Database db,
     required List<MdictKey> keys,
     required String dictFilePath,
+    required Map<int, PreparedStatement> statementMap,
   }) {
-    final statementBuilder = StringBuffer('''
+    if (!statementMap.containsKey(keys.length)) {
+      final statementBuilder = StringBuffer('''
           INSERT INTO '${MdictKey.tableName}' 
             (${MdictKey.wordColumnName}, 
              ${MdictKey.offsetColumnName}, 
@@ -61,11 +63,13 @@ abstract class MdictReaderInitHelper {
             ) 
           VALUES 
         ''');
-    statementBuilder.writeAll(
-      Iterable.generate(keys.length, (_) => '(?, ?, ?, ?)'),
-      ', ',
-    );
-    final keysStmt = db.prepare(statementBuilder.toString());
+      statementBuilder.writeAll(
+        Iterable.generate(keys.length, (_) => '(?, ?, ?, ?)'),
+        ', ',
+      );
+      final statement = db.prepare(statementBuilder.toString());
+      statementMap[keys.length] = statement;
+    }
 
     final parameters = keys
         .expand((key) => [
@@ -75,8 +79,7 @@ abstract class MdictReaderInitHelper {
               dictFilePath,
             ])
         .toList();
-    keysStmt.execute(parameters);
-    keysStmt.dispose();
+    statementMap[keys.length]!.execute(parameters);
   }
 
   static Future<void> _buildIndex({
@@ -125,12 +128,23 @@ abstract class MdictReaderInitHelper {
 
     final partitionedKeyIter = partition(indexInfo.keyList, countsEachTime);
 
+    final statementMap = <int, PreparedStatement>{};
+
     var insertedCount = 0;
     for (var keyList in partitionedKeyIter) {
-      _insertKeys(db: db, keys: keyList, dictFilePath: dictFilePath);
+      _insertKeys(
+        db: db,
+        keys: keyList,
+        dictFilePath: dictFilePath,
+        statementMap: statementMap,
+      );
       insertedCount += keyList.length;
       progressController?.add(MdictProgress(
           '$fileName: Building key table $insertedCount/$totalKeys ...'));
+    }
+
+    for (var statement in statementMap.values) {
+      statement.dispose();
     }
 
     /// RECORDS table
