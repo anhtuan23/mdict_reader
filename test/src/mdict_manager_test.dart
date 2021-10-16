@@ -30,8 +30,6 @@ void main() {
       ),
     ];
 
-    final word = '勉強';
-
     late MdictManager mdictManager;
 
     setUp(() async {
@@ -52,12 +50,14 @@ void main() {
     });
 
     test('search function', () async {
+      final word = '勉強';
+
       final searchReturnList = await mdictManager.search(word);
 
       printOnFailure(searchReturnList.toString());
 
       expect(searchReturnList, isNotEmpty);
-      expect(searchReturnList[0].word, equals('勉強'));
+      expect(searchReturnList[0].word, equals(word));
       expect(
           searchReturnList[0].dictPathNameMap,
           equals({
@@ -66,7 +66,27 @@ void main() {
           }));
     });
 
+    test('special characters are escaped', () async {
+      final word = 'aaron\'s rod';
+
+      final searchReturnList = await mdictManager.search(word);
+
+      printOnFailure(searchReturnList.toString());
+
+      expect(searchReturnList, isNotEmpty);
+    });
+    test('special', () async {
+      final word = 'グラニングズ';
+
+      final searchReturnList = await mdictManager.search(word);
+
+      printOnFailure(searchReturnList.toString());
+
+      expect(searchReturnList, isNotEmpty);
+    });
+
     test('query function', () async {
+      final word = '勉強';
       final queryReturnList = await mdictManager.query(word);
 
       printOnFailure(queryReturnList.toString());
@@ -87,6 +107,7 @@ void main() {
     });
 
     test('specified query function', () async {
+      final word = '勉強';
       final queryReturnList = await mdictManager.query(
         word,
         {'test/assets/jmdict_v2.mdx'},

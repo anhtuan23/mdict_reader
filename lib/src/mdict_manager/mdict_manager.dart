@@ -144,10 +144,12 @@ class MdictManager {
   }
 
   Future<ResultSet> _multipleSearch(List<String> terms) async {
-    final whereConditions =
-        terms.map((term) => "(${MdictKey.wordColumnName} LIKE '$term%')");
+    if (terms.isEmpty) return ResultSet([], []);
+    final whereConditions = Iterable.generate(
+        terms.length, (_) => '(${MdictKey.wordColumnName} LIKE ?)');
     final whereClause = whereConditions.join(' OR ');
-    final resultSet = _db.select('''
+    final resultSet = _db.select(
+      '''
         SELECT 
           ${MdictKey.wordColumnName},
           GROUP_CONCAT(${MdictKey.filePathColumnName}) ${MdictKey.filePathsColumnName}
@@ -156,7 +158,9 @@ class MdictManager {
         GROUP BY ${MdictKey.wordColumnName}
         ORDER BY ${MdictKey.wordColumnName} COLLATE NOCASE
         LIMIT 100;
-      ''');
+      ''',
+      terms.map((term) => '${term.trim()}%').toList(),
+    );
 
     return resultSet;
   }
