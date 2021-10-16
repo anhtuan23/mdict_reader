@@ -75,15 +75,6 @@ void main() {
 
       expect(searchReturnList, isNotEmpty);
     });
-    test('special', () async {
-      final word = 'グラニングズ';
-
-      final searchReturnList = await mdictManager.search(word);
-
-      printOnFailure(searchReturnList.toString());
-
-      expect(searchReturnList, isNotEmpty);
-    });
 
     test('query function', () async {
       final word = '勉強';
