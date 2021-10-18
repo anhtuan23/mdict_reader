@@ -71,7 +71,7 @@ class MdictReader {
         WHERE ${MdictKey.filePathColumnName} = ?
           AND ${MdictKey.wordColumnName} LIKE ? 
       ''',
-      [path, keyWord],
+      [path, keyWord.trim()],
     );
     mdictKeys = resultSet.map((row) => MdictKey.fromRow(row)).toList();
     // }
@@ -95,7 +95,7 @@ class MdictReader {
   Future<Uint8List?> queryMdd(String resourceKey) async {
     if (!isMdd) throw UnsupportedError('Only call queryMdd in a mdd file');
 
-    resourceKey = resourceKey;
+    resourceKey = resourceKey.trim();
 
     final resultSet = _db.select(
       '''
