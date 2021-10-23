@@ -39,7 +39,7 @@ void main() {
       );
     });
 
-    test('keys are inserted fully', () {
+    test('all keys are inserted fully', () {
       final resultSet = mdictManager.dbForTest.select(
         '''
         SELECT ${MdictKey.wordColumnName} 
@@ -49,21 +49,30 @@ void main() {
       expect(resultSet, hasLength(593811));
     });
 
-    test('search function', () async {
-      final word = '勉強';
+    group('search function', () {
+      final testCases = {
+        '勉強': [
+          SearchReturn.testResult('勉強', [
+            'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+            'test/assets/jmdict_v2.mdx',
+          ])
+        ],
+        '消え': [
+          SearchReturn.testResult('消える', [
+            'test/assets/jmdict_v2.mdx',
+          ])
+        ],
+      };
 
-      final searchReturnList = await mdictManager.search(word);
+      for (var word in testCases.keys) {
+        test('search for $word', () async {
+          final searchReturnList = await mdictManager.search(word);
 
-      printOnFailure(searchReturnList.toString());
+          printOnFailure(searchReturnList.toString());
 
-      expect(searchReturnList, isNotEmpty);
-      expect(searchReturnList[0].word, equals(word));
-      expect(
-          searchReturnList[0].dictPathNameMap,
-          equals({
-            'test/assets/CC-CEDICT/CC-CEDICT.mdx': 'CC-CEDICT',
-            'test/assets/jmdict_v2.mdx': 'JMDict'
-          }));
+          expect(searchReturnList, containsAll(testCases[word]!));
+        });
+      }
     });
 
     test('special characters are escaped', () async {

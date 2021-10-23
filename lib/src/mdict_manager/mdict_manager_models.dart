@@ -18,7 +18,7 @@ class MdictFiles extends Equatable {
   List<Object?> get props => [mdxPath, mddPath, cssPath];
 }
 
-class SearchReturn {
+class SearchReturn extends Equatable {
   SearchReturn._(this.word, this.dictPathNameMap);
 
   factory SearchReturn.fromRow(Row row, Map<String, String> allPathNameMap) {
@@ -30,6 +30,11 @@ class SearchReturn {
     return SearchReturn._(MdictKey.getWordFromRow(row), dictPathNameMap);
   }
 
+  factory SearchReturn.testResult(String word, List<String> dictPaths) {
+    final dictPathNameMap = {for (final key in dictPaths) key: ''};
+    return SearchReturn._(word, dictPathNameMap);
+  }
+
   final String word;
   final Map<String, String> dictPathNameMap;
 
@@ -37,6 +42,9 @@ class SearchReturn {
   String toString() {
     return 'Word: $word\nDict names: $dictPathNameMap\n';
   }
+
+  @override
+  List<Object?> get props => [word, ...dictPathNameMap.keys];
 }
 
 class QueryReturn {
