@@ -50,16 +50,23 @@ class MdictReader {
   Future<String> queryMdx(String keyWord) async {
     if (isMdd) throw UnsupportedError('Only call queryMdx in a mdx file');
 
-    final definitionHtmlString =
-        (await _queryHtmls(keyWord)).join('<p> ********** </p>');
+    // Query result might contains a reference loop through @@@LINK=
+    // therefore we must provide the result map to remember queried words
+    final resultMap = <String, List<String>>{};
+    await _queryHtmls(keyWord, resultMap);
+
+    final definitionHtmlString = resultMap.values
+        .expand((htmlList) => htmlList)
+        .join('<p> ********** </p>');
     return definitionHtmlString;
   }
 
   /// Find Html definitions of a [keyWord]
   /// Can be called recursively to resolve `@@@LINK=`
-  Future<List<String>> _queryHtmls(String keyWord) async {
-    var htmlStrings = <String>[];
-
+  Future<void> _queryHtmls(
+    String keyWord,
+    Map<String, List<String>> resultMap,
+  ) async {
     final List<MdictKey> mdictKeys;
 
     final resultSet = _db.select(
@@ -74,8 +81,8 @@ class MdictReader {
       [path, keyWord.trim()],
     );
     mdictKeys = resultSet.map((row) => MdictKey.fromRow(row)).toList();
-    // }
 
+    resultMap[keyWord] = [];
     for (var mdictKey in mdictKeys) {
       String htmlString = await _readRecord(
         mdictKey.offset,
@@ -84,12 +91,14 @@ class MdictReader {
 
       if (htmlString.startsWith('@@@LINK=')) {
         final _keyWord = htmlString.substring(8).trim();
-        htmlStrings.addAll(await _queryHtmls(_keyWord));
+        // Query result might contains a reference loop through @@@LINK=
+        if (!resultMap.containsKey(_keyWord)) {
+          await _queryHtmls(_keyWord, resultMap);
+        }
       } else {
-        htmlStrings.add(htmlString.trim());
+        resultMap[keyWord]!.add(htmlString.trim());
       }
     }
-    return htmlStrings;
   }
 
   Future<Uint8List?> queryMdd(String resourceKey) async {

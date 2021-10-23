@@ -47,7 +47,7 @@ class SearchReturn extends Equatable {
   List<Object?> get props => [word, ...dictPathNameMap.keys];
 }
 
-class QueryReturn {
+class QueryReturn extends Equatable {
   const QueryReturn(
     this.word,
     this.dictName,
@@ -55,6 +55,10 @@ class QueryReturn {
     this.html,
     this.css,
   );
+
+  factory QueryReturn.testReturn(String word, String mdxPath) {
+    return QueryReturn(word, '', mdxPath, '', '');
+  }
 
   final String word;
   final String dictName;
@@ -66,6 +70,9 @@ class QueryReturn {
   String toString() {
     return 'Word: $word\nDictname: $dictName\nHtml: $html\nCss: $css\n';
   }
+
+  @override
+  List<Object?> get props => [word, mdxPath];
 }
 
 class MdictProgress extends Equatable {
