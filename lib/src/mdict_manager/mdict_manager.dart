@@ -144,7 +144,7 @@ class MdictManager {
   }
 
   Future<ResultSet> _multipleSearch(List<String> terms) async {
-    if (terms.isEmpty) return ResultSet([], []);
+    if (terms.isEmpty) return ResultSet([], [], []);
     final whereConditions = Iterable.generate(
         terms.length, (_) => '(${MdictKey.wordColumnName} LIKE ?)');
     final whereClause = whereConditions.join(' OR ');

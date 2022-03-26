@@ -17,3 +17,6 @@ dict/JaViDic_Ja-Vi.mdd
 dict/mtBab_CV.mdd
 dict/mtBab_CV.mdx
 *.db
+
+# MacOS
+.DS_Store
