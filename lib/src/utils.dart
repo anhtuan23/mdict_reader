@@ -14,6 +14,7 @@ abstract class MdictHelpers {
         return file.readAsString();
       }
     }
+    return Future.value(null);
   }
 }
 

@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/isolated_manager/isolated_models.dart';
-import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
 
 class IsolatedManager {
   IsolatedManager(

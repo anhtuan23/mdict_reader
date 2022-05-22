@@ -5,7 +5,6 @@ import 'package:html_unescape/html_unescape_small.dart';
 import 'package:japanese_conjugation/japanese_conjugation.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
-import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -221,6 +220,7 @@ class MdictManager {
       final data = await dictionary.queryResource(resourceKey);
       if (data != null) return data;
     }
+    return Future.value(null);
   }
 
   MdictManager reOrder(int oldIndex, int newIndex) {
