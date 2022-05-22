@@ -10,12 +10,12 @@ environment:
 dependencies:
   japanese_conjugation:
     path: ../japanese_conjugation
-  equatable: ^2.0.2
+  equatable: ^2.0.3
   html: ^0.15.0
   html_unescape: ^2.0.0
-  pointycastle: ^3.0.1
-  quiver: ^3.0.1
-  sqlite3: ^1.2.0
+  pointycastle: ^3.6.0
+  quiver: ^3.1.0
+  sqlite3: ^1.7.1
 
 dev_dependencies:
   lints: ^1.0.1
