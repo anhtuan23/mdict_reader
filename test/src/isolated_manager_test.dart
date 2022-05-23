@@ -25,7 +25,7 @@ void main() {
   ];
 
   group('functions test', () {
-    final word = '勉強';
+    const word = '勉強';
 
     late IsolatedManager isolatedManager;
 
@@ -41,11 +41,12 @@ void main() {
       expect(searchReturnList, isNotEmpty);
       expect(searchReturnList[0].word, equals(word));
       expect(
-          searchReturnList[0].dictPathNameMap,
-          equals({
-            'test/assets/CC-CEDICT/CC-CEDICT.mdx': 'CC-CEDICT',
-            'test/assets/jmdict_v2.mdx': 'JMDict'
-          }));
+        searchReturnList[0].dictPathNameMap,
+        equals({
+          'test/assets/CC-CEDICT/CC-CEDICT.mdx': 'CC-CEDICT',
+          'test/assets/jmdict_v2.mdx': 'JMDict'
+        }),
+      );
     });
 
     test('query function', () async {
@@ -71,17 +72,23 @@ void main() {
     test('reOrder function', () async {
       final pathNameMap = await isolatedManager.getPathNameMap();
       expect(
-          pathNameMap.values, equals(['CC-CEDICT', 'JMDict', 'WordNet 2.0']));
+        pathNameMap.values,
+        equals(['CC-CEDICT', 'JMDict', 'WordNet 2.0']),
+      );
 
       final newPathNameMap = await isolatedManager.reOrder(2, 0);
-      expect(newPathNameMap.values,
-          equals(['WordNet 2.0', 'CC-CEDICT', 'JMDict']));
+      expect(
+        newPathNameMap.values,
+        equals(['WordNet 2.0', 'CC-CEDICT', 'JMDict']),
+      );
     });
 
     test('reload function', () async {
       final pathNameMap = await isolatedManager.getPathNameMap();
       expect(
-          pathNameMap.values, equals(['CC-CEDICT', 'JMDict', 'WordNet 2.0']));
+        pathNameMap.values,
+        equals(['CC-CEDICT', 'JMDict', 'WordNet 2.0']),
+      );
 
       final newMdictFilesList = [
         const MdictFiles(
@@ -115,8 +122,10 @@ void main() {
           final progressBroadcast =
               isolatedManager.progressStream.asBroadcastStream();
 
-          expect(progressBroadcast,
-              emits(const MdictProgress('Opening index database ...')));
+          expect(
+            progressBroadcast,
+            emits(const MdictProgress('Opening index database ...')),
+          );
         },
       );
     },

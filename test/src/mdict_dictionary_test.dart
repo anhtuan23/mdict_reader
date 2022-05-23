@@ -1,10 +1,10 @@
+import 'package:html/parser.dart' show parse;
 import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
 import 'package:mdict_reader/src/mdict_manager/mdict_manager.dart';
 import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
 import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
-import 'package:html/parser.dart' show parse;
 
 import 'test_utils.dart';
 
@@ -21,7 +21,7 @@ void main() {
   });
 
   group('standard tests', () {
-    final word = '勉強';
+    const word = '勉強';
 
     late MdictDictionary mdictDictionary;
 
@@ -60,7 +60,7 @@ void main() {
         db: db!,
       );
 
-      final data = await mdictDictionary.queryResource('\\犯浑.spx');
+      final data = await mdictDictionary.queryResource(r'\犯浑.spx');
 
       printOnFailure(data.toString());
 
@@ -84,7 +84,7 @@ void main() {
       final html = resultList[0];
       final document = parse(html);
       final images = document.getElementsByTagName('img');
-      for (var img in images) {
+      for (final img in images) {
         expect(img.attributes['src'], startsWith('data:image/png;base64,'));
       }
     });
@@ -104,8 +104,11 @@ void main() {
 
       printOnFailure(css);
 
-      expect(css, contains('/* sample content */'),
-          reason: 'Must contains css from file');
+      expect(
+        css,
+        contains('/* sample content */'),
+        reason: 'Must contains css from file',
+      );
       expect(css, contains('div.hz{'), reason: 'Must contains css from mdd');
     });
   });

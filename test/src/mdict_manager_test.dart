@@ -51,25 +51,25 @@ void main() {
     group('search function', () {
       final testCases = {
         '勉強': [
-          SearchReturn.testResult('勉強', [
+          SearchReturn.testResult('勉強', const [
             'test/assets/CC-CEDICT/CC-CEDICT.mdx',
             'test/assets/jmdict_v2.mdx',
           ])
         ],
         '消え': [
-          SearchReturn.testResult('消える', [
+          SearchReturn.testResult('消える', const [
             'test/assets/jmdict_v2.mdx',
           ])
         ],
         '道': [
-          SearchReturn.testResult('道', [
+          SearchReturn.testResult('道', const [
             'test/assets/CC-CEDICT/CC-CEDICT.mdx',
             'test/assets/jmdict_v2.mdx',
           ])
         ],
       };
 
-      for (var word in testCases.keys) {
+      for (final word in testCases.keys) {
         test('search for $word', () async {
           final searchReturnList = await mdictManager.search(word);
 
@@ -79,7 +79,7 @@ void main() {
         });
       }
       test('special characters are escaped', () async {
-        final word = 'aaron\'s rod';
+        const word = "aaron's rod";
 
         final searchReturnList = await mdictManager.search(word);
 
@@ -100,7 +100,7 @@ void main() {
           QueryReturn.testReturn('辺', 'test/assets/jmdict_v2.mdx'),
         ],
       };
-      for (var word in testCases.keys) {
+      for (final word in testCases.keys) {
         test('query for $word', () async {
           final queryReturnList = await mdictManager.query(word);
 
@@ -111,7 +111,7 @@ void main() {
       }
 
       test('on in specified dictionary', () async {
-        final word = '勉強';
+        const word = '勉強';
         final queryReturnList = await mdictManager.query(
           word,
           {'test/assets/jmdict_v2.mdx'},
@@ -123,6 +123,7 @@ void main() {
           queryReturnList,
           hasLength(1),
           reason:
+              // ignore: lines_longer_than_80_chars
               'should only query in dict with mdx path specified in query function',
         );
 
@@ -135,7 +136,7 @@ void main() {
 
       test('prevent reference loop', () async {
         // 道 have a @@@LINK= to 路 and vice versa
-        final word = '道';
+        const word = '道';
         final queryReturnList = await mdictManager.query(
           word,
           {'test/assets/jmdict_v2.mdx'},
@@ -153,12 +154,16 @@ void main() {
     test('reOrder function', () async {
       var pathNameMap = mdictManager.pathNameMap;
       expect(
-          pathNameMap.values, equals(['CC-CEDICT', 'JMDict', 'WordNet 2.0']));
+        pathNameMap.values,
+        equals(['CC-CEDICT', 'JMDict', 'WordNet 2.0']),
+      );
 
       mdictManager = mdictManager.reOrder(2, 0);
       pathNameMap = mdictManager.pathNameMap;
       expect(
-          pathNameMap.values, equals(['WordNet 2.0', 'CC-CEDICT', 'JMDict']));
+        pathNameMap.values,
+        equals(['WordNet 2.0', 'CC-CEDICT', 'JMDict']),
+      );
     });
   });
 
@@ -191,7 +196,7 @@ void main() {
     });
 
     test('query for sound without mdx path', () async {
-      final soundUri = 'sound://犯浑.spx';
+      const soundUri = 'sound://犯浑.spx';
       final data = await mdictManager.queryResource(soundUri, null);
 
       printOnFailure(data.toString());
@@ -201,9 +206,11 @@ void main() {
     });
 
     test('query for sound with wrong mdx path', () async {
-      final soundUri = 'sound://犯浑.spx';
+      const soundUri = 'sound://犯浑.spx';
       final data = await mdictManager.queryResource(
-          soundUri, 'test/assets/CC-CEDICT/CC-CEDICT.mdx');
+        soundUri,
+        'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+      );
 
       printOnFailure(data.toString());
 
@@ -211,7 +218,7 @@ void main() {
     });
 
     test('query for sound with mdxPath', () async {
-      final soundUri = 'sound://犯浑.spx';
+      const soundUri = 'sound://犯浑.spx';
       final data = await mdictManager.queryResource(
         soundUri,
         'test/assets/cc_cedict_v2.mdx',
@@ -241,14 +248,13 @@ void main() {
     tearDown(() async {
       mdictManager1?.dispose();
       mdictManager2?.dispose();
-      await Future.delayed(const Duration(seconds: 3));
+      await Future<dynamic>.delayed(const Duration(seconds: 3));
       final dbFile = File(_tempDbPath);
       await dbFile.delete();
     });
 
     test('reuse index make manager start up faster', () async {
-      final stopwatch = Stopwatch();
-      stopwatch.start();
+      final stopwatch = Stopwatch()..start();
 
       mdictManager1 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
@@ -256,9 +262,10 @@ void main() {
       );
       final firstStartDuration = stopwatch.elapsed;
 
-      // this might fail if the records written in manager1 are not yet committed to the db file
+      // this might fail if the records written in manager1
+      // are not yet committed to the db file
       mdictManager1?.dispose();
-      await Future.delayed(const Duration(seconds: 3));
+      await Future<dynamic>.delayed(const Duration(seconds: 3));
 
       stopwatch.reset();
 
@@ -282,8 +289,9 @@ void main() {
       );
 
       mdictManager1?.dispose();
-      // this might fail if the records written in manager1 are not yet committed to the db file
-      await Future.delayed(const Duration(seconds: 2));
+      // this might fail if the records written in manager1
+      // are not yet committed to the db file
+      await Future<dynamic>.delayed(const Duration(seconds: 2));
 
       mdictManager2 = await MdictManager.create(
         mdictFilesIter: [],
@@ -291,7 +299,7 @@ void main() {
       );
 
       mdictManager2?.dispose();
-      await Future.delayed(const Duration(seconds: 2));
+      await Future<dynamic>.delayed(const Duration(seconds: 2));
 
       final db = sqlite3.open(_tempDbPath);
       final deletedRows = db.select(

@@ -23,7 +23,7 @@ abstract class InputStream {
   /// Rewind the read head of the stream by the given number of bytes.
   Future<void> rewind([int length = 1]);
 
-  /// Move the read position by [count] bytes.
+  /// Move the read position by [length] bytes.
   Future<void> skip(int length);
 
   /// Read a single byte.
@@ -32,7 +32,7 @@ abstract class InputStream {
   /// Read [count] bytes from the stream.
   Future<Uint8List> readBytes(int count);
 
-  /// Read a null-terminated string, or if [len] is provided, that number of
+  /// Read a null-terminated string, or if [size] is provided, that number of
   /// bytes returned as a string.
   Future<String> readString({int? size, bool? utf8});
 
@@ -51,9 +51,12 @@ abstract class InputStream {
 /// A buffer that can be read as a stream of bytes
 class BytesInputStream extends InputStream {
   /// Create a InputStream for reading from a List<int>
-  BytesInputStream(Uint8List data,
-      {this.byteOrder = ByteOrder.bigEndian, this.start = 0, int? length})
-      : buffer =
+  BytesInputStream(
+    Uint8List data, {
+    this.byteOrder = ByteOrder.bigEndian,
+    this.start = 0,
+    int? length,
+  })  : buffer =
             Uint8List.view(data.buffer, data.offsetInBytes, data.lengthInBytes),
         offset = start {
     _length = length ?? buffer.length;
@@ -100,18 +103,24 @@ class BytesInputStream extends InputStream {
   /// read position is used. If [length] is not specified, the remainder of this
   /// stream is used.
   InputStream subset([int? position, int? length]) {
-    if (position == null) {
-      position = offset;
+    var _position = position;
+    if (_position == null) {
+      _position = offset;
     } else {
-      position += start;
+      _position += start;
     }
 
-    if (length == null || length < 0) {
-      length = _length - (position - start);
+    var localLength = length;
+    if (localLength == null || localLength < 0) {
+      localLength = _length - (_position - start);
     }
 
-    return BytesInputStream(buffer,
-        byteOrder: byteOrder, start: position, length: length);
+    return BytesInputStream(
+      buffer,
+      byteOrder: byteOrder,
+      start: _position,
+      length: localLength,
+    );
   }
 
   /// Returns the position of the given [value] within the buffer, starting
@@ -119,6 +128,7 @@ class BytesInputStream extends InputStream {
   /// returned is relative to the start of the buffer, or -1 if the [value]
   /// was not found.
   int indexOf(int value, [int offset = 0]) {
+    // ignore: prefer_final_locals
     for (var i = this.offset + offset, end = this.offset + length;
         i < end;
         ++i) {
@@ -149,7 +159,7 @@ class BytesInputStream extends InputStream {
     return bytes.toUint8List();
   }
 
-  /// Read a null-terminated string, or if [len] is provided, that number of
+  /// Read a null-terminated string, or if [size] is provided, that number of
   /// bytes returned as a string.
   @override
   Future<String> readString({int? size, bool? utf8 = true}) async {
@@ -158,7 +168,7 @@ class BytesInputStream extends InputStream {
       while (!isEOS) {
         var c = await readByte();
         if (!utf8!) {
-          var c2 = await readByte();
+          final c2 = await readByte();
           c = (c2 << 8) | c;
         }
         if (c == 0) {
@@ -171,7 +181,7 @@ class BytesInputStream extends InputStream {
         var c = await readByte();
         size--;
         if (!utf8!) {
-          var c2 = await readByte();
+          final c2 = await readByte();
           size--;
           c = (c2 << 8) | c;
         }
@@ -182,7 +192,9 @@ class BytesInputStream extends InputStream {
       }
     }
 
-    return utf8! ? const Utf8Decoder().convert(codes) : String.fromCharCodes(codes);
+    return utf8!
+        ? const Utf8Decoder().convert(codes)
+        : String.fromCharCodes(codes);
   }
 
   /// Read a 16-bit word from the stream.
@@ -258,6 +270,7 @@ class FileInputStream extends InputStream {
   FileInputStream._(
     this.path, {
     required this.byteOrder,
+    // ignore: avoid_unused_constructor_parameters
     required int bufferSize,
   });
 
@@ -344,7 +357,7 @@ class FileInputStream extends InputStream {
   @override
   Future<void> rewind([int length = 1]) async {
     if (_bufferPosition - length < 0) {
-      var remaining = (_bufferPosition - length).abs();
+      final remaining = (_bufferPosition - length).abs();
       _filePosition = _filePosition - _bufferSize - remaining;
       if (_filePosition < 0) {
         _filePosition = 0;
@@ -466,6 +479,8 @@ class FileInputStream extends InputStream {
 
   @override
   Future<Uint8List> readBytes(int count) async {
+    var localCount = count;
+
     if (isEOS) {
       return Uint8List.fromList(<int>[]);
     }
@@ -474,32 +489,35 @@ class FileInputStream extends InputStream {
       await _readBuffer();
     }
 
-    if (_remainingBufferSize >= count) {
-      final bytes = _buffer.sublist(_bufferPosition, _bufferPosition + count);
-      _bufferPosition += count;
+    if (_remainingBufferSize >= localCount) {
+      final bytes =
+          _buffer.sublist(_bufferPosition, _bufferPosition + localCount);
+      _bufferPosition += localCount;
       return bytes;
     }
 
-    var totalRemaining = fileRemaining + _remainingBufferSize;
-    if (count > totalRemaining) {
-      count = totalRemaining;
+    final totalRemaining = fileRemaining + _remainingBufferSize;
+    if (localCount > totalRemaining) {
+      localCount = totalRemaining;
     }
 
-    final bytes = Uint8List(count);
+    final bytes = Uint8List(localCount);
 
     var offset = 0;
-    while (count > 0) {
-      var remaining = _bufferSize - _bufferPosition;
-      var end = (count > remaining) ? _bufferSize : (_bufferPosition + count);
+    while (localCount > 0) {
+      final remaining = _bufferSize - _bufferPosition;
+      final end = (localCount > remaining)
+          ? _bufferSize
+          : (_bufferPosition + localCount);
       final l = _buffer.sublist(_bufferPosition, end);
       // TODO probably better to use bytes.setRange here.
       for (var i = 0; i < l.length; ++i) {
         bytes[offset + i] = l[i];
       }
       offset += l.length;
-      count -= l.length;
+      localCount -= l.length;
       _bufferPosition = end;
-      if (count > 0 && _bufferPosition == _bufferSize) {
+      if (_bufferPosition == _bufferSize) {
         await _readBuffer();
         if (_bufferSize == 0) {
           break;
@@ -515,7 +533,7 @@ class FileInputStream extends InputStream {
     return readBytes(_fileSize);
   }
 
-  /// Read a null-terminated string, or if [len] is provided, that number of
+  /// Read a null-terminated string, or if [size] is provided, that number of
   /// bytes returned as a string.
   @override
   Future<String> readString({int? size, bool? utf8 = true}) async {
@@ -524,7 +542,7 @@ class FileInputStream extends InputStream {
       while (!isEOS) {
         var c = await readByte();
         if (!utf8!) {
-          var c2 = await readByte();
+          final c2 = await readByte();
           c = (c2 << 8) | c;
         }
         if (c == 0) {
@@ -537,7 +555,7 @@ class FileInputStream extends InputStream {
         var c = await readByte();
         size--;
         if (!utf8!) {
-          var c2 = await readByte();
+          final c2 = await readByte();
           size--;
           c = (c2 << 8) | c;
         }
@@ -548,7 +566,9 @@ class FileInputStream extends InputStream {
       }
     }
 
-    return utf8! ? const Utf8Decoder().convert(codes) : String.fromCharCodes(codes);
+    return utf8!
+        ? const Utf8Decoder().convert(codes)
+        : String.fromCharCodes(codes);
   }
 
   int get _remainingBufferSize => _bufferSize - _bufferPosition;

@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:html/parser.dart' show parse;
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:path/path.dart' as p;
-import 'package:html/parser.dart' show parse;
 import 'package:sqlite3/sqlite3.dart';
 
 class MdictDictionary {
@@ -72,7 +72,7 @@ class MdictDictionary {
       final document = parse(html);
 
       final images = document.getElementsByTagName('img');
-      for (var img in images) {
+      for (final img in images) {
         final src = img.attributes['src'];
 
         if (src == null) continue;
@@ -82,7 +82,7 @@ class MdictDictionary {
 
         extension = extension.replaceFirst('.', '');
 
-        final intData = await queryResource(src.replaceAll('/', '\\'));
+        final intData = await queryResource(src.replaceAll('/', r'\'));
         if (intData == null) continue;
 
         final base64Data = base64.encode(intData);

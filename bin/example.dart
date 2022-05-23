@@ -47,17 +47,16 @@ void main() async {
     'city',
   ];
 
-  final stopWatch = Stopwatch();
-  stopWatch.start();
+  final stopWatch = Stopwatch()..start();
 
-  MdictManager mdictManager = await MdictManager.create(
+  final mdictManager = await MdictManager.create(
     mdictFilesIter: mdictFilesList,
     dbPath: _tempDbPath,
   );
   print('Create manager took ${stopWatch.elapsed}');
 
   stopWatch.reset();
-  for (var word in words) {
+  for (final word in words) {
     // ignore: unused_local_variable
     final searchReturnList = await mdictManager.search(word);
     // print(searchReturnList);
@@ -65,7 +64,7 @@ void main() async {
   print('Search took ${stopWatch.elapsed}');
 
   stopWatch.reset();
-  for (var word in words) {
+  for (final word in words) {
     // ignore: unused_local_variable
     final queryReturnList = await mdictManager.query(word);
   }

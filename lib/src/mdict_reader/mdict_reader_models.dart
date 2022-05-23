@@ -34,9 +34,9 @@ class MdictKey {
   MdictKey(this.word, this.offset, [this.length = -1]);
 
   factory MdictKey.fromRow(Row row) => MdictKey(
-        row[wordColumnName],
-        int.parse(row[offsetColumnName]),
-        int.parse(row[lengthColumnName]),
+        row[wordColumnName] as String,
+        int.parse(row[offsetColumnName] as String),
+        int.parse(row[lengthColumnName] as String),
       );
 
   String word;
@@ -53,8 +53,9 @@ class MdictKey {
   /// An aggregated comma separated string of all path when use with group by
   static const filePathsColumnName = 'filePaths';
 
-  static String getWordFromRow(Row row) => row[wordColumnName];
-  static String getFilePathFromRow(Row row) => row[filePathColumnName];
+  static String getWordFromRow(Row row) => row[wordColumnName] as String;
+  static String getFilePathFromRow(Row row) =>
+      row[filePathColumnName] as String;
   static List<String> getFilePathsFromRow(Row row) =>
       (row[filePathsColumnName] as String).split(',');
 }

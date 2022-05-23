@@ -31,12 +31,14 @@ class MdictManager {
     required String tableName,
     required String filePathColumnName,
   }) {
-    var filePathsList = filePaths.map((e) => "'$e'").toList();
+    final filePathsList = filePaths.map((e) => "'$e'").toList();
 
-    db.execute('''
+    db.execute(
+      '''
       DELETE FROM $tableName
       WHERE $filePathColumnName NOT IN (${filePathsList.join(',')}) ;
-    ''');
+    ''',
+    );
   }
 
   /// visible for MdictDictionary test
@@ -45,16 +47,19 @@ class MdictManager {
     required Iterable<MdictFiles> mdictFilesIter,
   }) {
     final allMdictFilePaths = mdictFilesIter
-        .expand((mdictFiles) =>
-            [mdictFiles.mdxPath].addIfNotNull(mdictFiles.mddPath))
+        .expand(
+          (mdictFiles) => [mdictFiles.mdxPath].addIfNotNull(mdictFiles.mddPath),
+        )
         .toList();
-    db.execute('''
+    db.execute(
+      '''
       CREATE TABLE IF NOT EXISTS '${MdictMeta.tableName}' (
         ${MdictMeta.keyColumnName} TEXT NOT NULL,
         ${MdictMeta.valueColumnName} TEXT NOT NULL,
         ${MdictMeta.filePathColumnName} TEXT NOT NULL
       );
-    ''');
+    ''',
+    );
     _discardOldMdicts(
       db: db,
       filePathColumnName: MdictMeta.filePathColumnName,
@@ -62,23 +67,30 @@ class MdictManager {
       filePaths: allMdictFilePaths,
     );
 
-    db.execute('''
-      CREATE TABLE IF NOT EXISTS '${MdictKey.tableName}' (
-        ${MdictKey.wordColumnName} TEXT NOT NULL,
-        ${MdictKey.offsetColumnName} TEXT NOT NULL,
-        ${MdictKey.lengthColumnName} TEXT NOT NULL,
-        ${MdictKey.filePathColumnName} TEXT NOT NULL
+    db
+      ..execute(
+        '''
+        CREATE TABLE IF NOT EXISTS '${MdictKey.tableName}' (
+          ${MdictKey.wordColumnName} TEXT NOT NULL,
+          ${MdictKey.offsetColumnName} TEXT NOT NULL,
+          ${MdictKey.lengthColumnName} TEXT NOT NULL,
+          ${MdictKey.filePathColumnName} TEXT NOT NULL
+        );
+        ''',
+      )
+      // COLLATE NOCASE helps LIKE operate on index https://stackoverflow.com/a/8586390/4116924
+      ..execute(
+        '''
+          CREATE INDEX IF NOT EXISTS idx_${MdictKey.tableName}_word 
+          ON ${MdictKey.tableName} (${MdictKey.wordColumnName} COLLATE NOCASE);
+        ''',
+      )
+      ..execute(
+        '''
+          CREATE INDEX IF NOT EXISTS idx_${MdictKey.tableName}_file_word
+          ON ${MdictKey.tableName} (${MdictKey.filePathColumnName}, ${MdictKey.wordColumnName} COLLATE NOCASE);
+        ''',
       );
-      ''');
-    // COLLATE NOCASE helps LIKE operate on index https://stackoverflow.com/a/8586390/4116924
-    db.execute('''
-      CREATE INDEX IF NOT EXISTS idx_${MdictKey.tableName}_word 
-      ON ${MdictKey.tableName} (${MdictKey.wordColumnName} COLLATE NOCASE);
-    ''');
-    db.execute('''
-      CREATE INDEX IF NOT EXISTS idx_${MdictKey.tableName}_file_word
-      ON ${MdictKey.tableName} (${MdictKey.filePathColumnName}, ${MdictKey.wordColumnName} COLLATE NOCASE);
-    ''');
     _discardOldMdicts(
       db: db,
       filePathColumnName: MdictKey.filePathColumnName,
@@ -86,17 +98,22 @@ class MdictManager {
       filePaths: allMdictFilePaths,
     );
 
-    db.execute('''
-      CREATE TABLE IF NOT EXISTS '${MdictRecord.tableName}' (
-        ${MdictRecord.compressedSizeColumnName} BLOB NOT NULL,
-        ${MdictRecord.uncompressedSizeColumnName} BLOB NOT NULL,
-        ${MdictRecord.filePathColumnName} TEXT NOT NULL
+    db
+      ..execute(
+        '''
+          CREATE TABLE IF NOT EXISTS '${MdictRecord.tableName}' (
+            ${MdictRecord.compressedSizeColumnName} BLOB NOT NULL,
+            ${MdictRecord.uncompressedSizeColumnName} BLOB NOT NULL,
+            ${MdictRecord.filePathColumnName} TEXT NOT NULL
+          );
+        ''',
+      )
+      ..execute(
+        '''
+          CREATE INDEX IF NOT EXISTS idx_${MdictRecord.tableName} 
+          ON ${MdictRecord.tableName} (${MdictRecord.filePathColumnName});
+        ''',
       );
-    ''');
-    db.execute('''
-      CREATE INDEX IF NOT EXISTS idx_${MdictRecord.tableName} 
-      ON ${MdictRecord.tableName} (${MdictRecord.filePathColumnName});
-    ''');
     _discardOldMdicts(
       db: db,
       filePathColumnName: MdictRecord.filePathColumnName,
@@ -122,7 +139,7 @@ class MdictManager {
 
     createTables(db: db, mdictFilesIter: mdictFilesIter);
 
-    for (var mdictFiles in mdictFilesIter) {
+    for (final mdictFiles in mdictFilesIter) {
       try {
         final mdxFileName =
             MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
@@ -145,7 +162,9 @@ class MdictManager {
   Future<ResultSet> _multipleSearch(List<String> terms) async {
     if (terms.isEmpty) return ResultSet([], [], []);
     final whereConditions = Iterable.generate(
-        terms.length, (_) => '(${MdictKey.wordColumnName} LIKE ?)');
+      terms.length,
+      (_) => '(${MdictKey.wordColumnName} LIKE ?)',
+    );
     final whereClause = whereConditions.join(' OR ');
     final resultSet = _db.select(
       '''
@@ -180,16 +199,17 @@ class MdictManager {
     return searchReturns.toList();
   }
 
-  /// [searchDictMdxPath] narrow down which dictionary to query if provided
+  /// [searchDictMdxPaths] narrow down which dictionary to query if provided
   Future<List<QueryReturn>> query(
     String word, [
     Set<String>? searchDictMdxPaths,
   ]) async {
     final results = <QueryReturn>[];
-    for (var dictionary in _dictionaryList) {
+    for (final dictionary in _dictionaryList) {
       if (searchDictMdxPaths?.contains(dictionary.mdxPath) ?? true) {
         _progressController?.add(
-            MdictProgress('Querying for $word in ${dictionary.name} ...'));
+          MdictProgress('Querying for $word in ${dictionary.name} ...'),
+        );
         final htmlCssList = await dictionary.queryMdx(word);
 
         if (htmlCssList[0].isNotEmpty) {
@@ -209,28 +229,30 @@ class MdictManager {
     return results;
   }
 
-  /// [mdxPath] act as a key when we want to query resource from a specific dictionary
+  /// [mdxPath] act as a key when we want to query resource
+  /// from a specific dictionary
   Future<Uint8List?> queryResource(
     String resourceUri,
     String? mdxPath,
   ) async {
     final resourceKey = _parseResourceUri(resourceUri);
-    for (var dictionary in _dictionaryList) {
+    for (final dictionary in _dictionaryList) {
       if (mdxPath != null && mdxPath != dictionary.mdxPath) continue;
       final data = await dictionary.queryResource(resourceKey);
       if (data != null) return data;
     }
-    return Future.value(null);
+    return Future.value();
   }
 
   MdictManager reOrder(int oldIndex, int newIndex) {
     if (oldIndex == newIndex) return this;
 
+    var _newIndex = newIndex;
     if (oldIndex < newIndex) {
-      newIndex -= 1;
+      _newIndex -= 1;
     }
     final item = _dictionaryList.removeAt(oldIndex);
-    _dictionaryList.insert(newIndex, item);
+    _dictionaryList.insert(_newIndex, item);
     return MdictManager._(_dictionaryList, _db);
   }
 
@@ -243,8 +265,8 @@ final _unescaper = HtmlUnescape();
 
 /// Example [uriStr]: sound://media/english/us_pron/u/u_s/u_s__/u_s__1_us_2_abbr.mp3
 String _parseResourceUri(String uriStr) {
-  var text = _unescaper.convert(uriStr);
+  final text = _unescaper.convert(uriStr);
   final uri = Uri.parse(text);
   final key = Uri.decodeFull('/${uri.host}${uri.path}');
-  return key.replaceAll('/', '\\');
+  return key.replaceAll('/', r'\');
 }

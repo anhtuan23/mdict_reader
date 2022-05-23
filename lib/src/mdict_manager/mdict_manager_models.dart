@@ -19,7 +19,7 @@ class MdictFiles extends Equatable {
 }
 
 class SearchReturn extends Equatable {
-  SearchReturn._(this.word, this.dictPathNameMap);
+  const SearchReturn._(this.word, this.dictPathNameMap);
 
   factory SearchReturn.fromRow(Row row, Map<String, String> allPathNameMap) {
     final dictPaths = MdictKey.getFilePathsFromRow(row);

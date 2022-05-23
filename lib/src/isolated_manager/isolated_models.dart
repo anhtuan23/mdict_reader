@@ -59,7 +59,8 @@ class QueryResult implements Result {
   final List<QueryReturn> queryReturns;
 }
 
-/// [mdxPath] act as a key when we want to query resource from a specific dictionary
+/// [mdxPath] act as a key when we want to query resource
+///  from a specific dictionary
 class ResourceQueryInput extends Equatable {
   const ResourceQueryInput(
     this.resourceUri,

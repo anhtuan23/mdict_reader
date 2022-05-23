@@ -1,12 +1,10 @@
-include: package:lints/recommended.yaml
+include: package:very_good_analysis/analysis_options.yaml
 
 linter:
   rules:
-    - prefer_single_quotes
-    - unawaited_futures
-    - sort_child_properties_last
-    - sort_constructors_first
-    - prefer_const_constructors
+    public_member_api_docs: false
+    flutter_style_todos: false
+    avoid_print: false
 
 analyzer:
   exclude:

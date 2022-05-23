@@ -51,24 +51,24 @@ class IsolatedManager {
     Completer<void> managerInitCompleter,
   ) async {
     final isolateSendPortCompleter = Completer<SendPort>();
-    final mainReceivePort = ReceivePort();
+    final mainReceivePort = ReceivePort()
+      ..listen((dynamic data) {
+        if (data is SendPort) {
+          isolateSendPortCompleter.complete(data);
+        }
 
-    mainReceivePort.listen((data) {
-      if (data is SendPort) {
-        isolateSendPortCompleter.complete(data);
-      }
-
-      /// On initial init a [PathNameMapResult] will be returned
-      /// use this value to mark completer as completed
-      /// Data is PathNameMapResult means manager is initialized
-      else if (data is PathNameMapResult && !managerInitCompleter.isCompleted) {
-        managerInitCompleter.complete();
-      } else if (data is MdictProgress) {
-        progressStreamController.add(data);
-      } else {
-        resultStreamController.add(data);
-      }
-    });
+        /// On initial init a [PathNameMapResult] will be returned
+        /// use this value to mark completer as completed
+        /// Data is PathNameMapResult means manager is initialized
+        else if (data is PathNameMapResult &&
+            !managerInitCompleter.isCompleted) {
+          managerInitCompleter.complete();
+        } else if (data is MdictProgress) {
+          progressStreamController.add(data);
+        } else {
+          resultStreamController.add(data);
+        }
+      });
 
     await Isolate.spawn(_myIsolate, mainReceivePort.sendPort);
     return isolateSendPortCompleter.future;
@@ -83,7 +83,7 @@ class IsolatedManager {
 
     late MdictManager manager;
 
-    isolateReceivePort.listen((data) async {
+    isolateReceivePort.listen((dynamic data) async {
       // First data is mdict paths to init dictionary
       if (data is InitManagerInput) {
         manager = await MdictManager.create(
@@ -152,7 +152,8 @@ class IsolatedManager {
     return (result as QueryResult).queryReturns;
   }
 
-  /// [mdxPath] act as a key when we want to query resource from a specific dictionary
+  /// [mdxPath] act as a key when we want to query resource 
+  /// from a specific dictionary
   Future<Uint8List?> queryResource(String resourceUri, String? mdxPath) async {
     final input = ResourceQueryInput(resourceUri, mdxPath);
     final result = await _doWork(input);

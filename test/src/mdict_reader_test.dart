@@ -18,7 +18,7 @@ void main() {
   });
 
   group('Normal mdict', () {
-    final word = '狗';
+    const word = '狗';
 
     late MdictReader mdictReader;
 
@@ -86,7 +86,7 @@ void main() {
     });
 
     test('correctly query sound resource', () async {
-      final data = await mdictReader.queryMdd('\\状态.spx');
+      final data = await mdictReader.queryMdd(r'\状态.spx');
 
       printOnFailure(data.toString());
 

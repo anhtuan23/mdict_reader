@@ -8,15 +8,15 @@ environment:
   sdk: ">=2.13.0 <3.0.0"
 
 dependencies:
-  japanese_conjugation:
-    path: ../japanese_conjugation
   equatable: ^2.0.3
   html: ^0.15.0
   html_unescape: ^2.0.0
+  japanese_conjugation:
+    path: ../japanese_conjugation
   pointycastle: ^3.6.0
   quiver: ^3.1.0
   sqlite3: ^1.7.1
 
 dev_dependencies:
-  lints: ^1.0.1
   test: ^1.6.0
+  very_good_analysis: ^2.4.0

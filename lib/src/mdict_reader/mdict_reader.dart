@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:html/parser.dart' show parseFragment;
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_reader/input_stream.dart';
-import 'package:html/parser.dart' show parseFragment;
-import 'package:quiver/iterables.dart';
-import 'package:pointycastle/api.dart';
+import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
 import 'package:path/path.dart' as p;
+import 'package:pointycastle/api.dart';
+import 'package:quiver/iterables.dart';
+import 'package:sqlite3/sqlite3.dart';
 
 part 'mdict_reader_helper.dart';
 part 'mdict_reader_init_helper.dart';
@@ -81,11 +81,11 @@ class MdictReader {
     mdictKeys = resultSet.map((row) => MdictKey.fromRow(row)).toList();
 
     resultMap[keyWord] = [];
-    for (var mdictKey in mdictKeys) {
-      String htmlString = await _readRecord(
+    for (final mdictKey in mdictKeys) {
+      final htmlString = await _readRecord(
         mdictKey.offset,
         mdictKey.length,
-      );
+      ) as String;
 
       if (htmlString.startsWith('@@@LINK=')) {
         final _keyWord = htmlString.substring(8).trim();
@@ -100,9 +100,11 @@ class MdictReader {
   }
 
   Future<Uint8List?> queryMdd(String resourceKey) async {
+    var localResourceKey = resourceKey;
+
     if (!isMdd) throw UnsupportedError('Only call queryMdd in a mdd file');
 
-    resourceKey = resourceKey.trim();
+    localResourceKey = localResourceKey.trim();
 
     final resultSet = _db.select(
       '''
@@ -115,20 +117,20 @@ class MdictReader {
       ''',
       [
         path,
-        '$resourceKey%',
-        '\\$resourceKey%',
+        '$localResourceKey%',
+        '\\$localResourceKey%',
       ],
     );
 
-    for (var row in resultSet) {
+    for (final row in resultSet) {
       final key = MdictKey.fromRow(row);
-      final Uint8List data = await _readRecord(
+      final data = await _readRecord(
         key.offset,
         key.length,
-      );
+      ) as Uint8List;
       return data;
     }
-    return Future.value(null);
+    return Future.value();
   }
 
   /// Extract css content from mdd file if available
@@ -136,22 +138,23 @@ class MdictReader {
     if (!isMdd) throw UnsupportedError('Only try to extract css from mdd file');
 
     final resultSet = _db.select(
-      '''SELECT ${MdictKey.wordColumnName} 
-         FROM '${MdictKey.tableName}' 
-         WHERE ${MdictKey.filePathColumnName} = ? 
+      '''
+        SELECT ${MdictKey.wordColumnName} 
+        FROM '${MdictKey.tableName}' 
+        WHERE ${MdictKey.filePathColumnName} = ? 
           AND ${MdictKey.wordColumnName} LIKE ? 
       ''',
       [path, '%.css'],
     );
 
-    for (var row in resultSet) {
-      final cssKey = row[MdictKey.wordColumnName];
+    for (final row in resultSet) {
+      final cssKey = row[MdictKey.wordColumnName] as String;
       final data = await queryMdd(cssKey);
       if (data != null) {
         return const Utf8Decoder().convert(data);
       }
     }
-    return Future.value(null);
+    return Future.value();
   }
 
   Future<dynamic> _readRecord(
@@ -171,21 +174,21 @@ class MdictReader {
       uncompressedOffset += uncompressedSize;
       compressedOffset += compressedSize;
     }
-    var _in = await File(path).open();
+    final _in = await File(path).open();
     await _in.setPosition(_recordBlockOffset + compressedOffset);
-    var block = await _in.read(compressedSize);
+    final block = await _in.read(compressedSize);
     await _in.close();
-    var blockIn = MdictReaderHelper._decompressBlock(block);
+    final blockIn = MdictReaderHelper._decompressBlock(block);
     await blockIn.skip(offset - uncompressedOffset);
     if (isMdd) {
-      var recordBlock = await blockIn.toUint8List();
+      final recordBlock = await blockIn.toUint8List();
       if (length > 0) {
         return recordBlock.sublist(0, length);
       } else {
         return recordBlock;
       }
     } else {
-      var utf8 = _header['encoding'] == 'UTF-8';
+      final utf8 = _header['encoding'] == 'UTF-8';
       return blockIn.readString(size: length, utf8: utf8);
     }
   }

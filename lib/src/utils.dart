@@ -7,14 +7,15 @@ abstract class MdictHelpers {
       p.basenameWithoutExtension(mdxPath).toLowerCase();
 
   static Future<String?> readFileContent(String? filePath) async {
-    // * Check file.exists() of empty path cause CRASH: Stack dump aborted because InitialRegisterCheck failed
+    // * Check file.exists() of empty path cause CRASH:
+    // * Stack dump aborted because InitialRegisterCheck failed
     if (filePath != null) {
       final file = File(filePath);
-      if (await file.exists()) {
+      if (file.existsSync()) {
         return file.readAsString();
       }
     }
-    return Future.value(null);
+    return Future.value();
   }
 }
 
