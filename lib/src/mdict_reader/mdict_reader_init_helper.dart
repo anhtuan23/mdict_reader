@@ -38,6 +38,16 @@ abstract class MdictReaderInitHelper {
     return false;
   }
 
+  /// Use externally for preliminary check if mdx file is version 2
+  static Future<bool> isSupportedVersion(String path) async {
+    final inputStream =
+        await FileInputStream.create(path, bufferSize: 64 * 1024);
+    final header = await MdictReaderHelper._readHeader(inputStream);
+
+    final version = header['generatedbyengineversion'] ?? '2';
+    return double.parse(version).truncate() == 2;
+  }
+
   static Future<IndexInfo> _getIndexInfo(String path) async {
     final inputStream =
         await FileInputStream.create(path, bufferSize: 64 * 1024);
