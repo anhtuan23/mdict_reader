@@ -124,7 +124,7 @@ void main() {
 
           expect(
             progressBroadcast,
-            emits(const MdictProgress('Opening index database ...')),
+            emits(const MdictProgress.mdictManagerOpenIndex()),
           );
         },
       );

@@ -129,7 +129,7 @@ class MdictManager {
   }) async {
     final dictionaryList = <MdictDictionary>[];
 
-    progressController?.add(const MdictProgress('Opening index database ...'));
+    progressController?.add(const MdictProgress.mdictManagerOpenIndex());
     final Database db;
     if (dbPath == null) {
       db = sqlite3.openInMemory();
@@ -143,7 +143,8 @@ class MdictManager {
       try {
         final mdxFileName =
             MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
-        progressController?.add(MdictProgress('Processing $mdxFileName ...'));
+        progressController
+            ?.add(MdictProgress.mdictManagerProcessing(mdxFileName));
         final mdict = await MdictDictionary.create(
           mdictFiles: mdictFiles,
           db: db,
@@ -208,7 +209,7 @@ class MdictManager {
     for (final dictionary in _dictionaryList) {
       if (searchDictMdxPaths?.contains(dictionary.mdxPath) ?? true) {
         _progressController?.add(
-          MdictProgress('Querying for $word in ${dictionary.name} ...'),
+          MdictProgress.mdictManagerQuerying(word, dictionary.name),
         );
         final htmlCssList = await dictionary.queryMdx(word);
 
@@ -225,7 +226,7 @@ class MdictManager {
         }
       }
     }
-    _progressController?.add(MdictProgress('Finished querying for $word ...'));
+    _progressController?.add(MdictProgress.mdictManagerFinishedQuerying(word));
     return results;
   }
 

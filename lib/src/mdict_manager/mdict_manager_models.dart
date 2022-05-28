@@ -76,15 +76,136 @@ class QueryReturn extends Equatable {
 }
 
 class MdictProgress extends Equatable {
-  const MdictProgress(this.message);
+  const MdictProgress({
+    required this.messageType,
+    this.addedInfoList = const [],
+  });
 
-  final String message;
+  const MdictProgress.empty() : this(messageType: 'empty');
+
+  const MdictProgress.error({List<String> addedInfoList = const []})
+      : this(messageType: 'error', addedInfoList: addedInfoList);
+
+  // * MdictManager
+  // Opening index database ...
+  const MdictProgress.mdictManagerOpenIndex()
+      : this(messageType: 'mdictManagerOpenIndex');
+
+  // Processing $mdxFileName ...
+  MdictProgress.mdictManagerProcessing(String mdxFileName)
+      : this(
+          messageType: 'mdictManagerProcessing',
+          addedInfoList: [mdxFileName],
+        );
+  // Querying for $word in ${dictionary.name} ...
+  MdictProgress.mdictManagerQuerying(String word, String dictName)
+      : this(
+          messageType: 'mdictManagerQuerying',
+          addedInfoList: [word, dictName],
+        );
+
+  // Finished querying for $word ...
+  MdictProgress.mdictManagerFinishedQuerying(String word)
+      : this(
+          messageType: 'mdictManagerFinishedQuerying',
+          addedInfoList: [word],
+        );
+
+  // * MdictDictionary
+  // Processing $mdxFileName mdx ...
+  // Processing $mddFileName mdd ...
+  MdictProgress.mdictDictionaryProcessing(
+    String fileName,
+    String fileExtension,
+  ) : this(
+          messageType: 'mdictDictionaryProcessing',
+          addedInfoList: [fileName, fileExtension],
+        );
+
+  // Getting css style of $mdxFileName ...
+  MdictProgress.mdictDictionaryGetCss(String mdxFileName)
+      : this(
+          messageType: 'mdictDictionaryGetCss',
+          addedInfoList: [mdxFileName],
+        );
+
+  // Finished creating $mdxFileName dictionary ...
+  MdictProgress.mdictDictionaryCreatedDict(String mdxFileName)
+      : this(
+          messageType: 'mdictDictionaryCreatedDict',
+          addedInfoList: [mdxFileName],
+        );
+
+  // * MdictReaderInitHelper
+  // Getting index info for $fileName ...
+  MdictProgress.readerHelperGetInfo(String fileName)
+      : this(
+          messageType: 'readerHelperGetInfo',
+          addedInfoList: [fileName],
+        );
+
+  // Building meta table for $fileName ...
+  MdictProgress.readerHelperBuildMeta(String fileName)
+      : this(
+          messageType: 'readerHelperBuildMeta',
+          addedInfoList: [fileName],
+        );
+
+  // Building key table for $fileName: $insertedCount/$totalKeys ...
+  MdictProgress.readerHelperBuildKey(
+    String fileName,
+    int insertedCount,
+    int totalKeys,
+  ) : this(
+          messageType: 'readerHelperBuildKey',
+          addedInfoList: [
+            fileName,
+            insertedCount.toString(),
+            totalKeys.toString(),
+          ],
+        );
+
+  // Building records table for $fileName ...
+  MdictProgress.readerHelperBuildRecord(String fileName)
+      : this(
+          messageType: 'readerHelperBuildRecord',
+          addedInfoList: [fileName],
+        );
+
+  // Finished building index for $fileName ...
+  MdictProgress.readerHelperFinishedIndex(String fileName)
+      : this(
+          messageType: 'readerHelperFinishedIndex',
+          addedInfoList: [fileName],
+        );
+
+  // Getting headers of $fileName ...
+  MdictProgress.readerHelperGetHeaders(String fileName)
+      : this(
+          messageType: 'readerHelperGetHeaders',
+          addedInfoList: [fileName],
+        );
+
+  // Getting record list of $fileName ...
+  MdictProgress.readerHelperGetRecordList(String fileName)
+      : this(
+          messageType: 'readerHelperGetRecordList',
+          addedInfoList: [fileName],
+        );
+
+  // Finished creating $fileName dictionary
+  MdictProgress.readerHelperFinishedCreateDict(String fileName)
+      : this(
+          messageType: 'readerHelperFinishedCreateDict',
+          addedInfoList: [fileName],
+        );
+
+  final String messageType;
+  final List<String> addedInfoList;
 
   @override
-  String toString() {
-    return 'MdictProgress: $message';
-  }
+  String toString() => 'MdictProgress($messageType, $addedInfoList)';
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [messageType];
 }

@@ -20,7 +20,9 @@ class MdictDictionary {
     StreamController<MdictProgress>? progressController,
   }) async {
     final mdxFileName = MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
-    progressController?.add(MdictProgress('Processing $mdxFileName mdx ...'));
+    progressController?.add(
+      MdictProgress.mdictDictionaryProcessing(mdxFileName, 'mdx'),
+    );
     final mdxReader = await MdictReaderInitHelper.init(
       filePath: mdictFiles.mdxPath,
       db: db,
@@ -30,7 +32,9 @@ class MdictDictionary {
     MdictReader? mddReader;
     if (mdictFiles.mddPath != null) {
       final mddFileName = MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
-      progressController?.add(MdictProgress('Processing $mddFileName mdd ...'));
+      progressController?.add(
+        MdictProgress.mdictDictionaryProcessing(mddFileName, 'mdd'),
+      );
       mddReader = await MdictReaderInitHelper.init(
         filePath: mdictFiles.mddPath!,
         db: db,
@@ -38,14 +42,13 @@ class MdictDictionary {
       );
     }
 
-    progressController
-        ?.add(MdictProgress('Getting css style of $mdxFileName ...'));
+    progressController?.add(MdictProgress.mdictDictionaryGetCss(mdxFileName));
     final cssFileContent =
         await MdictHelpers.readFileContent(mdictFiles.cssPath) ?? '';
     final cssMddContent = await mddReader?.extractCss() ?? '';
 
     progressController
-        ?.add(MdictProgress('Finished creating $mdxFileName dictionary ...'));
+        ?.add(MdictProgress.mdictDictionaryCreatedDict(mdxFileName));
     return MdictDictionary._(
       mdxReader: mdxReader,
       mddReader: mddReader,
