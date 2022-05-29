@@ -79,12 +79,17 @@ class MdictProgress extends Equatable {
   const MdictProgress({
     required this.messageType,
     this.addedInfoList = const [],
+    this.isError = false,
+    this.isFinished = false,
   });
 
-  const MdictProgress.empty() : this(messageType: 'empty');
+  const MdictProgress.empty() : this(messageType: 'empty', isFinished: true);
 
-  const MdictProgress.error({List<String> addedInfoList = const []})
-      : this(messageType: 'error', addedInfoList: addedInfoList);
+  MdictProgress.error(String errorString, StackTrace stackTrace)
+      : this(
+          messageType: 'error',
+          addedInfoList: [errorString, stackTrace.toString()],
+        );
 
   // * MdictManager
   // Opening index database ...
@@ -141,6 +146,27 @@ class MdictProgress extends Equatable {
   MdictProgress.readerHelperGetInfo(String fileName)
       : this(
           messageType: 'readerHelperGetInfo',
+          addedInfoList: [fileName],
+        );
+
+  // Reading header of $fileName ...
+  MdictProgress.readerHelperReadHeader(String fileName)
+      : this(
+          messageType: 'readerHelperReadHeader',
+          addedInfoList: [fileName],
+        );
+
+  // Reading keys of $fileName ...
+  MdictProgress.readerHelperReadKeys(String fileName)
+      : this(
+          messageType: 'readerHelperReadKeys',
+          addedInfoList: [fileName],
+        );
+
+  // Reading records of $fileName ...
+  MdictProgress.readerHelperReadRecords(String fileName)
+      : this(
+          messageType: 'readerHelperReadRecords',
           addedInfoList: [fileName],
         );
 
@@ -202,9 +228,13 @@ class MdictProgress extends Equatable {
 
   final String messageType;
   final List<String> addedInfoList;
+  final bool isError;
+  final bool isFinished;
 
   @override
-  String toString() => 'MdictProgress($messageType, $addedInfoList)';
+  String toString() =>
+      // ignore: lines_longer_than_80_chars
+      'MdictProgress($messageType, $addedInfoList, isError: $isError, isFinished: $isFinished)';
 
   @override
   List<Object?> get props => [messageType];

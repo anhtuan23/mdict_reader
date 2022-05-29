@@ -152,6 +152,7 @@ class MdictManager {
         );
         dictionaryList.add(mdict);
       } catch (e, stackTrace) {
+        progressController?.add(MdictProgress.error(e.toString(), stackTrace));
         print('Error with ${mdictFiles.mdxPath}: $e');
         print(stackTrace);
       }

@@ -48,17 +48,29 @@ abstract class MdictReaderInitHelper {
     return double.parse(version).truncate() == 2;
   }
 
-  static Future<IndexInfo> _getIndexInfo(String path) async {
+  static Future<IndexInfo> _getIndexInfo(
+    String path,
+    StreamController<MdictProgress>? progressController,
+  ) async {
+    final fileName = p.basename(path);
+    progressController?.add(MdictProgress.readerHelperGetInfo(fileName));
+
     final inputStream =
         await FileInputStream.create(path, bufferSize: 64 * 1024);
+    progressController?.add(MdictProgress.readerHelperReadHeader(fileName));
     final header = await MdictReaderHelper._readHeader(inputStream);
 
     final version = header['generatedbyengineversion'] ?? '2';
     if (double.parse(version).truncate() != 2) {
       throw Exception('This program does not support mdict version $version');
     }
+
+    progressController?.add(MdictProgress.readerHelperReadKeys(fileName));
     final keyList = await MdictReaderHelper._readKeys(inputStream, header);
+
+    progressController?.add(MdictProgress.readerHelperReadRecords(fileName));
     final recordSizes = await MdictReaderHelper._readRecords(inputStream);
+    
     header[MdictReader.recordBlockOffsetKey] = inputStream.position.toString();
     await inputStream.close();
     return IndexInfo(header, keyList, recordSizes[0], recordSizes[1]);
@@ -109,8 +121,7 @@ abstract class MdictReaderInitHelper {
   }) async {
     final fileName = p.basename(dictFilePath);
 
-    progressController?.add(MdictProgress.readerHelperGetInfo(fileName));
-    final indexInfo = await _getIndexInfo(dictFilePath);
+    final indexInfo = await _getIndexInfo(dictFilePath, progressController);
 
     /// META table
     progressController?.add(MdictProgress.readerHelperBuildMeta(fileName));
