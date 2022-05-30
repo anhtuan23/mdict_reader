@@ -250,9 +250,12 @@ class MdictManager {
     if (oldIndex == newIndex) return this;
 
     var _newIndex = newIndex;
+    // if move item toward the end,
+    // newIndex decrease by 1 after removeAt oldIndex
     if (oldIndex < newIndex) {
       _newIndex -= 1;
     }
+
     final item = _dictionaryList.removeAt(oldIndex);
     _dictionaryList.insert(_newIndex, item);
     return MdictManager._(_dictionaryList, _db);
