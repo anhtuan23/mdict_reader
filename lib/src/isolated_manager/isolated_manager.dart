@@ -152,7 +152,7 @@ class IsolatedManager {
     return (result as QueryResult).queryReturns;
   }
 
-  /// [mdxPath] act as a key when we want to query resource 
+  /// [mdxPath] act as a key when we want to query resource
   /// from a specific dictionary
   Future<Uint8List?> queryResource(String resourceUri, String? mdxPath) async {
     final input = ResourceQueryInput(resourceUri, mdxPath);

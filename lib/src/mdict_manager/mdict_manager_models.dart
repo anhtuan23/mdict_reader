@@ -93,8 +93,38 @@ class MdictProgress extends Equatable {
 
   // * MdictManager
   // Opening index database ...
-  const MdictProgress.mdictManagerOpenIndex()
-      : this(messageType: 'mdictManagerOpenIndex');
+  const MdictProgress.mdictManagerOpenDb()
+      : this(messageType: 'mdictManagerOpenDb');
+
+  // createTables: createMeta
+  const MdictProgress.mdictManagerCreateMeta()
+      : this(messageType: 'mdictManagerCreateMeta');
+
+  // createTables: count old
+  const MdictProgress.mdictManagerCountOld()
+      : this(messageType: 'mdictManagerCountOld');
+
+  // createTables: has old
+  MdictProgress.mdictManagerHasOld(int oldCount, List<String> dictPaths)
+      : this(
+          messageType: 'mdictManagerHasOld',
+          addedInfoList: [oldCount.toString(), dictPaths.toString()],
+        );
+
+  // createTables: discard old
+  MdictProgress.mdictManagerDiscardOld(String tableName)
+      : this(
+          messageType: 'mdictManagerDiscardOld',
+          addedInfoList: [tableName],
+        );
+
+  // createTables: createKey
+  const MdictProgress.mdictManagerCreateKey()
+      : this(messageType: 'mdictManagerCreateKey');
+
+  // createTables: createRecord
+  const MdictProgress.mdictManagerCreateRecord()
+      : this(messageType: 'mdictManagerCreateRecord');
 
   // Processing $mdxFileName ...
   MdictProgress.mdictManagerProcessing(String mdxFileName)

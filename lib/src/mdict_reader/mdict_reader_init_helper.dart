@@ -70,7 +70,7 @@ abstract class MdictReaderInitHelper {
 
     progressController?.add(MdictProgress.readerHelperReadRecords(fileName));
     final recordSizes = await MdictReaderHelper._readRecords(inputStream);
-    
+
     header[MdictReader.recordBlockOffsetKey] = inputStream.position.toString();
     await inputStream.close();
     return IndexInfo(header, keyList, recordSizes[0], recordSizes[1]);

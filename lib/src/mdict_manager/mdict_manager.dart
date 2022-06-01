@@ -35,9 +35,9 @@ class MdictManager {
 
     db.execute(
       '''
-      DELETE FROM $tableName
-      WHERE $filePathColumnName NOT IN (${filePathsList.join(',')}) ;
-    ''',
+        DELETE FROM $tableName
+        WHERE $filePathColumnName NOT IN (${filePathsList.join(',')}) ;
+      ''',
     );
   }
 
@@ -45,12 +45,14 @@ class MdictManager {
   static void createTables({
     required Database db,
     required Iterable<MdictFiles> mdictFilesIter,
+    StreamController<MdictProgress>? progressController,
   }) {
     final allMdictFilePaths = mdictFilesIter
         .expand(
           (mdictFiles) => [mdictFiles.mdxPath].addIfNotNull(mdictFiles.mddPath),
         )
         .toList();
+    progressController?.add(const MdictProgress.mdictManagerCreateMeta());
     db.execute(
       '''
       CREATE TABLE IF NOT EXISTS '${MdictMeta.tableName}' (
@@ -60,13 +62,38 @@ class MdictManager {
       );
     ''',
     );
-    _discardOldMdicts(
-      db: db,
-      filePathColumnName: MdictMeta.filePathColumnName,
-      tableName: MdictMeta.tableName,
-      filePaths: allMdictFilePaths,
-    );
 
+    // Check if there are any old mdict in db
+    progressController?.add(const MdictProgress.mdictManagerCountOld());
+    final conditionPlaceHolder =
+        Iterable.generate(allMdictFilePaths.length, (_) => '?').join(',');
+    final resultSet = db.select(
+      '''
+        SELECT COUNT(1) FROM ${MdictMeta.tableName}
+        WHERE ${MdictMeta.filePathColumnName} NOT IN ($conditionPlaceHolder);
+      ''',
+      allMdictFilePaths,
+    );
+    final oldMdictCount = resultSet.first.columnAt(0) as int;
+    final hasOldMdict = oldMdictCount > 0;
+
+    if (hasOldMdict) {
+      progressController?.add(
+        MdictProgress.mdictManagerHasOld(oldMdictCount, allMdictFilePaths),
+      );
+
+      progressController?.add(
+        MdictProgress.mdictManagerDiscardOld(MdictMeta.tableName),
+      );
+      _discardOldMdicts(
+        db: db,
+        filePathColumnName: MdictMeta.filePathColumnName,
+        tableName: MdictMeta.tableName,
+        filePaths: allMdictFilePaths,
+      );
+    }
+
+    progressController?.add(const MdictProgress.mdictManagerCreateKey());
     db
       ..execute(
         '''
@@ -91,13 +118,20 @@ class MdictManager {
           ON ${MdictKey.tableName} (${MdictKey.filePathColumnName}, ${MdictKey.wordColumnName} COLLATE NOCASE);
         ''',
       );
-    _discardOldMdicts(
-      db: db,
-      filePathColumnName: MdictKey.filePathColumnName,
-      tableName: MdictKey.tableName,
-      filePaths: allMdictFilePaths,
-    );
 
+    if (hasOldMdict) {
+      progressController?.add(
+        MdictProgress.mdictManagerDiscardOld(MdictKey.tableName),
+      );
+      _discardOldMdicts(
+        db: db,
+        filePathColumnName: MdictKey.filePathColumnName,
+        tableName: MdictKey.tableName,
+        filePaths: allMdictFilePaths,
+      );
+    }
+
+    progressController?.add(const MdictProgress.mdictManagerCreateRecord());
     db
       ..execute(
         '''
@@ -114,12 +148,18 @@ class MdictManager {
           ON ${MdictRecord.tableName} (${MdictRecord.filePathColumnName});
         ''',
       );
-    _discardOldMdicts(
-      db: db,
-      filePathColumnName: MdictRecord.filePathColumnName,
-      tableName: MdictRecord.tableName,
-      filePaths: allMdictFilePaths,
-    );
+
+    if (hasOldMdict) {
+      progressController?.add(
+        MdictProgress.mdictManagerDiscardOld(MdictRecord.tableName),
+      );
+      _discardOldMdicts(
+        db: db,
+        filePathColumnName: MdictRecord.filePathColumnName,
+        tableName: MdictRecord.tableName,
+        filePaths: allMdictFilePaths,
+      );
+    }
   }
 
   static Future<MdictManager> create({
@@ -129,7 +169,7 @@ class MdictManager {
   }) async {
     final dictionaryList = <MdictDictionary>[];
 
-    progressController?.add(const MdictProgress.mdictManagerOpenIndex());
+    progressController?.add(const MdictProgress.mdictManagerOpenDb());
     final Database db;
     if (dbPath == null) {
       db = sqlite3.openInMemory();
@@ -137,7 +177,11 @@ class MdictManager {
       db = sqlite3.open(dbPath);
     }
 
-    createTables(db: db, mdictFilesIter: mdictFilesIter);
+    createTables(
+      db: db,
+      mdictFilesIter: mdictFilesIter,
+      progressController: progressController,
+    );
 
     for (final mdictFiles in mdictFilesIter) {
       try {
