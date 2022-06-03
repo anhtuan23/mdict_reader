@@ -144,6 +144,7 @@ class MdictProgress extends Equatable {
       : this(
           messageType: 'mdictManagerFinishedQuerying',
           addedInfoList: [word],
+          isFinished: true,
         );
 
   // * MdictDictionary
