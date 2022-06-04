@@ -79,6 +79,9 @@ class IsolatedManager {
     mainSendPort.send(isolateReceivePort.sendPort);
 
     final progressStreamController = StreamController<MdictProgress>();
+    // Note: since this is not a synchronous stream controller,
+    // events added will be listened a bit later
+    // https://api.dart.dev/dev/2.8.0-dev.3.0/dart-async/SynchronousStreamController-class.html
     progressStreamController.stream.listen(mainSendPort.send);
 
     late MdictManager manager;
