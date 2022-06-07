@@ -181,6 +181,6 @@ class IsolatedManager {
     return (result as PathNameMapResult).pathNamePath;
   }
 
-  /// reOrder() with identical index return the same manager
+  /// reorder() with identical index return the same manager
   Future<Map<String, String>> getPathNameMap() => reOrder(0, 0);
 }
