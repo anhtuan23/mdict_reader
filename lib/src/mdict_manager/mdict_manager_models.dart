@@ -89,6 +89,7 @@ class MdictProgress extends Equatable {
       : this(
           messageType: 'error',
           addedInfoList: [errorString, stackTrace.toString()],
+          isError: true,
         );
 
   // * MdictManager
