@@ -41,6 +41,8 @@ class MdictReader {
 
   bool get isMdd => path.endsWith('.mdd');
 
+  bool get _isUtf8 => _header['encoding'] == 'UTF-8';
+
   /// **************************************************
 
   /// * Should only be used in a mdx reader
@@ -151,7 +153,10 @@ class MdictReader {
       final cssKey = row[MdictKey.wordColumnName] as String;
       final data = await queryMdd(cssKey);
       if (data != null) {
-        return const Utf8Decoder().convert(data);
+        return _isUtf8
+            ? const Utf8Decoder().convert(data)
+            // assume to be utf-16
+            : String.fromCharCodes(data);
       }
     }
     return Future.value();
@@ -188,8 +193,7 @@ class MdictReader {
         return recordBlock;
       }
     } else {
-      final utf8 = _header['encoding'] == 'UTF-8';
-      return blockIn.readString(size: length, utf8: utf8);
+      return blockIn.readString(size: length, utf8: _isUtf8);
     }
   }
 }

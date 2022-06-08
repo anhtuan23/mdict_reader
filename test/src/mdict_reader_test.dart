@@ -93,4 +93,20 @@ void main() {
       expect(data, isNotEmpty);
     });
   });
+
+  group('extractCss from mdd', () {
+    late MdictReader mdictReader;
+
+    setUp(() async {
+      mdictReader = await MdictReaderInitHelper.init(
+        filePath: 'test/assets/non_utf8_with_css.mdd',
+        db: db!,
+      );
+    });
+
+    test('able to read css without crashing', () async {
+      final css = await mdictReader.extractCss();
+      expect(css, isNotEmpty);
+    });
+  });
 }
