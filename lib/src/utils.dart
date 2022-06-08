@@ -12,7 +12,16 @@ abstract class MdictHelpers {
     if (filePath != null) {
       final file = File(filePath);
       if (file.existsSync()) {
-        return file.readAsString();
+        try {
+          return await file.readAsString();
+        } on FileSystemException catch (_) {
+          // try to read file content with utf-16 encoding
+          final bytes = file.readAsBytesSync();
+          // Note that this assumes that the system's native endianness
+          // is the same as the file's.
+          final utf16CodeUnits = bytes.buffer.asUint16List();
+          return String.fromCharCodes(utf16CodeUnits);
+        }
       }
     }
     return Future.value();

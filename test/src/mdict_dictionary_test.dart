@@ -88,7 +88,9 @@ void main() {
         expect(img.attributes['src'], startsWith('data:image/png;base64,'));
       }
     });
+  });
 
+  group('extract css', () {
     test('css string has both content in css file and mdd css entry', () async {
       final mdictDictionary = await MdictDictionary.create(
         mdictFiles: const MdictFiles(
@@ -110,6 +112,20 @@ void main() {
         reason: 'Must contains css from file',
       );
       expect(css, contains('div.hz{'), reason: 'Must contains css from mdd');
+    });
+
+    test('able to read css file in utf-16', () async {
+      final mdictDictionary = await MdictDictionary.create(
+        mdictFiles: const MdictFiles(
+          'test/assets/GrandRobert_Utf16/GrandRobert.mdx',
+          'test/assets/GrandRobert_Utf16/GrandRobert.mdd',
+          'test/assets/GrandRobert_Utf16/GrandRobert.css',
+        ),
+        db: db!,
+      );
+      // Length of css only from mdd is 446
+      // If css file content is also added, it should be greater than that
+      expect(mdictDictionary.cssContent.length > 446, isTrue);
     });
   });
 }
