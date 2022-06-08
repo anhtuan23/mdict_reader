@@ -34,7 +34,7 @@ abstract class InputStream {
 
   /// Read a null-terminated string, or if [size] is provided, that number of
   /// bytes returned as a string.
-  Future<String> readString({int? size, bool? utf8});
+  Future<String> readString({int? size, bool utf8});
 
   /// Read a 16-bit word from the stream.
   Future<int> readUint16();
@@ -162,12 +162,12 @@ class BytesInputStream extends InputStream {
   /// Read a null-terminated string, or if [size] is provided, that number of
   /// bytes returned as a string.
   @override
-  Future<String> readString({int? size, bool? utf8 = true}) async {
+  Future<String> readString({int? size, bool utf8 = true}) async {
     final codes = <int>[];
     if (size == null) {
       while (!isEOS) {
         var c = await readByte();
-        if (!utf8!) {
+        if (!utf8) {
           final c2 = await readByte();
           c = (c2 << 8) | c;
         }
@@ -180,7 +180,7 @@ class BytesInputStream extends InputStream {
       while (size! > 0) {
         var c = await readByte();
         size--;
-        if (!utf8!) {
+        if (!utf8) {
           final c2 = await readByte();
           size--;
           c = (c2 << 8) | c;
@@ -192,7 +192,7 @@ class BytesInputStream extends InputStream {
       }
     }
 
-    return utf8!
+    return utf8
         ? const Utf8Decoder().convert(codes)
         : String.fromCharCodes(codes);
   }
