@@ -17,6 +17,15 @@ void main() {
     db?.dispose();
   });
 
+  group('init', () {
+    test('file name with singe quote', () async {
+      await MdictReaderInitHelper.init(
+        filePath: "test/assets/contains'single quote.mdx",
+        db: db!,
+      );
+    });
+  });
+
   group('Normal mdict', () {
     const word = '狗';
 
