@@ -5,7 +5,7 @@ abstract class MdictReaderInitHelper {
     required String filePath,
     required Database db,
   }) {
-    final metaCheckResult = db.prepare(
+    final metaCheckResult = db.select(
       '''
         SELECT EXISTS (
           SELECT 1 
@@ -13,9 +13,10 @@ abstract class MdictReaderInitHelper {
           WHERE ${MdictMeta.filePathColumnName} = ? 
         )
       ''',
-    ).select([filePath]);
+      [filePath],
+    );
     if (metaCheckResult.single.values.first == 0) return true;
-    final keyCheckResult = db.prepare(
+    final keyCheckResult = db.select(
       '''
         SELECT EXISTS (
           SELECT 1 
@@ -23,9 +24,10 @@ abstract class MdictReaderInitHelper {
           WHERE ${MdictKey.filePathColumnName} = ?
         )
       ''',
-    ).select([filePath]);
+      [filePath],
+    );
     if (keyCheckResult.single.values.first == 0) return true;
-    final recordCheckResult = db.prepare(
+    final recordCheckResult = db.select(
       '''
         SELECT EXISTS (
           SELECT 1 
@@ -33,7 +35,8 @@ abstract class MdictReaderInitHelper {
           WHERE ${MdictRecord.filePathColumnName} = ?
         )
       ''',
-    ).select([filePath]);
+      [filePath],
+    );
     if (recordCheckResult.single.values.first == 0) return true;
     return false;
   }
@@ -125,12 +128,13 @@ abstract class MdictReaderInitHelper {
 
     /// META table
     progressController?.add(MdictProgress.readerHelperBuildMeta(fileName));
-    db.prepare(
+    db.execute(
       '''
         DELETE FROM '${MdictMeta.tableName}' 
         WHERE  ${MdictMeta.filePathColumnName} = ?;
       ''',
-    ).execute([dictFilePath]);
+      [dictFilePath],
+    );
     final metaStmt = db.prepare(
       '''
         INSERT INTO '${MdictMeta.tableName}' 
@@ -151,12 +155,13 @@ abstract class MdictReaderInitHelper {
     progressController
         ?.add(MdictProgress.readerHelperBuildKey(fileName, 0, totalKeys));
 
-    db.prepare(
+    db.execute(
       '''
         DELETE FROM '${MdictKey.tableName}' 
         WHERE  ${MdictKey.filePathColumnName} = ?;
       ''',
-    ).execute([dictFilePath]);
+      [dictFilePath],
+    );
 
     // SQLite SQLITE_MAX_VARIABLE_NUMBER = 32766
     // => We can insert 32766 / 4 ~ 8191 keys at a time
@@ -187,12 +192,13 @@ abstract class MdictReaderInitHelper {
     /// RECORDS table
     progressController?.add(MdictProgress.readerHelperBuildRecord(fileName));
 
-    db.prepare(
+    db.execute(
       '''
         DELETE FROM '${MdictRecord.tableName}' 
         WHERE  ${MdictRecord.filePathColumnName} = ?;
       ''',
-    ).execute([dictFilePath]);
+      [dictFilePath],
+    );
     db.prepare(
       '''
         INSERT INTO ${MdictRecord.tableName} 
@@ -218,13 +224,14 @@ abstract class MdictReaderInitHelper {
     Database db,
   ) async {
     final header = <String, String>{};
-    final resultSet = db.prepare(
+    final resultSet = db.select(
       '''
         SELECT ${MdictMeta.keyColumnName}, ${MdictMeta.valueColumnName} 
         FROM ${MdictMeta.tableName}
         WHERE ${MdictMeta.filePathColumnName} = ?
       ''',
-    ).select([filePath]);
+      [filePath],
+    );
     for (final row in resultSet) {
       header[row[MdictMeta.keyColumnName] as String] =
           row[MdictMeta.valueColumnName] as String;
@@ -236,13 +243,14 @@ abstract class MdictReaderInitHelper {
     String filePath,
     Database db,
   ) async {
-    final resultSet = db.prepare(
+    final resultSet = db.select(
       '''
         SELECT ${MdictRecord.compressedSizeColumnName}, ${MdictRecord.uncompressedSizeColumnName} 
         FROM ${MdictRecord.tableName} 
         WHERE ${MdictRecord.filePathColumnName} = ?
       ''',
-    ).select([filePath]);
+      [filePath],
+    );
     final row = resultSet.first;
     final compressedSizes =
         (row[MdictRecord.compressedSizeColumnName] as Uint8List)
