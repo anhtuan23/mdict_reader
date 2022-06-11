@@ -292,7 +292,7 @@ class MdictManager {
     return Future.value();
   }
 
-  MdictManager reOrder(int oldIndex, int newIndex) {
+  MdictManager reorder(int oldIndex, int newIndex) {
     if (oldIndex == newIndex) return this;
 
     var _newIndex = newIndex;

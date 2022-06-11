@@ -167,14 +167,14 @@ void main() {
       });
     });
 
-    test('reOrder function', () async {
+    test('reorder function', () async {
       var pathNameMap = mdictManager.pathNameMap;
       expect(
         pathNameMap.values,
         equals(['CC-CEDICT', 'JMDict', 'WordNet 2.0']),
       );
 
-      mdictManager = mdictManager.reOrder(2, 0);
+      mdictManager = mdictManager.reorder(2, 0);
       pathNameMap = mdictManager.pathNameMap;
       expect(
         pathNameMap.values,

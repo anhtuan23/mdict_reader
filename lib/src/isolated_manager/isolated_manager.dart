@@ -114,7 +114,7 @@ class IsolatedManager {
           ResourceQueryResult(data.hashCode, resourceData),
         );
       } else if (data is ReOrderInput) {
-        manager = manager.reOrder(data.oldIndex, data.newIndex);
+        manager = manager.reorder(data.oldIndex, data.newIndex);
         mainSendPort.send(
           PathNameMapResult(data.hashCode, manager.pathNameMap),
         );
@@ -163,7 +163,7 @@ class IsolatedManager {
     return (result as ResourceQueryResult).resourceData;
   }
 
-  Future<Map<String, String>> reOrder(int oldIndex, int newIndex) async {
+  Future<Map<String, String>> reorder(int oldIndex, int newIndex) async {
     final input = ReOrderInput(oldIndex, newIndex);
     final result = await _doWork(input);
     return (result as PathNameMapResult).pathNamePath;
@@ -182,5 +182,5 @@ class IsolatedManager {
   }
 
   /// reorder() with identical index return the same manager
-  Future<Map<String, String>> getPathNameMap() => reOrder(0, 0);
+  Future<Map<String, String>> getPathNameMap() => reorder(0, 0);
 }

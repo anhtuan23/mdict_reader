@@ -69,14 +69,14 @@ void main() {
       expect(secondDictReturn.css, isEmpty);
     });
 
-    test('reOrder function', () async {
+    test('reorder function', () async {
       final pathNameMap = await isolatedManager.getPathNameMap();
       expect(
         pathNameMap.values,
         equals(['CC-CEDICT', 'JMDict', 'WordNet 2.0']),
       );
 
-      final newPathNameMap = await isolatedManager.reOrder(2, 0);
+      final newPathNameMap = await isolatedManager.reorder(2, 0);
       expect(
         newPathNameMap.values,
         equals(['WordNet 2.0', 'CC-CEDICT', 'JMDict']),
