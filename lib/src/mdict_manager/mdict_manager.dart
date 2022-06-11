@@ -32,12 +32,14 @@ class MdictManager {
     required String filePathColumnName,
   }) {
     final filePathsList = filePaths.map((e) => "'$e'").toList();
-
+    final conditionPlaceHolder =
+        Iterable.generate(filePathsList.length, (_) => '?').join(',');
     db.execute(
       '''
         DELETE FROM $tableName
-        WHERE $filePathColumnName NOT IN (${filePathsList.join(',')}) ;
+        WHERE $filePathColumnName NOT IN ($conditionPlaceHolder) ;
       ''',
+      filePathsList,
     );
   }
 
@@ -55,12 +57,12 @@ class MdictManager {
     progressController?.add(const MdictProgress.mdictManagerCreateMeta());
     db.execute(
       '''
-      CREATE TABLE IF NOT EXISTS '${MdictMeta.tableName}' (
-        ${MdictMeta.keyColumnName} TEXT NOT NULL,
-        ${MdictMeta.valueColumnName} TEXT NOT NULL,
-        ${MdictMeta.filePathColumnName} TEXT NOT NULL
-      );
-    ''',
+        CREATE TABLE IF NOT EXISTS '${MdictMeta.tableName}' (
+          ${MdictMeta.keyColumnName} TEXT NOT NULL,
+          ${MdictMeta.valueColumnName} TEXT NOT NULL,
+          ${MdictMeta.filePathColumnName} TEXT NOT NULL
+        );
+      ''',
     );
 
     // Check if there are any old mdict in db

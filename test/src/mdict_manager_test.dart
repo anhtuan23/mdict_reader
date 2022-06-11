@@ -10,6 +10,22 @@ import 'test_utils.dart';
 
 void main() {
   open.overrideFor(OperatingSystem.windows, openSqliteOnWindows);
+
+  group('create', () {
+    test('file name with singe quote', () async {
+      await MdictManager.create(
+        mdictFilesIter: [
+          const MdictFiles(
+            "test/assets/contains'single quote.mdx",
+            null,
+            null,
+          ),
+        ],
+        dbPath: null,
+      );
+    });
+  });
+
   group('standard tests', () {
     final mdictFilesList = [
       const MdictFiles(
