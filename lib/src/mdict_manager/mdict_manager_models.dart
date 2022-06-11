@@ -35,6 +35,10 @@ class SearchReturn extends Equatable {
     return SearchReturn._(word, dictPathNameMap);
   }
 
+  factory SearchReturn.testReturnFromWord(String word) {
+    return SearchReturn.testResult(word, ['${word}_path.mdx']);
+  }
+
   final String word;
   final Map<String, String> dictPathNameMap;
 
@@ -58,6 +62,10 @@ class QueryReturn extends Equatable {
 
   factory QueryReturn.testReturn(String word, String mdxPath) {
     return QueryReturn(word, '', mdxPath, '', '');
+  }
+
+  factory QueryReturn.testReturnFromWord(String word) {
+    return QueryReturn.testReturn(word, '${word}_path.mdx');
   }
 
   final String word;
