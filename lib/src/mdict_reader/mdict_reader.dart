@@ -27,7 +27,7 @@ class MdictReader {
         _recordsCompressedSizes = recordsCompressedSizes,
         _recordsUncompressedSizes = recordsUncompressedSizes,
         _recordBlockOffset = int.parse(header[recordBlockOffsetKey]!),
-        name = header['title'] ?? MdictHelpers.getDictNameFromPath(path);
+        name = header['title'];
 
   static const recordBlockOffsetKey = '_recordBlockOffsetKey';
 
@@ -36,7 +36,7 @@ class MdictReader {
   final Uint32List _recordsCompressedSizes;
   final Uint32List _recordsUncompressedSizes;
   final int _recordBlockOffset;
-  final String name;
+  final String? name;
   final Database _db;
 
   bool get isMdd => path.endsWith('.mdd');

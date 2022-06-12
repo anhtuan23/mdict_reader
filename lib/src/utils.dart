@@ -3,8 +3,13 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 abstract class MdictHelpers {
-  static String getDictNameFromPath(String mdxPath) =>
-      p.basenameWithoutExtension(mdxPath).toLowerCase();
+  static String getDictNameFromPath(String mdxPath, {bool toLowerCase = true}) {
+    final baseNameWithoutExtesion = p.basenameWithoutExtension(mdxPath);
+    if (toLowerCase) {
+      return baseNameWithoutExtesion.toLowerCase();
+    }
+    return baseNameWithoutExtesion;
+  }
 
   static Future<String?> readFileContent(String? filePath) async {
     // * Check file.exists() of empty path cause CRASH:

@@ -74,7 +74,16 @@ class MdictDictionary {
   final String cssContent;
   final String jsContent;
 
-  String get name => mdxReader.name;
+  String get name {
+    var name = mdxReader.name?.trim();
+    if (name == null ||
+        name.isEmpty ||
+        name == 'Title (No HTML code allowed)') {
+      name =
+          MdictHelpers.getDictNameFromPath(mdxReader.path, toLowerCase: false);
+    }
+    return name;
+  }
 
   String get mdxPath => mdxReader.path;
 
