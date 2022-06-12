@@ -135,6 +135,35 @@ class MdictReader {
     return Future.value();
   }
 
+  /// replace resource url in cssString with base64 encoded data
+  Future<String> replaceCssUrl(String cssString) async {
+    var localCssString = cssString;
+    final urlContentMatches = MdictReaderHelper.cssUrlExtractor(localCssString);
+    for (final match in urlContentMatches) {
+      final url = match.group(0);
+      if (url == null) continue;
+
+      var extension = p.extension(url).toLowerCase();
+      extension = extension.replaceFirst('.', '');
+      if (extension.isEmpty ||
+          !['png', 'jpg', 'jpeg', 'gif'].contains(extension)) continue;
+
+      final intData = await queryMdd(url);
+      if (intData == null) continue;
+
+      // print('replace $url in css with base64 encoded data');
+
+      final base64Data = base64.encode(intData);
+
+      localCssString = localCssString.replaceRange(
+        match.start,
+        match.end,
+        'data:image/$extension;base64,$base64Data',
+      );
+    }
+    return localCssString;
+  }
+
   /// Extract css/js content from mdd file if available
   /// [getCss] is true if we need to extract css content
   ///          is false if we need to extract js content

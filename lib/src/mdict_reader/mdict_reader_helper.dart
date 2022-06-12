@@ -122,4 +122,12 @@ abstract class MdictReaderHelper {
     await _in.skip(4);
     return _parseHeader(header);
   }
+
+  /// Find urls in css
+  /// Ex: url(icon-plus-minus-orange.png)
+  /// Explaination: regexr.com/6niqg
+  static Iterable<RegExpMatch> cssUrlExtractor(String input) {
+    final exp = RegExp(r"(?<=url\()[^'].+(?=\))");
+    return exp.allMatches(input);
+  }
 }

@@ -50,6 +50,10 @@ class MdictDictionary {
     cssContent = cssContent.trim();
     if (cssContent.isEmpty) {
       cssContent = await mddReader?.extractScriptContent(getCss: true) ?? '';
+      cssContent = cssContent.trim();
+    }
+    if (cssContent.isNotEmpty && mddReader != null) {
+      cssContent = await mddReader.replaceCssUrl(cssContent);
     }
 
     var jsContent = await mddReader?.extractScriptContent(getCss: false) ?? '';
