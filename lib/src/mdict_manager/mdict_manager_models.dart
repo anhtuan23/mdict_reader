@@ -58,10 +58,11 @@ class QueryReturn extends Equatable {
     this.mdxPath,
     this.html,
     this.css,
+    this.js,
   );
 
   factory QueryReturn.testReturn(String word, String mdxPath) {
-    return QueryReturn(word, '', mdxPath, '', '');
+    return QueryReturn(word, '', mdxPath, '', '', '');
   }
 
   factory QueryReturn.testReturnFromWord(String word) {
@@ -73,10 +74,11 @@ class QueryReturn extends Equatable {
   final String mdxPath;
   final String html;
   final String css;
+  final String js;
 
   @override
   String toString() {
-    return 'Word: $word\nDictname: $dictName\nHtml: $html\nCss: $css\n';
+    return 'Word: $word\nDictname: $dictName\nHtml: $html\nCss: $css\nJS: $js';
   }
 
   @override

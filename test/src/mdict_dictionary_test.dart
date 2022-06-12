@@ -41,9 +41,8 @@ void main() {
 
       printOnFailure(queryResult.toString());
 
-      expect(queryResult, hasLength(2));
+      expect(queryResult, hasLength(3));
 
-      expect(queryResult, hasLength(2));
       expect(queryResult[0], isNotEmpty, reason: 'html content is not empty');
       expect(queryResult[1], isNotEmpty, reason: 'css content is not empty');
     });
@@ -91,7 +90,7 @@ void main() {
   });
 
   group('extract css', () {
-    test('css string has both content in css file and mdd css entry', () async {
+    test('prioritize css from file over from mdd', () async {
       final mdictDictionary = await MdictDictionary.create(
         mdictFiles: const MdictFiles(
           'test/assets/CC-CEDICT/CC-CEDICT.mdx',
@@ -111,6 +110,23 @@ void main() {
         contains('/* sample content */'),
         reason: 'Must contains css from file',
       );
+    });
+
+    test('extract css from from mdd if css file is unavailable', () async {
+      final mdictDictionary = await MdictDictionary.create(
+        mdictFiles: const MdictFiles(
+          'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+          'test/assets/CC-CEDICT/CC-CEDICT.mdd',
+          '',
+        ),
+        db: db!,
+      );
+      final resultList = await mdictDictionary.queryMdx('歌词');
+
+      final css = resultList[1];
+
+      printOnFailure(css);
+
       expect(css, contains('div.hz{'), reason: 'Must contains css from mdd');
     });
 
@@ -123,9 +139,22 @@ void main() {
         ),
         db: db!,
       );
-      // Length of css only from mdd is 446
-      // If css file content is also added, it should be greater than that
-      expect(mdictDictionary.cssContent.length > 446, isTrue);
+      // Length of css only from css file is 222
+      expect(mdictDictionary.cssContent.length, 222);
+    });
+  });
+
+  group('extract js', () {
+    test('able to extract js content from mdd', () async {
+      final mdictDictionary = await MdictDictionary.create(
+        mdictFiles: const MdictFiles(
+          'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdx',
+          'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdd',
+          null,
+        ),
+        db: db!,
+      );
+      expect(mdictDictionary.jsContent.length, 2858);
     });
   });
 }

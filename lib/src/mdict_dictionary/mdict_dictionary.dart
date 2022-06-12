@@ -12,6 +12,7 @@ class MdictDictionary {
     required this.mdxReader,
     required this.mddReader,
     required this.cssContent,
+    required this.jsContent,
   });
 
   static Future<MdictDictionary> create({
@@ -43,32 +44,41 @@ class MdictDictionary {
     }
 
     progressController?.add(MdictProgress.mdictDictionaryGetCss(mdxFileName));
-    final cssFileContent =
+    // Priortize css from separate css file over from mdd.
+    var cssContent =
         await MdictHelpers.readFileContent(mdictFiles.cssPath) ?? '';
-    final cssMddContent = await mddReader?.extractCss() ?? '';
+    cssContent = cssContent.trim();
+    if (cssContent.isEmpty) {
+      cssContent = await mddReader?.extractScriptContent(getCss: true) ?? '';
+    }
+
+    var jsContent = await mddReader?.extractScriptContent(getCss: false) ?? '';
+    jsContent = jsContent.trim();
 
     progressController
         ?.add(MdictProgress.mdictDictionaryCreatedDict(mdxFileName));
     return MdictDictionary._(
       mdxReader: mdxReader,
       mddReader: mddReader,
-      cssContent: '$cssFileContent\n$cssMddContent'.trim(),
+      cssContent: cssContent,
+      jsContent: jsContent,
     );
   }
 
   final MdictReader mdxReader;
   final MdictReader? mddReader;
   final String cssContent;
+  final String jsContent;
 
   String get name => mdxReader.name;
 
   String get mdxPath => mdxReader.path;
 
-  /// Return [html, css] of result
+  /// Return result of [html, css, js]
   Future<List<String>> queryMdx(String keyWord) async {
     var html = await mdxReader.queryMdx(keyWord);
     if (mddReader == null || html.isEmpty) {
-      return [html, cssContent];
+      return [html, cssContent, jsContent];
     }
 
     try {
@@ -98,7 +108,7 @@ class MdictDictionary {
       print(e);
     }
 
-    return [html, cssContent];
+    return [html, cssContent, jsContent];
   }
 
   Future<Uint8List?> queryResource(String resourceKey) async =>

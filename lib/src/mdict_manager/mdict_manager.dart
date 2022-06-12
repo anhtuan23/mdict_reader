@@ -258,16 +258,17 @@ class MdictManager {
         _progressController?.add(
           MdictProgress.mdictManagerQuerying(word, dictionary.name),
         );
-        final htmlCssList = await dictionary.queryMdx(word);
+        final htmlCssJsList = await dictionary.queryMdx(word);
 
-        if (htmlCssList[0].isNotEmpty) {
+        if (htmlCssJsList[0].isNotEmpty) {
           results.add(
             QueryReturn(
               word,
               dictionary.name,
               dictionary.mdxPath,
-              htmlCssList[0],
-              htmlCssList[1],
+              htmlCssJsList[0],
+              htmlCssJsList[1],
+              htmlCssJsList[2],
             ),
           );
         }

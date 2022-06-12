@@ -135,9 +135,15 @@ class MdictReader {
     return Future.value();
   }
 
-  /// Extract css content from mdd file if available
-  Future<String?> extractCss() async {
-    if (!isMdd) throw UnsupportedError('Only try to extract css from mdd file');
+  /// Extract css/js content from mdd file if available
+  /// [getCss] is true if we need to extract css content
+  ///          is false if we need to extract js content
+  Future<String?> extractScriptContent({required bool getCss}) async {
+    if (!isMdd) {
+      throw UnsupportedError('Only try to extract css/js from mdd file');
+    }
+
+    final extensionMatcher = getCss ? '%.css' : '%.js';
 
     final resultSet = _db.select(
       '''
@@ -146,12 +152,12 @@ class MdictReader {
         WHERE ${MdictKey.filePathColumnName} = ? 
           AND ${MdictKey.wordColumnName} LIKE ? 
       ''',
-      [path, '%.css'],
+      [path, extensionMatcher],
     );
 
     for (final row in resultSet) {
-      final cssKey = row[MdictKey.wordColumnName] as String;
-      final data = await queryMdd(cssKey);
+      final scriptKey = row[MdictKey.wordColumnName] as String;
+      final data = await queryMdd(scriptKey);
       if (data != null) {
         return _isUtf8
             ? const Utf8Decoder().convert(data)

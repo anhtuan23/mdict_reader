@@ -114,8 +114,22 @@ void main() {
     });
 
     test('able to read css without crashing', () async {
-      final css = await mdictReader.extractCss();
+      final css = await mdictReader.extractScriptContent(getCss: true);
       expect(css, isNotEmpty);
+    });
+  });
+  group('extract Js from mdd', () {
+    late MdictReader mdictReader;
+    setUp(() async {
+      mdictReader = await MdictReaderInitHelper.init(
+        filePath: 'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdd',
+        db: db!,
+      );
+    });
+    test('able to read js without crashing', () async {
+      final jsContent = await mdictReader.extractScriptContent(getCss: false);
+      expect(jsContent, isNotNull);
+      expect(jsContent!.length, 2860);
     });
   });
 }
