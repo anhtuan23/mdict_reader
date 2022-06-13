@@ -166,7 +166,7 @@ class IsolatedManager {
   Future<Map<String, String>> reorder(int oldIndex, int newIndex) async {
     final input = ReOrderInput(oldIndex, newIndex);
     final result = await _doWork(input);
-    return (result as PathNameMapResult).pathNamePath;
+    return (result as PathNameMapResult).pathNameMap;
   }
 
   Future<Map<String, String>> reload(
@@ -178,7 +178,7 @@ class IsolatedManager {
       mdictFilesList,
     );
     final result = await _doWork(input);
-    return (result as PathNameMapResult).pathNamePath;
+    return (result as PathNameMapResult).pathNameMap;
   }
 
   /// reorder() with identical index return the same manager

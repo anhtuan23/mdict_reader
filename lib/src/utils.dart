@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 abstract class MdictHelpers {
-  static String getDictNameFromPath(String mdxPath, {bool toLowerCase = true}) {
-    final baseNameWithoutExtesion = p.basenameWithoutExtension(mdxPath);
-    if (toLowerCase) {
-      return baseNameWithoutExtesion.toLowerCase();
-    }
-    return baseNameWithoutExtesion;
+  static String getDictNameFromPath(
+    String mdxPath, {
+    bool keepExtension = false,
+    bool toLowerCase = true,
+  }) {
+    final baseName = keepExtension
+        ? p.basename(mdxPath)
+        : p.basenameWithoutExtension(mdxPath);
+    return toLowerCase ? baseName.toLowerCase() : baseName;
   }
 
   static Future<String?> readFileContent(String? filePath) async {

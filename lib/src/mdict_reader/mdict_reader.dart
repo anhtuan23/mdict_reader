@@ -18,6 +18,7 @@ part 'mdict_reader_init_helper.dart';
 class MdictReader {
   MdictReader({
     required this.path,
+    required this.fileName,
     required Database db,
     required Map<String, String> header,
     required Uint32List recordsCompressedSizes,
@@ -32,6 +33,7 @@ class MdictReader {
   static const recordBlockOffsetKey = '_recordBlockOffsetKey';
 
   final String path;
+  final String fileName;
   final Map<String, String> _header;
   final Uint32List _recordsCompressedSizes;
   final Uint32List _recordsUncompressedSizes;
@@ -78,7 +80,7 @@ class MdictReader {
         WHERE ${MdictKey.filePathColumnName} = ?
           AND ${MdictKey.wordColumnName} LIKE ? 
       ''',
-      [path, keyWord.trim()],
+      [fileName, keyWord.trim()],
     );
     mdictKeys = resultSet.map((row) => MdictKey.fromRow(row)).toList();
 
@@ -118,7 +120,7 @@ class MdictReader {
               ) 
       ''',
       [
-        path,
+        fileName,
         '$localResourceKey%',
         '\\$localResourceKey%',
       ],
@@ -181,7 +183,7 @@ class MdictReader {
         WHERE ${MdictKey.filePathColumnName} = ? 
           AND ${MdictKey.wordColumnName} LIKE ? 
       ''',
-      [path, extensionMatcher],
+      [fileName, extensionMatcher],
     );
 
     for (final row in resultSet) {

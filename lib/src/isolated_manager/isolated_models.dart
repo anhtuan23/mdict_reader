@@ -17,11 +17,11 @@ class InitManagerInput extends Equatable {
 }
 
 class PathNameMapResult implements Result {
-  const PathNameMapResult(this.inputHashCode, this.pathNamePath);
+  const PathNameMapResult(this.inputHashCode, this.pathNameMap);
 
   @override
   final int inputHashCode;
-  final Map<String, String> pathNamePath;
+  final Map<String, String> pathNameMap;
 }
 
 class SearchInput extends Equatable {

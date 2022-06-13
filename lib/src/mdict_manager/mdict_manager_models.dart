@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
+import 'package:mdict_reader/src/utils.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 /// Need a stable hash to work with IsolatedManager's reload
@@ -14,6 +15,14 @@ class MdictFiles extends Equatable {
   final String? mddPath;
   final String? cssPath;
 
+  String get mdxFileName =>
+      MdictHelpers.getDictNameFromPath(mdxPath, keepExtension: true);
+  String? get mddFileName {
+    final _mddPath = mddPath;
+    if (_mddPath == null) return null;
+    return MdictHelpers.getDictNameFromPath(_mddPath, keepExtension: true);
+  }
+
   @override
   List<Object?> get props => [mdxPath, mddPath, cssPath];
 }
@@ -22,11 +31,19 @@ class SearchReturn extends Equatable {
   const SearchReturn._(this.word, this.dictPathNameMap);
 
   factory SearchReturn.fromRow(Row row, Map<String, String> allPathNameMap) {
-    final dictPaths = MdictKey.getFilePathsFromRow(row);
-    final dictPathNameMap = {
-      for (var path in dictPaths)
-        if (allPathNameMap[path] != null) path: allPathNameMap[path]!
-    };
+    final dictNames = MdictKey.getFileNamesFromRow(row);
+
+    final dictPathNameMap = <String, String>{};
+    for (final name in dictNames) {
+      for (final path in allPathNameMap.keys) {
+        if (MdictHelpers.getDictNameFromPath(path, keepExtension: true) ==
+            name) {
+          dictPathNameMap[path] = allPathNameMap[path]!;
+          break;
+        }
+      }
+    }
+
     return SearchReturn._(MdictKey.getWordFromRow(row), dictPathNameMap);
   }
 

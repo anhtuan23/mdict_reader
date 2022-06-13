@@ -51,7 +51,8 @@ class MdictManager {
   }) {
     final allMdictFilePaths = mdictFilesIter
         .expand(
-          (mdictFiles) => [mdictFiles.mdxPath].addIfNotNull(mdictFiles.mddPath),
+          (mdictFiles) =>
+              [mdictFiles.mdxFileName].addIfNotNull(mdictFiles.mddFileName),
         )
         .toList();
     progressController?.add(const MdictProgress.mdictManagerCreateMeta());

@@ -56,7 +56,7 @@ class MdictKey {
   static String getWordFromRow(Row row) => row[wordColumnName] as String;
   static String getFilePathFromRow(Row row) =>
       row[filePathColumnName] as String;
-  static List<String> getFilePathsFromRow(Row row) =>
+  static List<String> getFileNamesFromRow(Row row) =>
       (row[filePathsColumnName] as String).split(',');
 }
 
