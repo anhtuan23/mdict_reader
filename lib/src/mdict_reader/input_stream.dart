@@ -510,10 +510,7 @@ class FileInputStream extends InputStream {
           ? _bufferSize
           : (_bufferPosition + localCount);
       final l = _buffer.sublist(_bufferPosition, end);
-      // TODO probably better to use bytes.setRange here.
-      for (var i = 0; i < l.length; ++i) {
-        bytes[offset + i] = l[i];
-      }
+      bytes.setRange(offset, offset + l.length, l);
       offset += l.length;
       localCount -= l.length;
       _bufferPosition = end;
