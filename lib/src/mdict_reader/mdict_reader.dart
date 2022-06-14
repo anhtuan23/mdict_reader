@@ -77,7 +77,7 @@ class MdictReader {
       '''
         SELECT ${MdictKey.wordColumnName}, ${MdictKey.offsetColumnName}, ${MdictKey.lengthColumnName} 
         FROM ${MdictKey.tableName} 
-        WHERE ${MdictKey.filePathColumnName} = ?
+        WHERE ${MdictKey.fileNameColumnName} = ?
           AND ${MdictKey.wordColumnName} LIKE ? 
       ''',
       [fileName, keyWord.trim()],
@@ -114,7 +114,7 @@ class MdictReader {
       '''
         SELECT ${MdictKey.wordColumnName}, ${MdictKey.offsetColumnName}, ${MdictKey.lengthColumnName}
         FROM ${MdictKey.tableName}
-        WHERE ${MdictKey.filePathColumnName} = ? 
+        WHERE ${MdictKey.fileNameColumnName} = ? 
           AND (${MdictKey.wordColumnName} LIKE ?
                OR ${MdictKey.wordColumnName} LIKE ?
               ) 
@@ -180,7 +180,7 @@ class MdictReader {
       '''
         SELECT ${MdictKey.wordColumnName} 
         FROM '${MdictKey.tableName}' 
-        WHERE ${MdictKey.filePathColumnName} = ? 
+        WHERE ${MdictKey.fileNameColumnName} = ? 
           AND ${MdictKey.wordColumnName} LIKE ? 
       ''',
       [fileName, extensionMatcher],

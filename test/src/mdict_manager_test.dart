@@ -322,7 +322,7 @@ void main() {
         '''
           SELECT *
           FROM ${MdictKey.tableName} 
-          WHERE ${MdictKey.filePathColumnName} IN ('cc_cedict_v2.mdx', 'Sound-zh_CN.mdd')
+          WHERE ${MdictKey.fileNameColumnName} IN ('cc_cedict_v2.mdx', 'Sound-zh_CN.mdd')
         ''',
       );
 

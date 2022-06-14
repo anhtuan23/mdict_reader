@@ -10,7 +10,7 @@ abstract class MdictReaderInitHelper {
         SELECT EXISTS (
           SELECT 1 
           FROM ${MdictMeta.tableName}
-          WHERE ${MdictMeta.filePathColumnName} = ? 
+          WHERE ${MdictMeta.fileNameColumnName} = ? 
         )
       ''',
       [fileNameExt],
@@ -21,7 +21,7 @@ abstract class MdictReaderInitHelper {
         SELECT EXISTS (
           SELECT 1 
           FROM ${MdictKey.tableName}
-          WHERE ${MdictKey.filePathColumnName} = ?
+          WHERE ${MdictKey.fileNameColumnName} = ?
         )
       ''',
       [fileNameExt],
@@ -32,7 +32,7 @@ abstract class MdictReaderInitHelper {
         SELECT EXISTS (
           SELECT 1 
           FROM ${MdictRecord.tableName}
-          WHERE ${MdictRecord.filePathColumnName} = ?
+          WHERE ${MdictRecord.fileNameColumnName} = ?
         )
       ''',
       [fileNameExt],
@@ -92,7 +92,7 @@ abstract class MdictReaderInitHelper {
             (${MdictKey.wordColumnName}, 
              ${MdictKey.offsetColumnName}, 
              ${MdictKey.lengthColumnName},
-             ${MdictKey.filePathColumnName}
+             ${MdictKey.fileNameColumnName}
             ) 
           VALUES 
         ''',
@@ -134,7 +134,7 @@ abstract class MdictReaderInitHelper {
     db.execute(
       '''
         DELETE FROM '${MdictMeta.tableName}' 
-        WHERE  ${MdictMeta.filePathColumnName} = ?;
+        WHERE  ${MdictMeta.fileNameColumnName} = ?;
       ''',
       [fileNameExt],
     );
@@ -143,7 +143,7 @@ abstract class MdictReaderInitHelper {
         INSERT INTO '${MdictMeta.tableName}' 
           (${MdictMeta.keyColumnName}, 
           ${MdictMeta.valueColumnName}, 
-          ${MdictMeta.filePathColumnName}
+          ${MdictMeta.fileNameColumnName}
           ) 
         VALUES (?, ?, ?)
       ''',
@@ -161,7 +161,7 @@ abstract class MdictReaderInitHelper {
     db.execute(
       '''
         DELETE FROM '${MdictKey.tableName}' 
-        WHERE  ${MdictKey.filePathColumnName} = ?;
+        WHERE  ${MdictKey.fileNameColumnName} = ?;
       ''',
       [fileNameExt],
     );
@@ -202,7 +202,7 @@ abstract class MdictReaderInitHelper {
     db.execute(
       '''
         DELETE FROM '${MdictRecord.tableName}' 
-        WHERE  ${MdictRecord.filePathColumnName} = ?;
+        WHERE  ${MdictRecord.fileNameColumnName} = ?;
       ''',
       [fileNameExt],
     );
@@ -211,7 +211,7 @@ abstract class MdictReaderInitHelper {
         INSERT INTO ${MdictRecord.tableName} 
           (${MdictRecord.compressedSizeColumnName}, 
           ${MdictRecord.uncompressedSizeColumnName},
-          ${MdictRecord.filePathColumnName}
+          ${MdictRecord.fileNameColumnName}
           ) 
         VALUES (?, ?, ?)
       ''',
@@ -236,7 +236,7 @@ abstract class MdictReaderInitHelper {
       '''
         SELECT ${MdictMeta.keyColumnName}, ${MdictMeta.valueColumnName} 
         FROM ${MdictMeta.tableName}
-        WHERE ${MdictMeta.filePathColumnName} = ?
+        WHERE ${MdictMeta.fileNameColumnName} = ?
       ''',
       [fileNameExt],
     );
@@ -255,7 +255,7 @@ abstract class MdictReaderInitHelper {
       '''
         SELECT ${MdictRecord.compressedSizeColumnName}, ${MdictRecord.uncompressedSizeColumnName} 
         FROM ${MdictRecord.tableName} 
-        WHERE ${MdictRecord.filePathColumnName} = ?
+        WHERE ${MdictRecord.fileNameColumnName} = ?
       ''',
       [fileNameExt],
     );

@@ -29,7 +29,7 @@ class MdictManager {
     required List<String> fileNameExtList,
     required Database db,
     required String tableName,
-    required String filePathColumnName,
+    required String fileNameColumnName,
   }) {
     final _fileNameExtList = fileNameExtList.map((e) => "'$e'").toList();
     final conditionPlaceHolder =
@@ -37,7 +37,7 @@ class MdictManager {
     db.execute(
       '''
         DELETE FROM $tableName
-        WHERE $filePathColumnName NOT IN ($conditionPlaceHolder) ;
+        WHERE $fileNameColumnName NOT IN ($conditionPlaceHolder) ;
       ''',
       _fileNameExtList,
     );
@@ -67,7 +67,7 @@ class MdictManager {
         CREATE TABLE IF NOT EXISTS '${MdictMeta.tableName}' (
           ${MdictMeta.keyColumnName} TEXT NOT NULL,
           ${MdictMeta.valueColumnName} TEXT NOT NULL,
-          ${MdictMeta.filePathColumnName} TEXT NOT NULL
+          ${MdictMeta.fileNameColumnName} TEXT NOT NULL
         );
       ''',
     );
@@ -79,7 +79,7 @@ class MdictManager {
     final resultSet = db.select(
       '''
         SELECT COUNT(1) FROM ${MdictMeta.tableName}
-        WHERE ${MdictMeta.filePathColumnName} NOT IN ($conditionPlaceHolder);
+        WHERE ${MdictMeta.fileNameColumnName} NOT IN ($conditionPlaceHolder);
       ''',
       allMdictFileNameExtList,
     );
@@ -99,7 +99,7 @@ class MdictManager {
       );
       _discardOldMdicts(
         db: db,
-        filePathColumnName: MdictMeta.filePathColumnName,
+        fileNameColumnName: MdictMeta.fileNameColumnName,
         tableName: MdictMeta.tableName,
         fileNameExtList: allMdictFileNameExtList,
       );
@@ -113,7 +113,7 @@ class MdictManager {
           ${MdictKey.wordColumnName} TEXT NOT NULL,
           ${MdictKey.offsetColumnName} TEXT NOT NULL,
           ${MdictKey.lengthColumnName} TEXT NOT NULL,
-          ${MdictKey.filePathColumnName} TEXT NOT NULL
+          ${MdictKey.fileNameColumnName} TEXT NOT NULL
         );
         ''',
       )
@@ -127,7 +127,7 @@ class MdictManager {
       ..execute(
         '''
           CREATE INDEX IF NOT EXISTS idx_${MdictKey.tableName}_file_word
-          ON ${MdictKey.tableName} (${MdictKey.filePathColumnName}, ${MdictKey.wordColumnName} COLLATE NOCASE);
+          ON ${MdictKey.tableName} (${MdictKey.fileNameColumnName}, ${MdictKey.wordColumnName} COLLATE NOCASE);
         ''',
       );
 
@@ -137,7 +137,7 @@ class MdictManager {
       );
       _discardOldMdicts(
         db: db,
-        filePathColumnName: MdictKey.filePathColumnName,
+        fileNameColumnName: MdictKey.fileNameColumnName,
         tableName: MdictKey.tableName,
         fileNameExtList: allMdictFileNameExtList,
       );
@@ -150,14 +150,14 @@ class MdictManager {
           CREATE TABLE IF NOT EXISTS '${MdictRecord.tableName}' (
             ${MdictRecord.compressedSizeColumnName} BLOB NOT NULL,
             ${MdictRecord.uncompressedSizeColumnName} BLOB NOT NULL,
-            ${MdictRecord.filePathColumnName} TEXT NOT NULL
+            ${MdictRecord.fileNameColumnName} TEXT NOT NULL
           );
         ''',
       )
       ..execute(
         '''
           CREATE INDEX IF NOT EXISTS idx_${MdictRecord.tableName} 
-          ON ${MdictRecord.tableName} (${MdictRecord.filePathColumnName});
+          ON ${MdictRecord.tableName} (${MdictRecord.fileNameColumnName});
         ''',
       );
 
@@ -167,7 +167,7 @@ class MdictManager {
       );
       _discardOldMdicts(
         db: db,
-        filePathColumnName: MdictRecord.filePathColumnName,
+        fileNameColumnName: MdictRecord.fileNameColumnName,
         tableName: MdictRecord.tableName,
         fileNameExtList: allMdictFileNameExtList,
       );
@@ -229,7 +229,7 @@ class MdictManager {
       '''
         SELECT 
           ${MdictKey.wordColumnName},
-          GROUP_CONCAT(${MdictKey.filePathColumnName}) ${MdictKey.filePathsColumnName}
+          GROUP_CONCAT(${MdictKey.fileNameColumnName}) ${MdictKey.fileNamesColumnName}
         FROM ${MdictKey.tableName} 
         WHERE $whereClause
         GROUP BY ${MdictKey.wordColumnName}

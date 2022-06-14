@@ -27,7 +27,7 @@ abstract class MdictMeta {
   static const tableName = 'metaTable';
   static const keyColumnName = 'key';
   static const valueColumnName = 'value';
-  static const filePathColumnName = 'filePath';
+  static const fileNameColumnName = 'fileName';
 }
 
 class MdictKey {
@@ -43,28 +43,27 @@ class MdictKey {
   int offset;
   int length;
 
-  // TODO: change back to keyTable
-  static const tableName = 'keyTable_';
+  static const tableName = 'keyTable';
   static const wordColumnName = 'word';
   static const offsetColumnName = 'offset';
   static const lengthColumnName = 'length';
-  static const filePathColumnName = 'filePath';
+  static const fileNameColumnName = 'fileName';
 
   /// An aggregated comma separated string of all path when use with group by
-  static const filePathsColumnName = 'filePaths';
+  static const fileNamesColumnName = 'fileNames';
 
   static String getWordFromRow(Row row) => row[wordColumnName] as String;
-  static String getFilePathFromRow(Row row) =>
-      row[filePathColumnName] as String;
+  static String getFileNameFromRow(Row row) =>
+      row[fileNameColumnName] as String;
   static List<String> getFileNamesFromRow(Row row) =>
-      (row[filePathsColumnName] as String).split(',');
+      (row[fileNamesColumnName] as String).split(',');
 }
 
 abstract class MdictRecord {
   static const tableName = 'recordTable';
   static const compressedSizeColumnName = 'compressedSize';
   static const uncompressedSizeColumnName = 'uncompressedSize';
-  static const filePathColumnName = 'filePath';
+  static const fileNameColumnName = 'fileName';
 }
 
 class IndexInfo {
