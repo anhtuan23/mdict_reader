@@ -20,9 +20,10 @@ class MdictDictionary {
     required Database db,
     StreamController<MdictProgress>? progressController,
   }) async {
-    final mdxFileName = MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
+    final mdxFileNameExt =
+        MdictHelpers.getFileNameWithExtensionFromPath(mdictFiles.mdxPath);
     progressController?.add(
-      MdictProgress.mdictDictionaryProcessing(mdxFileName, 'mdx'),
+      MdictProgress.mdictDictionaryProcessing(mdxFileNameExt, 'mdx'),
     );
     final mdxReader = await MdictReaderInitHelper.init(
       filePath: mdictFiles.mdxPath,
@@ -32,9 +33,10 @@ class MdictDictionary {
 
     MdictReader? mddReader;
     if (mdictFiles.mddPath != null) {
-      final mddFileName = MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
+      final mddFileNameExt =
+          MdictHelpers.getFileNameWithExtensionFromPath(mdictFiles.mdxPath);
       progressController?.add(
-        MdictProgress.mdictDictionaryProcessing(mddFileName, 'mdd'),
+        MdictProgress.mdictDictionaryProcessing(mddFileNameExt, 'mdd'),
       );
       mddReader = await MdictReaderInitHelper.init(
         filePath: mdictFiles.mddPath!,
@@ -43,7 +45,8 @@ class MdictDictionary {
       );
     }
 
-    progressController?.add(MdictProgress.mdictDictionaryGetCss(mdxFileName));
+    progressController
+        ?.add(MdictProgress.mdictDictionaryGetCss(mdxFileNameExt));
     // Priortize css from separate css file over from mdd.
     var cssContent =
         await MdictHelpers.readFileContent(mdictFiles.cssPath) ?? '';
@@ -60,7 +63,7 @@ class MdictDictionary {
     jsContent = jsContent.trim();
 
     progressController
-        ?.add(MdictProgress.mdictDictionaryCreatedDict(mdxFileName));
+        ?.add(MdictProgress.mdictDictionaryCreatedDict(mdxFileNameExt));
     return MdictDictionary._(
       mdxReader: mdxReader,
       mddReader: mddReader,
@@ -80,7 +83,7 @@ class MdictDictionary {
         name.isEmpty ||
         name == 'Title (No HTML code allowed)') {
       name =
-          MdictHelpers.getDictNameFromPath(mdxReader.path, toLowerCase: false);
+          MdictHelpers.getFileNameFromPath(mdxReader.path, toLowerCase: false);
     }
     return name;
   }

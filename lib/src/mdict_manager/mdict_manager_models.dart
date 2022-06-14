@@ -15,14 +15,6 @@ class MdictFiles extends Equatable {
   final String? mddPath;
   final String? cssPath;
 
-  String get mdxFileName =>
-      MdictHelpers.getDictNameFromPath(mdxPath, keepExtension: true);
-  String? get mddFileName {
-    final _mddPath = mddPath;
-    if (_mddPath == null) return null;
-    return MdictHelpers.getDictNameFromPath(_mddPath, keepExtension: true);
-  }
-
   @override
   List<Object?> get props => [mdxPath, mddPath, cssPath];
 }
@@ -31,13 +23,13 @@ class SearchReturn extends Equatable {
   const SearchReturn._(this.word, this.dictPathNameMap);
 
   factory SearchReturn.fromRow(Row row, Map<String, String> allPathNameMap) {
-    final dictNames = MdictKey.getFileNamesFromRow(row);
+    final dictFileNameExtList = MdictKey.getFileNamesFromRow(row);
 
     final dictPathNameMap = <String, String>{};
-    for (final name in dictNames) {
+    for (final fileNameExt in dictFileNameExtList) {
       for (final path in allPathNameMap.keys) {
-        if (MdictHelpers.getDictNameFromPath(path, keepExtension: true) ==
-            name) {
+        if (MdictHelpers.getFileNameWithExtensionFromPath(path) ==
+            fileNameExt) {
           dictPathNameMap[path] = allPathNameMap[path]!;
           break;
         }
@@ -133,10 +125,12 @@ class MdictProgress extends Equatable {
       : this(messageType: 'mdictManagerCountOld');
 
   // createTables: has old
-  MdictProgress.mdictManagerHasOld(int oldCount, List<String> dictPaths)
-      : this(
+  MdictProgress.mdictManagerHasOld(
+    int oldCount,
+    List<String> dictFileNameExtList,
+  ) : this(
           messageType: 'mdictManagerHasOld',
-          addedInfoList: [oldCount.toString(), dictPaths.toString()],
+          addedInfoList: [oldCount.toString(), dictFileNameExtList.toString()],
         );
 
   // createTables: discard old
@@ -155,10 +149,10 @@ class MdictProgress extends Equatable {
       : this(messageType: 'mdictManagerCreateRecord');
 
   // Processing $mdxFileName ...
-  MdictProgress.mdictManagerProcessing(String mdxFileName)
+  MdictProgress.mdictManagerProcessing(String mdxFileNameExt)
       : this(
           messageType: 'mdictManagerProcessing',
-          addedInfoList: [mdxFileName],
+          addedInfoList: [mdxFileNameExt],
         );
   // Querying for $word in ${dictionary.name} ...
   MdictProgress.mdictManagerQuerying(String word, String dictName)
@@ -179,110 +173,110 @@ class MdictProgress extends Equatable {
   // Processing $mdxFileName mdx ...
   // Processing $mddFileName mdd ...
   MdictProgress.mdictDictionaryProcessing(
-    String fileName,
+    String fileNameExt,
     String fileExtension,
   ) : this(
           messageType: 'mdictDictionaryProcessing',
-          addedInfoList: [fileName, fileExtension],
+          addedInfoList: [fileNameExt, fileExtension],
         );
 
   // Getting css style of $mdxFileName ...
-  MdictProgress.mdictDictionaryGetCss(String mdxFileName)
+  MdictProgress.mdictDictionaryGetCss(String mdxFileNameExt)
       : this(
           messageType: 'mdictDictionaryGetCss',
-          addedInfoList: [mdxFileName],
+          addedInfoList: [mdxFileNameExt],
         );
 
   // Finished creating $mdxFileName dictionary ...
-  MdictProgress.mdictDictionaryCreatedDict(String mdxFileName)
+  MdictProgress.mdictDictionaryCreatedDict(String mdxFileNameExt)
       : this(
           messageType: 'mdictDictionaryCreatedDict',
-          addedInfoList: [mdxFileName],
+          addedInfoList: [mdxFileNameExt],
         );
 
   // * MdictReaderInitHelper
   // Getting index info for $fileName ...
-  MdictProgress.readerHelperGetInfo(String fileName)
+  MdictProgress.readerHelperGetInfo(String fileNameExt)
       : this(
           messageType: 'readerHelperGetInfo',
-          addedInfoList: [fileName],
+          addedInfoList: [fileNameExt],
         );
 
   // Reading header of $fileName ...
-  MdictProgress.readerHelperReadHeader(String fileName)
+  MdictProgress.readerHelperReadHeader(String fileNameExt)
       : this(
           messageType: 'readerHelperReadHeader',
-          addedInfoList: [fileName],
+          addedInfoList: [fileNameExt],
         );
 
   // Reading keys of $fileName ...
-  MdictProgress.readerHelperReadKeys(String fileName)
+  MdictProgress.readerHelperReadKeys(String fileNameExt)
       : this(
           messageType: 'readerHelperReadKeys',
-          addedInfoList: [fileName],
+          addedInfoList: [fileNameExt],
         );
 
   // Reading records of $fileName ...
-  MdictProgress.readerHelperReadRecords(String fileName)
+  MdictProgress.readerHelperReadRecords(String fileNameExt)
       : this(
           messageType: 'readerHelperReadRecords',
-          addedInfoList: [fileName],
+          addedInfoList: [fileNameExt],
         );
 
   // Building meta table for $fileName ...
-  MdictProgress.readerHelperBuildMeta(String fileName)
+  MdictProgress.readerHelperBuildMeta(String fileNameExt)
       : this(
           messageType: 'readerHelperBuildMeta',
-          addedInfoList: [fileName],
+          addedInfoList: [fileNameExt],
         );
 
   // Building key table for $fileName: $insertedCount/$totalKeys ...
   MdictProgress.readerHelperBuildKey(
-    String fileName,
+    String fileNameExt,
     int insertedCount,
     int totalKeys,
   ) : this(
           messageType: 'readerHelperBuildKey',
           addedInfoList: [
-            fileName,
+            fileNameExt,
             insertedCount.toString(),
             totalKeys.toString(),
           ],
         );
 
   // Building records table for $fileName ...
-  MdictProgress.readerHelperBuildRecord(String fileName)
+  MdictProgress.readerHelperBuildRecord(String fileNameExt)
       : this(
           messageType: 'readerHelperBuildRecord',
-          addedInfoList: [fileName],
+          addedInfoList: [fileNameExt],
         );
 
   // Finished building index for $fileName ...
-  MdictProgress.readerHelperFinishedIndex(String fileName)
+  MdictProgress.readerHelperFinishedIndex(String fileNameExt)
       : this(
           messageType: 'readerHelperFinishedIndex',
-          addedInfoList: [fileName],
+          addedInfoList: [fileNameExt],
         );
 
   // Getting headers of $fileName ...
-  MdictProgress.readerHelperGetHeaders(String fileName)
+  MdictProgress.readerHelperGetHeaders(String fileNameExt)
       : this(
           messageType: 'readerHelperGetHeaders',
-          addedInfoList: [fileName],
+          addedInfoList: [fileNameExt],
         );
 
   // Getting record list of $fileName ...
-  MdictProgress.readerHelperGetRecordList(String fileName)
+  MdictProgress.readerHelperGetRecordList(String fileNameExt)
       : this(
           messageType: 'readerHelperGetRecordList',
-          addedInfoList: [fileName],
+          addedInfoList: [fileNameExt],
         );
 
   // Finished creating $fileName dictionary
-  MdictProgress.readerHelperFinishedCreateDict(String fileName)
+  MdictProgress.readerHelperFinishedCreateDict(String fileNameExt)
       : this(
           messageType: 'readerHelperFinishedCreateDict',
-          addedInfoList: [fileName],
+          addedInfoList: [fileNameExt],
         );
 
   final String messageType;

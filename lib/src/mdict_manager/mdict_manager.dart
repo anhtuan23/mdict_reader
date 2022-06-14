@@ -26,20 +26,20 @@ class MdictManager {
       {for (final dict in _dictionaryList) dict.mdxPath: dict.name};
 
   static void _discardOldMdicts({
-    required List<String> filePaths,
+    required List<String> fileNameExtList,
     required Database db,
     required String tableName,
     required String filePathColumnName,
   }) {
-    final filePathsList = filePaths.map((e) => "'$e'").toList();
+    final _fileNameExtList = fileNameExtList.map((e) => "'$e'").toList();
     final conditionPlaceHolder =
-        Iterable.generate(filePathsList.length, (_) => '?').join(',');
+        Iterable.generate(_fileNameExtList.length, (_) => '?').join(',');
     db.execute(
       '''
         DELETE FROM $tableName
         WHERE $filePathColumnName NOT IN ($conditionPlaceHolder) ;
       ''',
-      filePathsList,
+      _fileNameExtList,
     );
   }
 
@@ -49,12 +49,18 @@ class MdictManager {
     required Iterable<MdictFiles> mdictFilesIter,
     StreamController<MdictProgress>? progressController,
   }) {
-    final allMdictFilePaths = mdictFilesIter
-        .expand(
-          (mdictFiles) =>
-              [mdictFiles.mdxFileName].addIfNotNull(mdictFiles.mddFileName),
-        )
-        .toList();
+    final allMdictFileNameExtList = mdictFilesIter.expand(
+      (mdictFiles) {
+        final mdxFileNameExt =
+            MdictHelpers.getFileNameWithExtensionFromPath(mdictFiles.mdxPath);
+        final mddFileNameExt = mdictFiles.mddPath != null
+            ? MdictHelpers.getFileNameWithExtensionFromPath(mdictFiles.mddPath!)
+            : null;
+        return mddFileNameExt == null
+            ? [mdxFileNameExt]
+            : [mdxFileNameExt, mddFileNameExt];
+      },
+    ).toList();
     progressController?.add(const MdictProgress.mdictManagerCreateMeta());
     db.execute(
       '''
@@ -69,20 +75,23 @@ class MdictManager {
     // Check if there are any old mdict in db
     progressController?.add(const MdictProgress.mdictManagerCountOld());
     final conditionPlaceHolder =
-        Iterable.generate(allMdictFilePaths.length, (_) => '?').join(',');
+        Iterable.generate(allMdictFileNameExtList.length, (_) => '?').join(',');
     final resultSet = db.select(
       '''
         SELECT COUNT(1) FROM ${MdictMeta.tableName}
         WHERE ${MdictMeta.filePathColumnName} NOT IN ($conditionPlaceHolder);
       ''',
-      allMdictFilePaths,
+      allMdictFileNameExtList,
     );
     final oldMdictCount = resultSet.first.columnAt(0) as int;
     final hasOldMdict = oldMdictCount > 0;
 
     if (hasOldMdict) {
       progressController?.add(
-        MdictProgress.mdictManagerHasOld(oldMdictCount, allMdictFilePaths),
+        MdictProgress.mdictManagerHasOld(
+          oldMdictCount,
+          allMdictFileNameExtList,
+        ),
       );
 
       progressController?.add(
@@ -92,7 +101,7 @@ class MdictManager {
         db: db,
         filePathColumnName: MdictMeta.filePathColumnName,
         tableName: MdictMeta.tableName,
-        filePaths: allMdictFilePaths,
+        fileNameExtList: allMdictFileNameExtList,
       );
     }
 
@@ -130,7 +139,7 @@ class MdictManager {
         db: db,
         filePathColumnName: MdictKey.filePathColumnName,
         tableName: MdictKey.tableName,
-        filePaths: allMdictFilePaths,
+        fileNameExtList: allMdictFileNameExtList,
       );
     }
 
@@ -160,7 +169,7 @@ class MdictManager {
         db: db,
         filePathColumnName: MdictRecord.filePathColumnName,
         tableName: MdictRecord.tableName,
-        filePaths: allMdictFilePaths,
+        fileNameExtList: allMdictFileNameExtList,
       );
     }
   }
@@ -188,10 +197,11 @@ class MdictManager {
 
     for (final mdictFiles in mdictFilesIter) {
       try {
-        final mdxFileName =
-            MdictHelpers.getDictNameFromPath(mdictFiles.mdxPath);
-        progressController
-            ?.add(MdictProgress.mdictManagerProcessing(mdxFileName));
+        progressController?.add(
+          MdictProgress.mdictManagerProcessing(
+            MdictHelpers.getFileNameWithExtensionFromPath(mdictFiles.mdxPath),
+          ),
+        );
         final mdict = await MdictDictionary.create(
           mdictFiles: mdictFiles,
           db: db,
