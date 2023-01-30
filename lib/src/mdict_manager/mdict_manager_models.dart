@@ -48,6 +48,13 @@ class SearchReturn extends Equatable {
     return SearchReturn.testResult(word, ['${word}_path.mdx']);
   }
 
+  factory SearchReturn.fromQueryReturn(QueryReturn queryReturn) {
+    return SearchReturn._(
+      queryReturn.word,
+      {queryReturn.mdxPath: queryReturn.dictName},
+    );
+  }
+
   final String word;
   final Map<String, String> dictPathNameMap;
 
