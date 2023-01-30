@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:equatable/equatable.dart';
 import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
 
@@ -16,28 +14,12 @@ class InitManagerInput extends Equatable {
   List<Object?> get props => [dbPath, mdictFilesIter];
 }
 
-class PathNameMapResult implements Result {
-  const PathNameMapResult(this.inputHashCode, this.pathNameMap);
-
-  @override
-  final int inputHashCode;
-  final Map<String, String> pathNameMap;
-}
-
 class SearchInput extends Equatable {
   const SearchInput(this.term);
   final String term;
 
   @override
   List<Object?> get props => [term];
-}
-
-class SearchResult implements Result {
-  const SearchResult(this.inputHashCode, this.searchReturnList);
-
-  @override
-  final int inputHashCode;
-  final List<SearchReturn> searchReturnList;
 }
 
 /// [mdxPaths] narrow down which dictionary to query if provided
@@ -49,14 +31,6 @@ class QueryInput extends Equatable {
 
   @override
   List<Object?> get props => [word, mdxPaths];
-}
-
-class QueryResult implements Result {
-  const QueryResult(this.inputHashCode, this.queryReturns);
-
-  @override
-  final int inputHashCode;
-  final List<QueryReturn> queryReturns;
 }
 
 /// [mdxPath] act as a key when we want to query resource
@@ -73,14 +47,6 @@ class ResourceQueryInput extends Equatable {
   List<Object?> get props => [resourceUri];
 }
 
-class ResourceQueryResult implements Result {
-  const ResourceQueryResult(this.inputHashCode, this.resourceData);
-
-  @override
-  final int inputHashCode;
-  final Uint8List? resourceData;
-}
-
 class ReOrderInput extends Equatable {
   const ReOrderInput(this.oldIndex, this.newIndex);
   final int oldIndex;
@@ -88,8 +54,4 @@ class ReOrderInput extends Equatable {
 
   @override
   List<Object?> get props => [oldIndex, newIndex];
-}
-
-abstract class Result {
-  abstract final int inputHashCode;
 }
