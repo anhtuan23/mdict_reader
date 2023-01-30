@@ -13,12 +13,13 @@ dependencies:
   html_unescape: ^2.0.0
   japanese_conjugation:
     path: ../japanese_conjugation
+  path: ^1.8.3
   pointycastle: ^3.6.0
   quiver: ^3.1.0
   sqlite3: ^1.7.1
 
 dev_dependencies:
   test: ^1.6.0
-  very_good_analysis: ^2.4.0
+  very_good_analysis: ^3.1.0
 #
 # Do not support v1 mdict due to lack of lzo compression support in dart

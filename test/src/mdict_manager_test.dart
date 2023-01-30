@@ -120,7 +120,7 @@ void main() {
         test('query for $word', () async {
           final queryReturnList = await mdictManager.query(word);
 
-          print(queryReturnList.toString());
+          print(queryReturnList);
 
           expect(queryReturnList, containsAll(testCases[word]!));
         });
@@ -256,7 +256,7 @@ void main() {
       ),
     ];
 
-    const _tempDbPath = 'test/assets/temp.db';
+    const tempDbPath = 'test/assets/temp.db';
 
     MdictManager? mdictManager1;
     MdictManager? mdictManager2;
@@ -265,7 +265,7 @@ void main() {
       mdictManager1?.dispose();
       mdictManager2?.dispose();
       await Future<dynamic>.delayed(const Duration(seconds: 3));
-      final dbFile = File(_tempDbPath);
+      final dbFile = File(tempDbPath);
       await dbFile.delete();
     });
 
@@ -274,7 +274,7 @@ void main() {
 
       mdictManager1 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
-        dbPath: _tempDbPath,
+        dbPath: tempDbPath,
       );
       final firstStartDuration = stopwatch.elapsed;
 
@@ -287,7 +287,7 @@ void main() {
 
       mdictManager2 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
-        dbPath: _tempDbPath,
+        dbPath: tempDbPath,
       );
       final secondStartDuration = stopwatch.elapsed;
       mdictManager2?.dispose();
@@ -301,7 +301,7 @@ void main() {
     test('unused mdict files are discarded from index db', () async {
       mdictManager1 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
-        dbPath: _tempDbPath,
+        dbPath: tempDbPath,
       );
 
       mdictManager1?.dispose();
@@ -311,13 +311,13 @@ void main() {
 
       mdictManager2 = await MdictManager.create(
         mdictFilesIter: [],
-        dbPath: _tempDbPath,
+        dbPath: tempDbPath,
       );
 
       mdictManager2?.dispose();
       await Future<dynamic>.delayed(const Duration(seconds: 2));
 
-      final db = sqlite3.open(_tempDbPath);
+      final db = sqlite3.open(tempDbPath);
       final deletedRows = db.select(
         '''
           SELECT *

@@ -5,7 +5,7 @@ import 'package:mdict_reader/mdict_reader.dart';
 import 'package:sqlite3/open.dart';
 
 void main() async {
-  const _tempDbPath = 'bin/example.db';
+  const tempDbPath = 'bin/example.db';
 
   open.overrideFor(OperatingSystem.windows, _openOnWindows);
   // final db = sqlite3.open();
@@ -51,7 +51,7 @@ void main() async {
 
   final mdictManager = await MdictManager.create(
     mdictFilesIter: mdictFilesList,
-    dbPath: _tempDbPath,
+    dbPath: tempDbPath,
   );
   print('Create manager took ${stopWatch.elapsed}');
 

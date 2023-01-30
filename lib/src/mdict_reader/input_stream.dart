@@ -103,22 +103,22 @@ class BytesInputStream extends InputStream {
   /// read position is used. If [length] is not specified, the remainder of this
   /// stream is used.
   InputStream subset([int? position, int? length]) {
-    var _position = position;
-    if (_position == null) {
-      _position = offset;
+    var position_ = position;
+    if (position_ == null) {
+      position_ = offset;
     } else {
-      _position += start;
+      position_ += start;
     }
 
     var localLength = length;
     if (localLength == null || localLength < 0) {
-      localLength = _length - (_position - start);
+      localLength = _length - (position_ - start);
     }
 
     return BytesInputStream(
       buffer,
       byteOrder: byteOrder,
-      start: _position,
+      start: position_,
       length: localLength,
     );
   }

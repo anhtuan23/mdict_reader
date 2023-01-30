@@ -24,13 +24,13 @@ class IsolatedManager {
     Iterable<MdictFiles> mdictFilesIter,
     String? dbPath,
   ) async {
-    final _resultStreamController = StreamController<dynamic>.broadcast();
-    final _progressStreamController = StreamController<MdictProgress>();
+    final resultStreamController = StreamController<dynamic>.broadcast();
+    final progressStreamController = StreamController<MdictProgress>();
     final managerInitCompleter = Completer<void>();
 
     final isolateSendPort = await _initIsolate(
-      _resultStreamController,
-      _progressStreamController,
+      resultStreamController,
+      progressStreamController,
       managerInitCompleter,
     );
 
@@ -40,8 +40,8 @@ class IsolatedManager {
 
     return IsolatedManager(
       isolateSendPort,
-      _resultStreamController,
-      _progressStreamController,
+      resultStreamController,
+      progressStreamController,
       managerInitCompleter,
     );
   }
@@ -145,7 +145,7 @@ class IsolatedManager {
       _isolateSendPort.send(input);
 
       final completer = Completer<Result>();
-      StreamSubscription? streamSubscription;
+      StreamSubscription<dynamic>? streamSubscription;
       streamSubscription =
           _resultStreamController.stream.listen((dynamic result) {
         if (result is Result && result.inputHashCode == input.hashCode) {

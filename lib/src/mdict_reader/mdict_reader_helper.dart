@@ -31,24 +31,24 @@ abstract class MdictReaderHelper {
   }
 
   static Future<List<MdictKey>> _readKeys(
-    FileInputStream _in,
-    Map<String, String> _header,
+    FileInputStream fileInputStream,
+    Map<String, String> header,
   ) async {
-    final encrypted = _header['encrypted'] == '2';
-    final utf8 = _header['encoding'] == 'UTF-8';
-    final keyNumBlocks = await _in.readUint64();
+    final encrypted = header['encrypted'] == '2';
+    final utf8 = header['encoding'] == 'UTF-8';
+    final keyNumBlocks = await fileInputStream.readUint64();
     // ignore: unused_local_variable
-    final keyNumEntries = await _in.readUint64();
+    final keyNumEntries = await fileInputStream.readUint64();
     // ignore: unused_local_variable
-    final keyIndexDecompLen = await _in.readUint64();
-    final keyIndexCompLen = await _in.readUint64();
+    final keyIndexDecompLen = await fileInputStream.readUint64();
+    final keyIndexCompLen = await fileInputStream.readUint64();
     // ignore: unused_local_variable
-    final keyBlocksLen = await _in.readUint64();
-    await _in.skip(4);
+    final keyBlocksLen = await fileInputStream.readUint64();
+    await fileInputStream.skip(4);
     final compSize = List.filled(keyNumBlocks, -1);
     final decompSize = List.filled(keyNumBlocks, -1);
     final numEntries = List.filled(keyNumBlocks, -1);
-    final indexCompBlock = await _in.readBytes(keyIndexCompLen);
+    final indexCompBlock = await fileInputStream.readBytes(keyIndexCompLen);
     if (encrypted) {
       final key = _computeKey(indexCompBlock);
       _decryptBlock(key, indexCompBlock, 8);
@@ -74,7 +74,7 @@ abstract class MdictReaderHelper {
     }
     final keyList = <MdictKey>[];
     for (var i = 0; i < keyNumBlocks; i++) {
-      final keyCompBlock = await _in.readBytes(compSize[i]);
+      final keyCompBlock = await fileInputStream.readBytes(compSize[i]);
       final blockIn = _decompressBlock(keyCompBlock);
       for (var j = 0; j < numEntries[i]; j++) {
         final offset = await blockIn.readUint64();
@@ -90,19 +90,21 @@ abstract class MdictReaderHelper {
   }
 
   /// Return 2 Init32List of compressedRecordSize and uncompressedRecordSize
-  static Future<List<Uint32List>> _readRecords(FileInputStream _in) async {
-    final recordNumBlocks = await _in.readUint64();
+  static Future<List<Uint32List>> _readRecords(
+    FileInputStream fileInputStream,
+  ) async {
+    final recordNumBlocks = await fileInputStream.readUint64();
     // ignore: unused_local_variable
-    final recordNumEntries = await _in.readUint64();
+    final recordNumEntries = await fileInputStream.readUint64();
     // ignore: unused_local_variable
-    final recordIndexLen = await _in.readUint64();
+    final recordIndexLen = await fileInputStream.readUint64();
     // ignore: unused_local_variable
-    final recordBlocksLen = await _in.readUint64();
+    final recordBlocksLen = await fileInputStream.readUint64();
     final compressedSize = Uint32List(recordNumBlocks);
     final uncompressedSize = Uint32List(recordNumBlocks);
     for (var i = 0; i < recordNumBlocks; i++) {
-      compressedSize[i] = await _in.readUint64();
-      uncompressedSize[i] = await _in.readUint64();
+      compressedSize[i] = await fileInputStream.readUint64();
+      uncompressedSize[i] = await fileInputStream.readUint64();
     }
     return [compressedSize, uncompressedSize];
   }
@@ -116,10 +118,13 @@ abstract class MdictReaderHelper {
     return attributes;
   }
 
-  static Future<Map<String, String>> _readHeader(FileInputStream _in) async {
-    final headerLength = await _in.readUint32();
-    final header = await _in.readString(size: headerLength, utf8: false);
-    await _in.skip(4);
+  static Future<Map<String, String>> _readHeader(
+    FileInputStream fileInputStream,
+  ) async {
+    final headerLength = await fileInputStream.readUint32();
+    final header =
+        await fileInputStream.readString(size: headerLength, utf8: false);
+    await fileInputStream.skip(4);
     return _parseHeader(header);
   }
 

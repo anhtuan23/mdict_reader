@@ -31,15 +31,15 @@ class MdictManager {
     required String tableName,
     required String fileNameColumnName,
   }) {
-    final _fileNameExtList = fileNameExtList.map((e) => "'$e'").toList();
+    final fileNameExtList_ = fileNameExtList.map((e) => "'$e'").toList();
     final conditionPlaceHolder =
-        Iterable.generate(_fileNameExtList.length, (_) => '?').join(',');
+        Iterable.generate(fileNameExtList_.length, (_) => '?').join(',');
     db.execute(
       '''
         DELETE FROM $tableName
         WHERE $fileNameColumnName NOT IN ($conditionPlaceHolder) ;
       ''',
-      _fileNameExtList,
+      fileNameExtList_,
     );
   }
 
@@ -305,17 +305,18 @@ class MdictManager {
   }
 
   MdictManager reorder(int oldIndex, int newIndex) {
+    // ignore: avoid_returning_this
     if (oldIndex == newIndex) return this;
 
-    var _newIndex = newIndex;
+    var newIndex_ = newIndex;
     // if move item toward the end,
     // newIndex decrease by 1 after removeAt oldIndex
     if (oldIndex < newIndex) {
-      _newIndex -= 1;
+      newIndex_ -= 1;
     }
 
     final item = _dictionaryList.removeAt(oldIndex);
-    _dictionaryList.insert(_newIndex, item);
+    _dictionaryList.insert(newIndex_, item);
     return MdictManager._(_dictionaryList, _db);
   }
 

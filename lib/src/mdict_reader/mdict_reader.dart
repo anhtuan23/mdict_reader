@@ -92,10 +92,10 @@ class MdictReader {
       ) as String;
 
       if (htmlString.startsWith('@@@LINK=')) {
-        final _keyWord = htmlString.substring(8).trim();
+        final keyWord = htmlString.substring(8).trim();
         // Query result might contains a reference loop through @@@LINK=
-        if (!resultMap.containsKey(_keyWord)) {
-          await _queryHtmls(_keyWord, resultMap);
+        if (!resultMap.containsKey(keyWord)) {
+          await _queryHtmls(keyWord, resultMap);
         }
       } else {
         resultMap[keyWord]!.add(htmlString.trim());
@@ -216,10 +216,10 @@ class MdictReader {
       uncompressedOffset += uncompressedSize;
       compressedOffset += compressedSize;
     }
-    final _in = await File(path).open();
-    await _in.setPosition(_recordBlockOffset + compressedOffset);
-    final block = await _in.read(compressedSize);
-    await _in.close();
+    final file = await File(path).open();
+    await file.setPosition(_recordBlockOffset + compressedOffset);
+    final block = await file.read(compressedSize);
+    await file.close();
     final blockIn = MdictReaderHelper._decompressBlock(block);
     await blockIn.skip(offset - uncompressedOffset);
     if (isMdd) {
