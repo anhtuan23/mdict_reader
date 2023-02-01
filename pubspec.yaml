@@ -13,7 +13,7 @@ dependencies:
   html_unescape: ^2.0.0
   japanese_conjugation:
     path: ../japanese_conjugation
-  path: ^1.8.3
+  path: ^1.8.2
   pointycastle: ^3.6.0
   quiver: ^3.1.0
   sqlite3: ^1.7.1
