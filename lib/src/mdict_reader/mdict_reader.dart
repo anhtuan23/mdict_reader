@@ -82,7 +82,7 @@ class MdictReader {
       ''',
       [fileName, keyWord.trim()],
     );
-    mdictKeys = resultSet.map((row) => MdictKey.fromRow(row)).toList();
+    mdictKeys = resultSet.map(MdictKey.fromRow).toList();
 
     resultMap[keyWord] = [];
     for (final mdictKey in mdictKeys) {
