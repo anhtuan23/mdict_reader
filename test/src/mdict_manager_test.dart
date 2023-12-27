@@ -70,18 +70,18 @@ void main() {
           SearchReturn.testResult('勉強', const [
             'test/assets/CC-CEDICT/CC-CEDICT.mdx',
             'test/assets/jmdict_v2.mdx',
-          ])
+          ]),
         ],
         '消え': [
           SearchReturn.testResult('消える', const [
             'test/assets/jmdict_v2.mdx',
-          ])
+          ]),
         ],
         '道': [
           SearchReturn.testResult('道', const [
             'test/assets/CC-CEDICT/CC-CEDICT.mdx',
             'test/assets/jmdict_v2.mdx',
-          ])
+          ]),
         ],
       };
 
