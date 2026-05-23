@@ -1,14 +1,11 @@
-import 'dart:ffi';
-import 'dart:io';
-
 import 'package:mdict_reader/mdict_reader.dart';
-import 'package:sqlite3/open.dart';
 
 void main() async {
   const tempDbPath = 'bin/example.db';
 
-  open.overrideFor(OperatingSystem.windows, _openOnWindows);
-  // final db = sqlite3.open();
+  // sqlite3 3.x uses Dart native assets to select the platform library. Older
+  // versions required a manual Windows override here, but keeping that hook
+  // would break because package:sqlite3/open.dart no longer exists.
 
   final mdictFilesList = [
     const MdictFiles(
@@ -73,10 +70,4 @@ void main() async {
 
   stopWatch.stop();
   mdictManager.dispose();
-}
-
-DynamicLibrary _openOnWindows() {
-  final scriptDir = File(Platform.script.toFilePath()).parent;
-  final libraryNextToScript = File('${scriptDir.path}\\sqlite3.dll');
-  return DynamicLibrary.open(libraryNextToScript.path);
 }

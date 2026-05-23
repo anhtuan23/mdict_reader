@@ -2,15 +2,10 @@ import 'dart:io';
 
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
-import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
-import 'test_utils.dart';
-
 void main() {
-  open.overrideFor(OperatingSystem.windows, openSqliteOnWindows);
-
   group('create', () {
     test('file name with singe quote', () async {
       await MdictManager.create(
@@ -328,7 +323,7 @@ void main() {
 
       expect(deletedRows, isEmpty);
 
-      db.dispose();
+      db.close();
     });
   });
 }

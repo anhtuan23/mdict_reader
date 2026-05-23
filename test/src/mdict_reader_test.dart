@@ -1,11 +1,8 @@
 import 'package:mdict_reader/mdict_reader.dart';
-import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
-import 'test_utils.dart';
 
 void main() {
-  open.overrideFor(OperatingSystem.windows, openSqliteOnWindows);
   Database? db;
 
   setUp(() {
@@ -14,7 +11,7 @@ void main() {
   });
 
   tearDown(() {
-    db?.dispose();
+    db?.close();
   });
 
   group('init', () {

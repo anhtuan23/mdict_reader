@@ -1,13 +1,9 @@
 // ignore_for_file: require_trailing_commas
 
 import 'package:mdict_reader/mdict_reader.dart';
-import 'package:sqlite3/open.dart';
 import 'package:test/test.dart';
 
-import 'test_utils.dart';
-
 void main() {
-  open.overrideFor(OperatingSystem.windows, openSqliteOnWindows);
   final mdictFilesList = [
     const MdictFiles(
       'test/assets/CC-CEDICT/CC-CEDICT.mdx',

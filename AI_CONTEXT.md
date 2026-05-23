@@ -1,6 +1,6 @@
 # Mdict Reader Context
 
-Last researched: 2026-05-22.
+Last researched: 2026-05-23.
 
 `mdict_reader` is a Dart package for reading MDX/MDD dictionary files and
 querying them directly or through an isolate.
@@ -15,8 +15,8 @@ lookup, and dictionary resource lookup such as images or audio from MDD files.
 - Package name: `mdict_reader`.
 - Publish status: `none`.
 - Current version: `0.0.1`.
-- Dart SDK constraint: `>=2.17.0 <3.0.0`.
-- Lints: `very_good_analysis` with local relaxations.
+- Dart SDK constraint: `^3.0.0`.
+- Lints: `very_good_analysis ^10.2.0` with local relaxations.
 - Public library: `lib/mdict_reader.dart`.
 - Public exports:
   - `IsolatedManager`.
@@ -54,6 +54,17 @@ The `japanese_conjugation` directory is present in this workspace, and its
 
 ## Modernization Guidance
 
+- Dependency modernization on 2026-05-23 moved this package to current Dart 3
+  compatible constraints: `pointycastle ^4.0.0`, `sqlite3 ^3.3.1`,
+  `equatable ^2.0.8`, `html ^0.15.6`, `path ^1.9.1`, `quiver ^3.2.2`,
+  `test ^1.31.1`, and `very_good_analysis ^10.2.0`.
+- `sqlite3` 3.x uses Dart native assets for platform library selection. Do not
+  reintroduce the old `package:sqlite3/open.dart` override hook; that file was
+  removed upstream and native assets now handle the local SQLite library.
+- `dart pub outdated` still reports non-upgradable transitive native-assets
+  packages through `sqlite3` (`code_assets`, `hooks`, and
+  `native_toolchain_c`). Those are upstream transitive constraints, not direct
+  package dependencies.
 - SDK modernization should include `japanese_conjugation` validation because
   dictionary behavior depends on that package.
 - Treat SQLite schema, row cleanup, MDX/MDD parsing, resource lookup, and isolate
