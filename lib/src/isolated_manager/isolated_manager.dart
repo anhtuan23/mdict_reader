@@ -2,7 +2,7 @@
 // existing behavior while removing analyzer noise.
 // - keeps existing fire-and-forget UI and controller side effects.
 // - keeps legacy broad error handling behavior unchanged.
-// ignore_for_file: avoid_catches_without_on_clauses, discarded_futures
+// ignore_for_file: avoid_catches_without_on_clauses
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -153,7 +153,7 @@ class IsolatedManager {
             }
           }
           completer.complete(result);
-          streamSubscription?.cancel();
+          unawaited(streamSubscription?.cancel());
         }
       });
       return completer.future;
