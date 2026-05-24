@@ -1,7 +1,3 @@
-// Codex lint cleanup: documented file-level suppressions preserve
-// existing behavior while removing analyzer noise.
-// - keeps current framework/plugin API behavior until a focused migration.
-// ignore_for_file: deprecated_member_use
 part of 'mdict_reader.dart';
 
 abstract class MdictReaderInitHelper {
@@ -148,7 +144,7 @@ abstract class MdictReaderInitHelper {
     for (final info in indexInfo.metaInfo.entries) {
       metaStmt.execute([info.key, info.value, fileNameExt]);
     }
-    metaStmt.dispose();
+    metaStmt.close();
 
     /// KEYS table
     final totalKeys = indexInfo.keyList.length;
@@ -184,7 +180,7 @@ abstract class MdictReaderInitHelper {
       );
     }
     for (final statement in statementMap.values) {
-      statement.dispose();
+      statement.close();
     }
 
     /// RECORDS table
@@ -211,7 +207,7 @@ abstract class MdictReaderInitHelper {
         indexInfo.recordsUncompressedSizes.buffer.asUint8List(),
         fileNameExt,
       ])
-      ..dispose();
+      ..close();
     progressController
         ?.add(MdictProgress.readerHelperFinishedIndex(fileNameExt));
   }
