@@ -1,8 +1,3 @@
-// Codex lint cleanup: documented file-level suppressions preserve
-// existing behavior while removing analyzer noise.
-// - keeps existing fire-and-forget UI and controller side effects.
-// - keeps legacy broad error handling behavior unchanged.
-// ignore_for_file: avoid_catches_without_on_clauses
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -124,7 +119,10 @@ class IsolatedManager {
             PathNameMapResult(data.hashCode, manager.pathNameMap),
           );
         }
-      } catch (e, stackTrace) {
+      } on Object catch (e, stackTrace) {
+        // This worker isolate cannot throw directly to the caller isolate, so
+        // package the thrown object and stack trace into the normal result
+        // stream for the public search/query methods to handle.
         mainSendPort.send(ErrorResult(data.hashCode, e, stackTrace));
       }
     });

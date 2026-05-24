@@ -1,8 +1,7 @@
 // Codex lint cleanup: documented file-level suppressions preserve
 // existing behavior while removing analyzer noise.
 // - keeps current framework/plugin API behavior until a focused migration.
-// - keeps legacy broad error handling behavior unchanged.
-// ignore_for_file: avoid_catches_without_on_clauses, deprecated_member_use
+// ignore_for_file: deprecated_member_use
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:html_unescape/html_unescape_small.dart';
@@ -199,7 +198,7 @@ class MdictManager {
           progressController: progressController,
         );
         dictionaryList.add(mdict);
-      } catch (e, stackTrace) {
+      } on Exception catch (e, stackTrace) {
         progressController?.add(MdictProgress.error(e.toString(), stackTrace));
         print('Error with ${mdictFiles.mdxPath}: $e');
         print(stackTrace);
