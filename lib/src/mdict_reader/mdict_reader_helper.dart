@@ -37,13 +37,18 @@ abstract class MdictReaderHelper {
     final encrypted = header['encrypted'] == '2';
     final utf8 = header['encoding'] == 'UTF-8';
     final keyNumBlocks = await fileInputStream.readUint64();
-    // ignore: unused_local_variable
-    final keyNumEntries = await fileInputStream.readUint64();
-    // ignore: unused_local_variable
-    final keyIndexDecompLen = await fileInputStream.readUint64();
+    // keyNumEntries: total number of key entries across all key blocks.
+    // The current reader derives per-entry data from each decompressed block,
+    // but the MDX stream still includes this field and must be advanced.
+    await fileInputStream.readUint64();
+    // keyIndexDecompLen: decompressed byte length of the key index block.
+    // Decompression currently reads until the block ends, so this value is
+    // consumed for stream alignment rather than used directly.
+    await fileInputStream.readUint64();
     final keyIndexCompLen = await fileInputStream.readUint64();
-    // ignore: unused_local_variable
-    final keyBlocksLen = await fileInputStream.readUint64();
+    // keyBlocksLen: total byte length of the following compressed key blocks.
+    // Individual block sizes from the key index drive the reads below.
+    await fileInputStream.readUint64();
     await fileInputStream.skip(4);
     final compSize = List.filled(keyNumBlocks, -1);
     final decompSize = List.filled(keyNumBlocks, -1);
@@ -60,15 +65,18 @@ abstract class MdictReaderHelper {
       if (!utf8) {
         firstLength = firstLength * 2;
       }
-      // ignore: unused_local_variable
-      final firstWord = await indexDs.readString(size: firstLength, utf8: utf8);
+      // firstWord: first key stored in this key block. The reader does not
+      // need the value for lookup because it builds the full key list below,
+      // but the bytes belong to the key index and must be consumed.
+      await indexDs.readString(size: firstLength, utf8: utf8);
       var lastLength = (await indexDs.readUint16()) + 1;
       if (!utf8) {
         lastLength = lastLength * 2;
       }
-      // print('Last length: $last_length\n utf8: $utf8\n\n');
-      // ignore: unused_local_variable
-      final lastWord = await indexDs.readString(size: lastLength, utf8: utf8);
+      // lastWord: last key stored in this key block. It is index metadata used
+      // by some readers for block selection; this implementation reads every
+      // key block, so the field is consumed only to keep the stream aligned.
+      await indexDs.readString(size: lastLength, utf8: utf8);
       compSize[i] = await indexDs.readUint64();
       decompSize[i] = await indexDs.readUint64();
     }
@@ -94,12 +102,16 @@ abstract class MdictReaderHelper {
     FileInputStream fileInputStream,
   ) async {
     final recordNumBlocks = await fileInputStream.readUint64();
-    // ignore: unused_local_variable
-    final recordNumEntries = await fileInputStream.readUint64();
-    // ignore: unused_local_variable
-    final recordIndexLen = await fileInputStream.readUint64();
-    // ignore: unused_local_variable
-    final recordBlocksLen = await fileInputStream.readUint64();
+    // recordNumEntries: total record entries represented by all record blocks.
+    // The key table already supplies offsets for query lookup in this reader.
+    await fileInputStream.readUint64();
+    // recordIndexLen: byte length of the record block index section.
+    // The fixed-size index entries below are read directly from the stream.
+    await fileInputStream.readUint64();
+    // recordBlocksLen: total compressed byte length of all record blocks.
+    // Each block's compressed and uncompressed lengths are stored per
+    // index row.
+    await fileInputStream.readUint64();
     final compressedSize = Uint32List(recordNumBlocks);
     final uncompressedSize = Uint32List(recordNumBlocks);
     for (var i = 0; i < recordNumBlocks; i++) {

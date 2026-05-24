@@ -6,10 +6,8 @@ class InitManagerInput extends Equatable {
     this.dbPath,
     this.mdictFilesIter,
   );
-
   final String? dbPath;
   final Iterable<MdictFiles> mdictFilesIter;
-
   @override
   List<Object?> get props => [dbPath, mdictFilesIter];
 }
@@ -17,7 +15,6 @@ class InitManagerInput extends Equatable {
 class SearchInput extends Equatable {
   const SearchInput(this.term);
   final String term;
-
   @override
   List<Object?> get props => [term];
 }
@@ -25,10 +22,8 @@ class SearchInput extends Equatable {
 /// [mdxPaths] narrow down which dictionary to query if provided
 class QueryInput extends Equatable {
   const QueryInput(this.word, [this.mdxPaths]);
-
   final String word;
   final Set<String>? mdxPaths;
-
   @override
   List<Object?> get props => [word, mdxPaths];
 }
@@ -42,7 +37,6 @@ class ResourceQueryInput extends Equatable {
   );
   final String resourceUri;
   final String? mdxPath;
-
   @override
   List<Object?> get props => [resourceUri];
 }
@@ -51,7 +45,6 @@ class ReOrderInput extends Equatable {
   const ReOrderInput(this.oldIndex, this.newIndex);
   final int oldIndex;
   final int newIndex;
-
   @override
   List<Object?> get props => [oldIndex, newIndex];
 }

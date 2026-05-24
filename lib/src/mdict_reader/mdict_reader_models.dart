@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:sqlite3/sqlite3.dart';
 
 // Sample header
@@ -22,7 +21,6 @@ import 'package:sqlite3/sqlite3.dart';
 //     "stylesheet": "",
 //     "_recordBlockOffsetKey": "[int]"
 // }
-
 abstract class MdictMeta {
   static const tableName = 'metaTable';
   static const keyColumnName = 'key';
@@ -32,17 +30,14 @@ abstract class MdictMeta {
 
 class MdictKey {
   MdictKey(this.word, this.offset, [this.length = -1]);
-
   factory MdictKey.fromRow(Row row) => MdictKey(
         row[wordColumnName] as String,
         int.parse(row[offsetColumnName] as String),
         int.parse(row[lengthColumnName] as String),
       );
-
   String word;
   int offset;
   int length;
-
   static const tableName = 'keyTable';
   static const wordColumnName = 'word';
   static const offsetColumnName = 'offset';
@@ -51,7 +46,6 @@ class MdictKey {
 
   /// An aggregated comma separated string of all path when use with group by
   static const fileNamesColumnName = 'fileNames';
-
   static String getWordFromRow(Row row) => row[wordColumnName] as String;
   static String getFileNameFromRow(Row row) =>
       row[fileNameColumnName] as String;
@@ -73,7 +67,6 @@ class IndexInfo {
     this.recordsCompressedSizes,
     this.recordsUncompressedSizes,
   );
-
   final Map<String, String> metaInfo;
   final List<MdictKey> keyList;
   final Uint32List recordsCompressedSizes;
@@ -82,10 +75,8 @@ class IndexInfo {
 
 class MdictSearchResultLists {
   const MdictSearchResultLists(this.startsWithSet, this.containsSet);
-
   final Set<String> startsWithSet;
   final Set<String> containsSet;
-
   @override
   String toString() {
     return 'startsWithSet: $startsWithSet\ncontainsSet: $containsSet';

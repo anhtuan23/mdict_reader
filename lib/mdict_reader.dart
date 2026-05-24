@@ -1,7 +1,7 @@
 /// Support for reading mdict file.
 ///
 /// Reader for mdict file
-library mdict_reader;
+library;
 
 export 'src/isolated_manager/isolated_manager.dart';
 export 'src/mdict_manager/mdict_manager.dart';

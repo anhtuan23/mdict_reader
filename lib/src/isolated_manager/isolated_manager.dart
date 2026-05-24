@@ -1,7 +1,11 @@
+// Codex lint cleanup: documented file-level suppressions preserve
+// existing behavior while removing analyzer noise.
+// - keeps existing fire-and-forget UI and controller side effects.
+// - keeps legacy broad error handling behavior unchanged.
+// ignore_for_file: avoid_catches_without_on_clauses, discarded_futures
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
-
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/isolated_manager/isolated_input_models.dart';
 import 'package:mdict_reader/src/isolated_manager/isolated_result_models.dart';
@@ -13,13 +17,11 @@ class IsolatedManager {
     this._progressStreamController,
     this._managerInitCompleter,
   );
-
   final SendPort _isolateSendPort;
   final Completer<void> _managerInitCompleter;
   final StreamController<dynamic> _resultStreamController;
   final StreamController<MdictProgress> _progressStreamController;
   Stream<MdictProgress> get progressStream => _progressStreamController.stream;
-
   static Future<IsolatedManager> init(
     Iterable<MdictFiles> mdictFilesIter,
     String? dbPath,
@@ -27,7 +29,6 @@ class IsolatedManager {
     final resultStreamController = StreamController<dynamic>.broadcast();
     final progressStreamController = StreamController<MdictProgress>();
     final managerInitCompleter = Completer<void>();
-
     final isolateSendPort = await _initIsolate(
       resultStreamController,
       progressStreamController,
@@ -37,7 +38,6 @@ class IsolatedManager {
     /// Begin to create manager right away
     final input = InitManagerInput(dbPath, mdictFilesIter);
     isolateSendPort.send(input);
-
     return IsolatedManager(
       isolateSendPort,
       resultStreamController,
@@ -72,7 +72,6 @@ class IsolatedManager {
           resultStreamController.add(data);
         }
       });
-
     await Isolate.spawn(
       _myIsolate,
       mainReceivePort.sendPort,
@@ -85,15 +84,12 @@ class IsolatedManager {
   static void _myIsolate(SendPort mainSendPort) {
     final isolateReceivePort = ReceivePort();
     mainSendPort.send(isolateReceivePort.sendPort);
-
     final progressStreamController = StreamController<MdictProgress>();
     // Note: since this is not a synchronous stream controller,
     // events added will be listened a bit later
     // https://api.dart.dev/dev/2.8.0-dev.3.0/dart-async/SynchronousStreamController-class.html
     progressStreamController.stream.listen(mainSendPort.send);
-
     late MdictManager manager;
-
     isolateReceivePort.listen((dynamic data) async {
       try {
         // First data is mdict paths to init dictionary
@@ -143,7 +139,6 @@ class IsolatedManager {
       return _doWork(input, onError);
     } else {
       _isolateSendPort.send(input);
-
       final completer = Completer<Result>();
       StreamSubscription<dynamic>? streamSubscription;
       streamSubscription =

@@ -1,3 +1,7 @@
+// Codex lint cleanup: documented file-level suppressions preserve
+// existing behavior while removing analyzer noise.
+// - keeps current framework/plugin API behavior until a focused migration.
+// ignore_for_file: deprecated_member_use
 part of 'mdict_reader.dart';
 
 abstract class MdictReaderInitHelper {
@@ -46,7 +50,6 @@ abstract class MdictReaderInitHelper {
     final inputStream =
         await FileInputStream.create(path, bufferSize: 64 * 1024);
     final header = await MdictReaderHelper._readHeader(inputStream);
-
     final version = header['generatedbyengineversion'] ?? '2';
     return double.parse(version).truncate() == 2;
   }
@@ -57,23 +60,18 @@ abstract class MdictReaderInitHelper {
     required StreamController<MdictProgress>? progressController,
   }) async {
     progressController?.add(MdictProgress.readerHelperGetInfo(fileName));
-
     final inputStream =
         await FileInputStream.create(path, bufferSize: 64 * 1024);
     progressController?.add(MdictProgress.readerHelperReadHeader(fileName));
     final header = await MdictReaderHelper._readHeader(inputStream);
-
     final version = header['generatedbyengineversion'] ?? '2';
     if (double.parse(version).truncate() != 2) {
       throw Exception('This program does not support mdict version $version');
     }
-
     progressController?.add(MdictProgress.readerHelperReadKeys(fileName));
     final keyList = await MdictReaderHelper._readKeys(inputStream, header);
-
     progressController?.add(MdictProgress.readerHelperReadRecords(fileName));
     final recordSizes = await MdictReaderHelper._readRecords(inputStream);
-
     header[MdictReader.recordBlockOffsetKey] = inputStream.position.toString();
     await inputStream.close();
     return IndexInfo(header, keyList, recordSizes[0], recordSizes[1]);
@@ -103,7 +101,6 @@ abstract class MdictReaderInitHelper {
       final statement = db.prepare(statementBuilder.toString());
       statementMap[keys.length] = statement;
     }
-
     final parameters = keys
         .expand(
           (key) => [
@@ -157,7 +154,6 @@ abstract class MdictReaderInitHelper {
     final totalKeys = indexInfo.keyList.length;
     progressController
         ?.add(MdictProgress.readerHelperBuildKey(fileNameExt, 0, totalKeys));
-
     db.execute(
       '''
         DELETE FROM '${MdictKey.tableName}' 
@@ -165,15 +161,11 @@ abstract class MdictReaderInitHelper {
       ''',
       [fileNameExt],
     );
-
     // SQLite SQLITE_MAX_VARIABLE_NUMBER = 32766
     // => We can insert 32766 / 4 ~ 8191 keys at a time
     const countsEachTime = 8191;
-
     final partitionedKeyIter = partition(indexInfo.keyList, countsEachTime);
-
     final statementMap = <int, PreparedStatement>{};
-
     var insertedCount = 0;
     for (final keyList in partitionedKeyIter) {
       _insertKeys(
@@ -191,14 +183,12 @@ abstract class MdictReaderInitHelper {
         ),
       );
     }
-
     for (final statement in statementMap.values) {
       statement.dispose();
     }
 
     /// RECORDS table
     progressController?.add(MdictProgress.readerHelperBuildRecord(fileNameExt));
-
     db.execute(
       '''
         DELETE FROM '${MdictRecord.tableName}' 
@@ -222,7 +212,6 @@ abstract class MdictReaderInitHelper {
         fileNameExt,
       ])
       ..dispose();
-
     progressController
         ?.add(MdictProgress.readerHelperFinishedIndex(fileNameExt));
   }
@@ -287,11 +276,9 @@ abstract class MdictReaderInitHelper {
     }
     progressController?.add(MdictProgress.readerHelperGetHeaders(fileNameExt));
     final header = await _getHeader(fileNameExt: fileNameExt, db: db);
-
     progressController
         ?.add(MdictProgress.readerHelperGetRecordList(fileNameExt));
     final recordSizes = await _getRecordList(fileNameExt: fileNameExt, db: db);
-
     progressController
         ?.add(MdictProgress.readerHelperFinishedCreateDict(fileNameExt));
     return MdictReader(

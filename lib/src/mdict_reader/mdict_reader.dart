@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:html/parser.dart' show parseFragment;
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_reader/input_stream.dart';
@@ -11,7 +10,6 @@ import 'package:path/path.dart' as p;
 import 'package:pointycastle/api.dart';
 import 'package:quiver/iterables.dart';
 import 'package:sqlite3/sqlite3.dart';
-
 part 'mdict_reader_helper.dart';
 part 'mdict_reader_init_helper.dart';
 
@@ -29,9 +27,7 @@ class MdictReader {
         _recordsUncompressedSizes = recordsUncompressedSizes,
         _recordBlockOffset = int.parse(header[recordBlockOffsetKey]!),
         name = header['title'];
-
   static const recordBlockOffsetKey = '_recordBlockOffsetKey';
-
   final String path;
   final String fileName;
   final Map<String, String> _header;
@@ -40,23 +36,18 @@ class MdictReader {
   final int _recordBlockOffset;
   final String? name;
   final Database _db;
-
   bool get isMdd => path.endsWith('.mdd');
-
   bool get _isUtf8 => _header['encoding'] == 'UTF-8';
 
   /// **************************************************
-
   /// * Should only be used in a mdx reader
   /// Return of result html
   Future<String> queryMdx(String keyWord) async {
     if (isMdd) throw UnsupportedError('Only call queryMdx in a mdx file');
-
     // Query result might contains a reference loop through @@@LINK=
     // therefore we must provide the result map to remember queried words
     final resultMap = <String, List<String>>{};
     await _queryHtmls(keyWord, resultMap);
-
     final definitionHtmlString = resultMap.values
         .expand((htmlList) => htmlList)
         .join('<p> ********** </p>');
@@ -70,7 +61,6 @@ class MdictReader {
     Map<String, List<String>> resultMap,
   ) async {
     final List<MdictKey> mdictKeys;
-
     final resultSet = _db.select(
       // since index on [word] is created with COLLATE NOCASE
       // comparison must use LIKE, or index on [word] won't be used
@@ -83,14 +73,12 @@ class MdictReader {
       [fileName, keyWord.trim()],
     );
     mdictKeys = resultSet.map(MdictKey.fromRow).toList();
-
     resultMap[keyWord] = [];
     for (final mdictKey in mdictKeys) {
       final htmlString = await _readRecord(
         mdictKey.offset,
         mdictKey.length,
       ) as String;
-
       if (htmlString.startsWith('@@@LINK=')) {
         final keyWord = htmlString.substring(8).trim();
         // Query result might contains a reference loop through @@@LINK=
@@ -105,11 +93,8 @@ class MdictReader {
 
   Future<Uint8List?> queryMdd(String resourceKey) async {
     var localResourceKey = resourceKey;
-
     if (!isMdd) throw UnsupportedError('Only call queryMdd in a mdd file');
-
     localResourceKey = localResourceKey.trim();
-
     final resultSet = _db.select(
       '''
         SELECT ${MdictKey.wordColumnName}, ${MdictKey.offsetColumnName}, ${MdictKey.lengthColumnName}
@@ -125,7 +110,6 @@ class MdictReader {
         '\\$localResourceKey%',
       ],
     );
-
     for (final row in resultSet) {
       final key = MdictKey.fromRow(row);
       final data = await _readRecord(
@@ -144,19 +128,16 @@ class MdictReader {
     for (final match in urlContentMatches) {
       final url = match.group(0);
       if (url == null) continue;
-
       var extension = p.extension(url).toLowerCase();
       extension = extension.replaceFirst('.', '');
       if (extension.isEmpty ||
-          !['png', 'jpg', 'jpeg', 'gif'].contains(extension)) continue;
-
+          !['png', 'jpg', 'jpeg', 'gif'].contains(extension)) {
+        continue;
+      }
       final intData = await queryMdd(url);
       if (intData == null) continue;
-
       // print('replace $url in css with base64 encoded data');
-
       final base64Data = base64.encode(intData);
-
       localCssString = localCssString.replaceRange(
         match.start,
         match.end,
@@ -173,9 +154,7 @@ class MdictReader {
     if (!isMdd) {
       throw UnsupportedError('Only try to extract css/js from mdd file');
     }
-
     final extensionMatcher = getCss ? '%.css' : '%.js';
-
     final resultSet = _db.select(
       '''
         SELECT ${MdictKey.wordColumnName} 
@@ -185,7 +164,6 @@ class MdictReader {
       ''',
       [fileName, extensionMatcher],
     );
-
     for (final row in resultSet) {
       final scriptKey = row[MdictKey.wordColumnName] as String;
       final data = await queryMdd(scriptKey);

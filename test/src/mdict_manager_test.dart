@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -20,7 +19,6 @@ void main() {
       );
     });
   });
-
   group('standard tests', () {
     final mdictFilesList = [
       const MdictFiles(
@@ -39,16 +37,13 @@ void main() {
         null,
       ),
     ];
-
     late MdictManager mdictManager;
-
     setUp(() async {
       mdictManager = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
         dbPath: null,
       );
     });
-
     test('all keys are inserted fully', () {
       final resultSet = mdictManager.dbForTest.select(
         '''
@@ -58,7 +53,6 @@ void main() {
       );
       expect(resultSet.length, greaterThan(900000));
     });
-
     group('search function', () {
       final testCases = {
         '勉強': [
@@ -79,27 +73,20 @@ void main() {
           ]),
         ],
       };
-
       for (final word in testCases.keys) {
         test('search for $word', () async {
           final searchReturnList = await mdictManager.search(word);
-
           printOnFailure(searchReturnList.toString());
-
           expect(searchReturnList, containsAll(testCases[word]!));
         });
       }
       test('special characters are escaped', () async {
         const word = "aaron's rod";
-
         final searchReturnList = await mdictManager.search(word);
-
         printOnFailure(searchReturnList.toString());
-
         expect(searchReturnList, isNotEmpty);
       });
     });
-
     group('query function', () {
       final testCases = {
         '勉強': [
@@ -114,37 +101,29 @@ void main() {
       for (final word in testCases.keys) {
         test('query for $word', () async {
           final queryReturnList = await mdictManager.query(word);
-
           print(queryReturnList);
-
           expect(queryReturnList, containsAll(testCases[word]!));
         });
       }
-
       test('on in specified dictionary', () async {
         const word = '勉強';
         final queryReturnList = await mdictManager.query(
           word,
           {'test/assets/jmdict_v2.mdx'},
         );
-
         printOnFailure(queryReturnList.toString());
-
         expect(
           queryReturnList,
           hasLength(1),
-          reason:
-              // ignore: lines_longer_than_80_chars
-              'should only query in dict with mdx path specified in query function',
+          reason: 'should only query in dict with mdx path specified '
+              'in query function',
         );
-
         final queryReturn = queryReturnList[0];
         expect(queryReturn.word, equals('勉強'));
         expect(queryReturn.dictName, equals('JMDict'));
         expect(queryReturn.html, isNotEmpty);
         expect(queryReturn.css, isEmpty);
       });
-
       test('prevent reference loop', () async {
         // 道 have a @@@LINK= to 路 and vice versa
         const word = '道';
@@ -152,23 +131,19 @@ void main() {
           word,
           {'test/assets/jmdict_v2.mdx'},
         );
-
         printOnFailure(queryReturnList.toString());
-
         expect(
           queryReturnList,
           contains(QueryReturn.testReturn('道', 'test/assets/jmdict_v2.mdx')),
         );
       });
     });
-
     test('reorder function', () async {
       var pathNameMap = mdictManager.pathNameMap;
       expect(
         pathNameMap.values,
         equals(['CC-CEDICT', 'JMDict', 'WordNet 2.0']),
       );
-
       mdictManager = mdictManager.reorder(2, 0);
       pathNameMap = mdictManager.pathNameMap;
       expect(
@@ -177,7 +152,6 @@ void main() {
       );
     });
   });
-
   group('query resource tests', () {
     final mdictFilesList = [
       const MdictFiles(
@@ -196,52 +170,40 @@ void main() {
         null,
       ),
     ];
-
     late MdictManager mdictManager;
-
     setUp(() async {
       mdictManager = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
         dbPath: null,
       );
     });
-
     test('query for sound without mdx path', () async {
       const soundUri = 'sound://犯浑.spx';
       final data = await mdictManager.queryResource(soundUri, null);
-
       printOnFailure(data.toString());
-
       expect(data, isNotNull);
       expect(data, isNotEmpty);
     });
-
     test('query for sound with wrong mdx path', () async {
       const soundUri = 'sound://犯浑.spx';
       final data = await mdictManager.queryResource(
         soundUri,
         'test/assets/CC-CEDICT/CC-CEDICT.mdx',
       );
-
       printOnFailure(data.toString());
-
       expect(data, isNull);
     });
-
     test('query for sound with mdxPath', () async {
       const soundUri = 'sound://犯浑.spx';
       final data = await mdictManager.queryResource(
         soundUri,
         'test/assets/cc_cedict_v2.mdx',
       );
-
       printOnFailure(data.toString());
-
       expect(data, isNotNull);
       expect(data, isNotEmpty);
     });
   });
-
   group('index persistency', () {
     final mdictFilesList = [
       const MdictFiles(
@@ -250,12 +212,9 @@ void main() {
         null,
       ),
     ];
-
     const tempDbPath = 'test/assets/temp.db';
-
     MdictManager? mdictManager1;
     MdictManager? mdictManager2;
-
     tearDown(() async {
       mdictManager1?.dispose();
       mdictManager2?.dispose();
@@ -263,55 +222,43 @@ void main() {
       final dbFile = File(tempDbPath);
       await dbFile.delete();
     });
-
     test('reuse index make manager start up faster', () async {
       final stopwatch = Stopwatch()..start();
-
       mdictManager1 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
         dbPath: tempDbPath,
       );
       final firstStartDuration = stopwatch.elapsed;
-
       // this might fail if the records written in manager1
       // are not yet committed to the db file
       mdictManager1?.dispose();
       await Future<dynamic>.delayed(const Duration(seconds: 3));
-
       stopwatch.reset();
-
       mdictManager2 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
         dbPath: tempDbPath,
       );
       final secondStartDuration = stopwatch.elapsed;
       mdictManager2?.dispose();
-
       printOnFailure('First start duration: $firstStartDuration');
       printOnFailure('Second start duration: $secondStartDuration');
-
       expect(secondStartDuration, lessThan(firstStartDuration * (1 / 10)));
     });
-
     test('unused mdict files are discarded from index db', () async {
       mdictManager1 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
         dbPath: tempDbPath,
       );
-
       mdictManager1?.dispose();
       // this might fail if the records written in manager1
       // are not yet committed to the db file
       await Future<dynamic>.delayed(const Duration(seconds: 2));
-
       mdictManager2 = await MdictManager.create(
         mdictFilesIter: [],
         dbPath: tempDbPath,
       );
-
       mdictManager2?.dispose();
       await Future<dynamic>.delayed(const Duration(seconds: 2));
-
       final db = sqlite3.open(tempDbPath);
       final deletedRows = db.select(
         '''
@@ -320,9 +267,7 @@ void main() {
           WHERE ${MdictKey.fileNameColumnName} IN ('cc_cedict_v2.mdx', 'Sound-zh_CN.mdd')
         ''',
       );
-
       expect(deletedRows, isEmpty);
-
       db.close();
     });
   });

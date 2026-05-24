@@ -1,9 +1,7 @@
 import 'dart:io';
-
 import 'package:path/path.dart' as p;
 
 abstract class MdictHelpers {
-
   static String getFileNameFromPath(String mdxPath, {bool toLowerCase = true}) {
     final baseName = p.basenameWithoutExtension(mdxPath);
     return toLowerCase ? baseName.toLowerCase() : baseName;

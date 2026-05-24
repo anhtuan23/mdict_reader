@@ -44,13 +44,12 @@ abstract class InputStream {
 
   /// Read a 64-bit word form the stream.
   Future<int> readUint64();
-
   Future<Uint8List> toUint8List();
 }
 
 /// A buffer that can be read as a stream of bytes
 class BytesInputStream extends InputStream {
-  /// Create a InputStream for reading from a List<int>
+  /// Create an InputStream for reading from a [List] of [int] values.
   BytesInputStream(
     Uint8List data, {
     this.byteOrder = ByteOrder.bigEndian,
@@ -61,7 +60,6 @@ class BytesInputStream extends InputStream {
         offset = start {
     _length = length ?? buffer.length;
   }
-
   Uint8List buffer;
   late int offset;
   late int start;
@@ -109,12 +107,10 @@ class BytesInputStream extends InputStream {
     } else {
       position_ += start;
     }
-
     var localLength = length;
     if (localLength == null || localLength < 0) {
       localLength = _length - (position_ - start);
     }
-
     return BytesInputStream(
       buffer,
       byteOrder: byteOrder,
@@ -128,7 +124,6 @@ class BytesInputStream extends InputStream {
   /// returned is relative to the start of the buffer, or -1 if the [value]
   /// was not found.
   int indexOf(int value, [int offset = 0]) {
-    // ignore: prefer_final_locals
     for (var i = this.offset + offset, end = this.offset + length;
         i < end;
         ++i) {
@@ -191,7 +186,6 @@ class BytesInputStream extends InputStream {
         codes.add(c);
       }
     }
-
     return utf8
         ? const Utf8Decoder().convert(codes)
         : String.fromCharCodes(codes);
@@ -270,10 +264,7 @@ class FileInputStream extends InputStream {
   FileInputStream._(
     this.path, {
     required this.byteOrder,
-    // ignore: avoid_unused_constructor_parameters
-    required int bufferSize,
   });
-
   final String path;
   final ByteOrder byteOrder;
   late RandomAccessFile _file;
@@ -284,7 +275,6 @@ class FileInputStream extends InputStream {
   int _bufferPosition = 0;
   late int _maxBufferSize;
   static const int _kDefaultBufferSize = 4096;
-
   static Future<FileInputStream> create(
     String path, {
     ByteOrder byteOrder = ByteOrder.bigEndian,
@@ -293,7 +283,6 @@ class FileInputStream extends InputStream {
     final fileInputStream = FileInputStream._(
       path,
       byteOrder: byteOrder,
-      bufferSize: bufferSize,
     );
     await fileInputStream.init(bufferSize);
     return fileInputStream;
@@ -314,22 +303,15 @@ class FileInputStream extends InputStream {
 
   @override
   int get length => _fileSize;
-
   @override
   int get position => _filePosition - bufferRemaining;
-
   @override
   bool get isEOS =>
       (_filePosition >= _fileSize) && (_bufferPosition >= _bufferSize);
-
   int get bufferSize => _bufferSize;
-
   int get bufferPosition => _bufferPosition;
-
   int get bufferRemaining => _bufferSize - _bufferPosition;
-
   int get fileRemaining => _fileSize - _filePosition;
-
   @override
   Future<void> reset() async {
     _filePosition = 0;
@@ -419,7 +401,6 @@ class FileInputStream extends InputStream {
       b3 = await readByte();
       b4 = await readByte();
     }
-
     if (byteOrder == ByteOrder.bigEndian) {
       return (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
     }
@@ -456,7 +437,6 @@ class FileInputStream extends InputStream {
       b7 = await readByte();
       b8 = await readByte();
     }
-
     if (byteOrder == ByteOrder.bigEndian) {
       return (b1 << 56) |
           (b2 << 48) |
@@ -480,29 +460,23 @@ class FileInputStream extends InputStream {
   @override
   Future<Uint8List> readBytes(int count) async {
     var localCount = count;
-
     if (isEOS) {
       return Uint8List.fromList(<int>[]);
     }
-
     if (_bufferPosition == _bufferSize) {
       await _readBuffer();
     }
-
     if (_remainingBufferSize >= localCount) {
       final bytes =
           _buffer.sublist(_bufferPosition, _bufferPosition + localCount);
       _bufferPosition += localCount;
       return bytes;
     }
-
     final totalRemaining = fileRemaining + _remainingBufferSize;
     if (localCount > totalRemaining) {
       localCount = totalRemaining;
     }
-
     final bytes = Uint8List(localCount);
-
     var offset = 0;
     while (localCount > 0) {
       final remaining = _bufferSize - _bufferPosition;
@@ -521,7 +495,6 @@ class FileInputStream extends InputStream {
         }
       }
     }
-
     return bytes;
   }
 
@@ -562,14 +535,12 @@ class FileInputStream extends InputStream {
         codes.add(c);
       }
     }
-
     return utf8!
         ? const Utf8Decoder().convert(codes)
         : String.fromCharCodes(codes);
   }
 
   int get _remainingBufferSize => _bufferSize - _bufferPosition;
-
   Future<void> _readBuffer() async {
     _bufferPosition = 0;
     _bufferSize = await _file.readInto(_buffer);

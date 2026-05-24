@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:html/parser.dart' show parse;
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:path/path.dart' as p;
@@ -14,7 +13,6 @@ class MdictDictionary {
     required this.cssContent,
     required this.jsContent,
   });
-
   static Future<MdictDictionary> create({
     required MdictFiles mdictFiles,
     required Database db,
@@ -30,7 +28,6 @@ class MdictDictionary {
       db: db,
       progressController: progressController,
     );
-
     MdictReader? mddReader;
     if (mdictFiles.mddPath != null) {
       final mddFileNameExt =
@@ -44,7 +41,6 @@ class MdictDictionary {
         progressController: progressController,
       );
     }
-
     progressController
         ?.add(MdictProgress.mdictDictionaryGetCss(mdxFileNameExt));
     // Priortize css from separate css file over from mdd.
@@ -58,10 +54,8 @@ class MdictDictionary {
     if (cssContent.isNotEmpty && mddReader != null) {
       cssContent = await mddReader.replaceCssUrl(cssContent);
     }
-
     var jsContent = await mddReader?.extractScriptContent(getCss: false) ?? '';
     jsContent = jsContent.trim();
-
     progressController
         ?.add(MdictProgress.mdictDictionaryCreatedDict(mdxFileNameExt));
     return MdictDictionary._(
@@ -76,7 +70,6 @@ class MdictDictionary {
   final MdictReader? mddReader;
   final String cssContent;
   final String jsContent;
-
   String get name {
     var name = mdxReader.name?.trim();
     if (name == null ||
@@ -96,34 +89,24 @@ class MdictDictionary {
     if (mddReader == null || html.isEmpty) {
       return [html, cssContent, jsContent];
     }
-
     try {
       final document = parse(html);
-
       final images = document.getElementsByTagName('img');
       for (final img in images) {
         final src = img.attributes['src'];
-
         if (src == null) continue;
-
         var extension = p.extension(src).toLowerCase();
         if (extension.isEmpty) continue;
-
         extension = extension.replaceFirst('.', '');
-
         final intData = await queryResource(src.replaceAll('/', r'\'));
         if (intData == null) continue;
-
         final base64Data = base64.encode(intData);
-
         img.attributes['src'] = 'data:image/$extension;base64,$base64Data';
       }
-
       html = document.body?.innerHtml ?? html;
     } on Exception catch (e) {
       print(e);
     }
-
     return [html, cssContent, jsContent];
   }
 
