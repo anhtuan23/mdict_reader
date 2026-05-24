@@ -4,7 +4,9 @@ abstract class MdictReaderHelper {
   static InputStream _decompressBlock(Uint8List compBlock) {
     final flag = compBlock[0];
     final data = compBlock.sublist(8);
-    if (flag == 2) {
+    if (flag == 1) {
+      throw const FormatException('LZO compression is not supported');
+    } else if (flag == 2) {
       return BytesInputStream(zlib.decoder.convert(data) as Uint8List);
     } else {
       return BytesInputStream(data);
