@@ -1,6 +1,6 @@
 # Mdict Reader Context
 
-Last researched: 2026-05-23.
+Last researched: 2026-05-24.
 
 `mdict_reader` is a Dart package for reading MDX/MDD dictionary files and
 querying them directly or through an isolate.
@@ -39,8 +39,9 @@ The `japanese_conjugation` directory is present in this workspace, and its
 - SQLite tables and indexes are created inside `MdictManager.createTables`.
 - Old dictionary rows are discarded when the current dictionary file list no
   longer includes them.
-- v1 mdict files are explicitly not supported because lzo compression support is
-  missing in Dart.
+- v1 and v2 mdict files are supported in the core reader. v1 files use
+  version-aware 32-bit stream sizes and the local Dart LZO1X block
+  decompressor.
 
 ## Data And Tests
 

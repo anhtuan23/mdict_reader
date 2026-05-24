@@ -41,13 +41,14 @@ abstract class MdictReaderInitHelper {
     return false;
   }
 
-  /// Use externally for preliminary check if mdx file is version 2
+  /// Use externally for preliminary check if an mdx file can be indexed.
   static Future<bool> isSupportedVersion({required String path}) async {
     final inputStream =
         await FileInputStream.create(path, bufferSize: 64 * 1024);
     final header = await MdictReaderHelper._readHeader(inputStream);
     final version = header['generatedbyengineversion'] ?? '2';
-    return double.parse(version).truncate() == 2;
+    await inputStream.close();
+    return double.parse(version) >= 1;
   }
 
   static Future<IndexInfo> _getIndexInfo({
@@ -60,14 +61,13 @@ abstract class MdictReaderInitHelper {
         await FileInputStream.create(path, bufferSize: 64 * 1024);
     progressController?.add(MdictProgress.readerHelperReadHeader(fileName));
     final header = await MdictReaderHelper._readHeader(inputStream);
-    final version = header['generatedbyengineversion'] ?? '2';
-    if (double.parse(version).truncate() != 2) {
-      throw Exception('This program does not support mdict version $version');
-    }
     progressController?.add(MdictProgress.readerHelperReadKeys(fileName));
     final keyList = await MdictReaderHelper._readKeys(inputStream, header);
     progressController?.add(MdictProgress.readerHelperReadRecords(fileName));
-    final recordSizes = await MdictReaderHelper._readRecords(inputStream);
+    final recordSizes = await MdictReaderHelper._readRecords(
+      header,
+      inputStream,
+    );
     header[MdictReader.recordBlockOffsetKey] = inputStream.position.toString();
     await inputStream.close();
     return IndexInfo(header, keyList, recordSizes[0], recordSizes[1]);

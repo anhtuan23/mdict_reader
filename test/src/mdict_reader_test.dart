@@ -35,18 +35,21 @@ void main() {
     });
   });
   group('v1 mdict file', () {
-    test('should throw error', () async {
-      try {
-        await MdictReaderInitHelper.init(
-          filePath: 'test/assets/jmdict.mdx',
-          db: db!,
-        );
-      } on Exception catch (e) {
-        expect(
-          e.toString(),
-          startsWith('Exception: This program does not support mdict version'),
-        );
-      }
+    test('indexes and queries definitions', () async {
+      final isSupported = await MdictReaderInitHelper.isSupportedVersion(
+        path: 'test/assets/jmdict.mdx',
+      );
+      expect(isSupported, isTrue);
+
+      final mdictReader = await MdictReaderInitHelper.init(
+        filePath: 'test/assets/jmdict.mdx',
+        db: db!,
+      );
+      final html = await mdictReader.queryMdx('勉強');
+
+      printOnFailure(html);
+      expect(html, isNotEmpty);
+      expect(html, contains('study'));
     });
   });
   group('Special query', () {
