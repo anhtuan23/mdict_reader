@@ -7,7 +7,7 @@ abstract class MdictReaderHelper {
     if (flag == 1) {
       return BytesInputStream(_decompressLzoBlock(data));
     } else if (flag == 2) {
-      return BytesInputStream(zlib.decoder.convert(data) as Uint8List);
+      return BytesInputStream(const ZLibDecoder().decodeBytes(data));
     } else {
       return BytesInputStream(data);
     }
