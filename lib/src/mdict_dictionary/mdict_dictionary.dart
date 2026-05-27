@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:html/parser.dart' show parse;
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:path/path.dart' as p;
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 
 class MdictDictionary {
   MdictDictionary._({
@@ -15,7 +15,7 @@ class MdictDictionary {
   });
   static Future<MdictDictionary> create({
     required MdictFiles mdictFiles,
-    required Database db,
+    required CommonDatabase db,
     StreamController<MdictProgress>? progressController,
   }) async {
     final mdxFileNameExt =

@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
 import 'package:mdict_reader/src/utils.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 
 /// Need a stable hash to work with IsolatedManager's reload
 class MdictFiles extends Equatable {

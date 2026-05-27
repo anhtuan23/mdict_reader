@@ -3,7 +3,7 @@ part of 'mdict_reader.dart';
 abstract class MdictReaderInitHelper {
   static bool _mdictNotExistInDb({
     required String fileNameExt,
-    required Database db,
+    required CommonDatabase db,
   }) {
     final metaCheckResult = db.select(
       '''
@@ -74,10 +74,10 @@ abstract class MdictReaderInitHelper {
   }
 
   static void _insertKeys({
-    required Database db,
+    required CommonDatabase db,
     required List<MdictKey> keys,
     required String dictFileNameExt,
-    required Map<int, PreparedStatement> statementMap,
+    required Map<int, CommonPreparedStatement> statementMap,
   }) {
     if (!statementMap.containsKey(keys.length)) {
       final statementBuilder = StringBuffer(
@@ -113,7 +113,7 @@ abstract class MdictReaderInitHelper {
   static Future<void> _buildIndex({
     required String dictFilePath,
     required String fileNameExt,
-    required Database db,
+    required CommonDatabase db,
     StreamController<MdictProgress>? progressController,
   }) async {
     final indexInfo = await _getIndexInfo(
@@ -161,7 +161,7 @@ abstract class MdictReaderInitHelper {
     // => We can insert 32766 / 4 ~ 8191 keys at a time
     const countsEachTime = 8191;
     final partitionedKeyIter = partition(indexInfo.keyList, countsEachTime);
-    final statementMap = <int, PreparedStatement>{};
+    final statementMap = <int, CommonPreparedStatement>{};
     var insertedCount = 0;
     for (final keyList in partitionedKeyIter) {
       _insertKeys(
@@ -214,7 +214,7 @@ abstract class MdictReaderInitHelper {
 
   static Future<Map<String, String>> _getHeader({
     required String fileNameExt,
-    required Database db,
+    required CommonDatabase db,
   }) async {
     final header = <String, String>{};
     final resultSet = db.select(
@@ -234,7 +234,7 @@ abstract class MdictReaderInitHelper {
 
   static Future<List<Uint32List>> _getRecordList({
     required String fileNameExt,
-    required Database db,
+    required CommonDatabase db,
   }) async {
     final resultSet = db.select(
       '''
@@ -258,7 +258,7 @@ abstract class MdictReaderInitHelper {
 
   static Future<MdictReader> init({
     required String filePath,
-    required Database db,
+    required CommonDatabase db,
     StreamController<MdictProgress>? progressController,
   }) async {
     final fileNameExt = MdictHelpers.getFileNameWithExtensionFromPath(filePath);

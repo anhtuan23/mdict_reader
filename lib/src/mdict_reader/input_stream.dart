@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
+import 'package:mdict_reader/src/platform/mdict_random_access_file.dart';
 
 enum ByteOrder {
   littleEndian,
@@ -267,7 +267,7 @@ class FileInputStream extends InputStream {
   });
   final String path;
   final ByteOrder byteOrder;
-  late RandomAccessFile _file;
+  late MdictRandomAccessFile _file;
   int _fileSize = 0;
   int _filePosition = 0;
   late Uint8List _buffer;
@@ -291,7 +291,7 @@ class FileInputStream extends InputStream {
   Future<void> init(int bufferSize) async {
     _maxBufferSize = bufferSize;
     _buffer = Uint8List(_maxBufferSize);
-    _file = await File(path).open();
+    _file = await openMdictRandomAccessFile(path);
     _fileSize = await _file.length();
     await _readBuffer();
   }

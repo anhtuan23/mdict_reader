@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
+import 'package:archive/archive.dart' show ZLibDecoder;
 import 'package:html/parser.dart' show parseFragment;
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_reader/input_stream.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
+import 'package:mdict_reader/src/platform/mdict_random_access_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:pointycastle/api.dart';
 import 'package:quiver/iterables.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 part 'mdict_reader_helper.dart';
 part 'mdict_reader_init_helper.dart';
 
@@ -17,7 +18,7 @@ class MdictReader {
   MdictReader({
     required this.path,
     required this.fileName,
-    required Database db,
+    required CommonDatabase db,
     required Map<String, String> header,
     required Uint32List recordsCompressedSizes,
     required Uint32List recordsUncompressedSizes,
@@ -35,7 +36,7 @@ class MdictReader {
   final Uint32List _recordsUncompressedSizes;
   final int _recordBlockOffset;
   final String? name;
-  final Database _db;
+  final CommonDatabase _db;
   bool get isMdd => path.endsWith('.mdd');
   bool get _isUtf8 => _header['encoding'] == 'UTF-8';
 
@@ -194,9 +195,11 @@ class MdictReader {
       uncompressedOffset += uncompressedSize;
       compressedOffset += compressedSize;
     }
-    final file = await File(path).open();
-    await file.setPosition(_recordBlockOffset + compressedOffset);
-    final block = await file.read(compressedSize);
+    final file = await openMdictRandomAccessFile(path);
+    final block = await file.read(
+      _recordBlockOffset + compressedOffset,
+      compressedSize,
+    );
     await file.close();
     final blockIn = MdictReaderHelper._decompressBlock(block);
     await blockIn.skip(offset - uncompressedOffset);

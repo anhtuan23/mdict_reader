@@ -5,7 +5,8 @@ import 'package:japanese_conjugation/japanese_conjugation.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:mdict_reader/src/platform/sqlite_connection.dart';
+import 'package:sqlite3/common.dart';
 
 class MdictManager {
   MdictManager._(
@@ -14,16 +15,16 @@ class MdictManager {
     this._progressController,
   ]);
   final List<MdictDictionary> _dictionaryList;
-  final Database _db;
+  final CommonDatabase _db;
   // visible for testing
-  Database get dbForTest => _db;
+  CommonDatabase get dbForTest => _db;
   final StreamController<MdictProgress>? _progressController;
   Stream<MdictProgress>? get progressStream => _progressController?.stream;
   Map<String, String> get pathNameMap =>
       {for (final dict in _dictionaryList) dict.mdxPath: dict.name};
   static void _discardOldMdicts({
     required List<String> fileNameExtList,
-    required Database db,
+    required CommonDatabase db,
     required String tableName,
     required String fileNameColumnName,
   }) {
@@ -41,7 +42,7 @@ class MdictManager {
 
   /// visible for MdictDictionary test
   static void createTables({
-    required Database db,
+    required CommonDatabase db,
     required Iterable<MdictFiles> mdictFilesIter,
     StreamController<MdictProgress>? progressController,
   }) {
@@ -170,12 +171,7 @@ class MdictManager {
   }) async {
     final dictionaryList = <MdictDictionary>[];
     progressController?.add(const MdictProgress.mdictManagerOpenDb());
-    final Database db;
-    if (dbPath == null) {
-      db = sqlite3.openInMemory();
-    } else {
-      db = sqlite3.open(dbPath);
-    }
+    final db = await openMdictDatabase(dbPath);
     createTables(
       db: db,
       mdictFilesIter: mdictFilesIter,
@@ -200,6 +196,7 @@ class MdictManager {
         print(stackTrace);
       }
     }
+    await flushMdictDatabase();
     return MdictManager._(dictionaryList, db, progressController);
   }
 
