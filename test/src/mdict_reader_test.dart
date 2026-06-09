@@ -33,6 +33,16 @@ void main() {
       printOnFailure(html);
       expect(html, isNotEmpty, reason: 'html content is not empty');
     });
+    test('decodes utf-8 definitions without mojibake', () async {
+      final html = await mdictReader.queryMdx('中国');
+
+      printOnFailure(html);
+      expect(html, contains('China'));
+      expect(html, contains('Zhōng'));
+      expect(html, isNot(contains('ã')));
+      expect(html, isNot(contains('Â')));
+      expect(html, isNot(contains('â')));
+    });
   });
   group('v1 mdict file', () {
     test('indexes and queries definitions', () async {
