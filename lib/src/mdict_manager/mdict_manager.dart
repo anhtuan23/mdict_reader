@@ -23,20 +23,19 @@ class MdictManager {
   Map<String, String> get pathNameMap =>
       {for (final dict in _dictionaryList) dict.mdxPath: dict.name};
   static void _discardOldMdicts({
-    required List<String> fileNameExtList,
     required CommonDatabase db,
-    required String tableName,
     required String fileNameColumnName,
+    required String tableName,
+    required List<String> fileNameExtList,
   }) {
-    final fileNameExtList_ = fileNameExtList.map((e) => "'$e'").toList();
     final conditionPlaceHolder =
-        Iterable.generate(fileNameExtList_.length, (_) => '?').join(',');
+        Iterable.generate(fileNameExtList.length, (_) => '?').join(',');
     db.execute(
       '''
         DELETE FROM $tableName
         WHERE $fileNameColumnName NOT IN ($conditionPlaceHolder) ;
       ''',
-      fileNameExtList_,
+      fileNameExtList,
     );
   }
 
