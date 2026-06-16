@@ -105,7 +105,10 @@ class IsolatedManager {
             PathNameMapResult(data.hashCode, newManager.pathNameMap),
           );
         } else if (data is SearchInput) {
-          final searchReturnList = await manager!.search(data.term);
+          final searchReturnList = await manager!.search(
+            data.term,
+            data.alternativeTerms,
+          );
           mainSendPort.send(SearchResult(data.hashCode, searchReturnList));
         } else if (data is QueryInput) {
           final queryResult = await manager!.query(data.word, data.mdxPaths);
@@ -169,9 +172,10 @@ class IsolatedManager {
 
   Future<List<SearchReturn>> search(
     String term, [
+    List<String>? alternativeTerms,
     void Function(Object, StackTrace)? onError,
   ]) async {
-    final input = SearchInput(term);
+    final input = SearchInput(term, alternativeTerms);
     final result = await _doWork(input, onError);
     if (result is ErrorResult) {
       return [];

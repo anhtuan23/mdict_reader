@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:html_unescape/html_unescape_small.dart';
-import 'package:japanese_conjugation/japanese_conjugation.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
@@ -228,13 +227,17 @@ class MdictManager {
     return resultSet;
   }
 
-  Future<List<SearchReturn>> search(String term) async {
+  Future<List<SearchReturn>> search(
+    String term, [
+    List<String>? alternativeTerms,
+  ]) async {
     var resultSet = await _multipleSearch([term]);
-    // Try to unconjugate for Japanese with no result is found
-    if (resultSet.isEmpty) {
-      resultSet = await _multipleSearch(
-        Conjugator.unconjugateFlatten(term).map((e) => e.word).toList(),
-      );
+    // Fall back to alternative query expansions (such as unconjugated forms)
+    // if the exact term yielded no matches.
+    if (resultSet.isEmpty &&
+        alternativeTerms != null &&
+        alternativeTerms.isNotEmpty) {
+      resultSet = await _multipleSearch(alternativeTerms);
     }
     final searchReturns = resultSet.map(
       (row) => SearchReturn.fromRow(row, pathNameMap),

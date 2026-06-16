@@ -13,10 +13,11 @@ class InitManagerInput extends Equatable {
 }
 
 class SearchInput extends Equatable {
-  const SearchInput(this.term);
+  const SearchInput(this.term, [this.alternativeTerms]);
   final String term;
+  final List<String>? alternativeTerms;
   @override
-  List<Object?> get props => [term];
+  List<Object?> get props => [term, alternativeTerms];
 }
 
 /// [mdxPaths] narrow down which dictionary to query if provided

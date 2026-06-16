@@ -61,11 +61,6 @@ void main() {
             'test/assets/jmdict_v2.mdx',
           ]),
         ],
-        '消え': [
-          SearchReturn.testResult('消える', const [
-            'test/assets/jmdict_v2.mdx',
-          ]),
-        ],
         '道': [
           SearchReturn.testResult('道', const [
             'test/assets/CC-CEDICT/CC-CEDICT.mdx',
@@ -80,6 +75,23 @@ void main() {
           expect(searchReturnList, containsAll(testCases[word]!));
         });
       }
+      test(
+        'search for 消え with manual Japanese unconjugation alternatives',
+        () async {
+          final searchReturnList = await mdictManager.search(
+            '消え',
+            const ['消える'],
+          );
+          expect(
+            searchReturnList,
+            contains(
+              SearchReturn.testResult('消える', const [
+                'test/assets/jmdict_v2.mdx',
+              ]),
+            ),
+          );
+        },
+      );
       test('special characters are escaped', () async {
         const word = "aaron's rod";
         final searchReturnList = await mdictManager.search(word);

@@ -35,12 +35,13 @@ class IsolatedManager {
 
   Future<List<SearchReturn>> search(
     String term, [
+    List<String>? alternativeTerms,
     void Function(Object, StackTrace)? onError,
   ]) async {
     // Keep web behavior aligned with native: report errors through the optional
     // callback and return an empty result instead of throwing through UI code.
     try {
-      return _manager.search(term);
+      return _manager.search(term, alternativeTerms);
     } on Object catch (error, stackTrace) {
       onError?.call(error, stackTrace);
       return [];

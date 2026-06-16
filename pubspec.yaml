@@ -13,8 +13,6 @@ dependencies:
   html: ^0.15.6
   html_unescape: ^2.0.0
   idb_shim: ^2.9.2
-  japanese_conjugation:
-    path: ../japanese_conjugation
   meta: ^1.11.0
   path: ^1.9.1
   pointycastle: ^4.0.0
