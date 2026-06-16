@@ -101,7 +101,7 @@ void main() {
               .asBroadcastStream();
           expect(
             progressBroadcast,
-            emits(const MdictProgress.mdictManagerOpenDb()),
+            emits(const MdictProgressManagerOpenDb()),
           );
         },
       );

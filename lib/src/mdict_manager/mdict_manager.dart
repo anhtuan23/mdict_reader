@@ -60,7 +60,7 @@ class MdictManager {
             : [mdxFileNameExt, mddFileNameExt];
       },
     ).toList();
-    progressController?.add(const MdictProgress.mdictManagerCreateMeta());
+    progressController?.add(const MdictProgressManagerCreateMeta());
     db.execute(
       '''
         CREATE TABLE IF NOT EXISTS '${MdictMeta.tableName}' (
@@ -71,7 +71,7 @@ class MdictManager {
       ''',
     );
     // Check if there are any old mdict in db
-    progressController?.add(const MdictProgress.mdictManagerCountOld());
+    progressController?.add(const MdictProgressManagerCountOld());
     final conditionPlaceHolder = Iterable.generate(
       allMdictFileNameExtList.length,
       (_) => '?',
@@ -87,13 +87,13 @@ class MdictManager {
     final hasOldMdict = oldMdictCount > 0;
     if (hasOldMdict) {
       progressController?.add(
-        MdictProgress.mdictManagerHasOld(
+        MdictProgressManagerHasOld(
           oldMdictCount,
           allMdictFileNameExtList,
         ),
       );
       progressController?.add(
-        MdictProgress.mdictManagerDiscardOld(MdictMeta.tableName),
+        const MdictProgressManagerDiscardOld(MdictMeta.tableName),
       );
       _discardOldMdicts(
         db: db,
@@ -102,7 +102,7 @@ class MdictManager {
         fileNameExtList: allMdictFileNameExtList,
       );
     }
-    progressController?.add(const MdictProgress.mdictManagerCreateKey());
+    progressController?.add(const MdictProgressManagerCreateKey());
     db
       ..execute(
         '''
@@ -129,7 +129,7 @@ class MdictManager {
       );
     if (hasOldMdict) {
       progressController?.add(
-        MdictProgress.mdictManagerDiscardOld(MdictKey.tableName),
+        const MdictProgressManagerDiscardOld(MdictKey.tableName),
       );
       _discardOldMdicts(
         db: db,
@@ -138,7 +138,7 @@ class MdictManager {
         fileNameExtList: allMdictFileNameExtList,
       );
     }
-    progressController?.add(const MdictProgress.mdictManagerCreateRecord());
+    progressController?.add(const MdictProgressManagerCreateRecord());
     db
       ..execute(
         '''
@@ -157,7 +157,7 @@ class MdictManager {
       );
     if (hasOldMdict) {
       progressController?.add(
-        MdictProgress.mdictManagerDiscardOld(MdictRecord.tableName),
+        const MdictProgressManagerDiscardOld(MdictRecord.tableName),
       );
       _discardOldMdicts(
         db: db,
@@ -174,7 +174,7 @@ class MdictManager {
     StreamController<MdictProgress>? progressController,
   }) async {
     final dictionaryList = <MdictDictionary>[];
-    progressController?.add(const MdictProgress.mdictManagerOpenDb());
+    progressController?.add(const MdictProgressManagerOpenDb());
     final db = await openMdictDatabase(dbPath);
     createTables(
       db: db,
@@ -184,7 +184,7 @@ class MdictManager {
     for (final mdictFiles in mdictFilesIter) {
       try {
         progressController?.add(
-          MdictProgress.mdictManagerProcessing(
+          MdictProgressManagerProcessing(
             MdictHelpers.getFileNameWithExtensionFromPath(mdictFiles.mdxPath),
           ),
         );
@@ -195,7 +195,7 @@ class MdictManager {
         );
         dictionaryList.add(mdict);
       } on Exception catch (e, stackTrace) {
-        progressController?.add(MdictProgress.error(e.toString(), stackTrace));
+        progressController?.add(MdictProgressError(e.toString(), stackTrace));
         print('Error with ${mdictFiles.mdxPath}: $e');
         print(stackTrace);
       }
@@ -254,7 +254,7 @@ class MdictManager {
     for (final dictionary in _dictionaryList) {
       if (searchDictMdxPaths?.contains(dictionary.mdxPath) ?? true) {
         _progressController?.add(
-          MdictProgress.mdictManagerQuerying(word, dictionary.name),
+          MdictProgressManagerQuerying(word, dictionary.name),
         );
         final htmlCssJsList = await dictionary.queryMdx(word);
         if (htmlCssJsList[0].isNotEmpty) {
@@ -271,7 +271,7 @@ class MdictManager {
         }
       }
     }
-    _progressController?.add(MdictProgress.mdictManagerFinishedQuerying(word));
+    _progressController?.add(MdictProgressManagerFinishedQuerying(word));
     return results;
   }
 

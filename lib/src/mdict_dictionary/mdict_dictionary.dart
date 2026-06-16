@@ -22,7 +22,7 @@ class MdictDictionary {
       mdictFiles.mdxPath,
     );
     progressController?.add(
-      MdictProgress.mdictDictionaryProcessing(mdxFileNameExt, 'mdx'),
+      MdictProgressDictionaryProcessing(mdxFileNameExt, 'mdx'),
     );
     final mdxReader = await MdictReaderInitHelper.init(
       filePath: mdictFiles.mdxPath,
@@ -35,7 +35,7 @@ class MdictDictionary {
         mdictFiles.mdxPath,
       );
       progressController?.add(
-        MdictProgress.mdictDictionaryProcessing(mddFileNameExt, 'mdd'),
+        MdictProgressDictionaryProcessing(mddFileNameExt, 'mdd'),
       );
       mddReader = await MdictReaderInitHelper.init(
         filePath: mdictFiles.mddPath!,
@@ -44,7 +44,7 @@ class MdictDictionary {
       );
     }
     progressController?.add(
-      MdictProgress.mdictDictionaryGetCss(mdxFileNameExt),
+      MdictProgressDictionaryGetCss(mdxFileNameExt),
     );
     // Priortize css from separate css file over from mdd.
     var cssContent =
@@ -60,7 +60,7 @@ class MdictDictionary {
     var jsContent = await mddReader?.extractScriptContent(getCss: false) ?? '';
     jsContent = jsContent.trim();
     progressController?.add(
-      MdictProgress.mdictDictionaryCreatedDict(mdxFileNameExt),
+      MdictProgressDictionaryCreatedDict(mdxFileNameExt),
     );
     return MdictDictionary._(
       mdxReader: mdxReader,

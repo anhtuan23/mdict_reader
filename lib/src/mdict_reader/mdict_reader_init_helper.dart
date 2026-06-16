@@ -58,16 +58,16 @@ abstract class MdictReaderInitHelper {
     required String fileName,
     required StreamController<MdictProgress>? progressController,
   }) async {
-    progressController?.add(MdictProgress.readerHelperGetInfo(fileName));
+    progressController?.add(MdictProgressReaderHelperGetInfo(fileName));
     final inputStream = await FileInputStream.create(
       path,
       bufferSize: 64 * 1024,
     );
-    progressController?.add(MdictProgress.readerHelperReadHeader(fileName));
+    progressController?.add(MdictProgressReaderHelperReadHeader(fileName));
     final header = await MdictReaderHelper._readHeader(inputStream);
-    progressController?.add(MdictProgress.readerHelperReadKeys(fileName));
+    progressController?.add(MdictProgressReaderHelperReadKeys(fileName));
     final keyList = await MdictReaderHelper._readKeys(inputStream, header);
-    progressController?.add(MdictProgress.readerHelperReadRecords(fileName));
+    progressController?.add(MdictProgressReaderHelperReadRecords(fileName));
     final recordSizes = await MdictReaderHelper._readRecords(
       header,
       inputStream,
@@ -128,7 +128,7 @@ abstract class MdictReaderInitHelper {
     );
 
     /// META table
-    progressController?.add(MdictProgress.readerHelperBuildMeta(fileNameExt));
+    progressController?.add(MdictProgressReaderHelperBuildMeta(fileNameExt));
     db.execute(
       '''
         DELETE FROM '${MdictMeta.tableName}' 
@@ -154,7 +154,7 @@ abstract class MdictReaderInitHelper {
     /// KEYS table
     final totalKeys = indexInfo.keyList.length;
     progressController?.add(
-      MdictProgress.readerHelperBuildKey(fileNameExt, 0, totalKeys),
+      MdictProgressReaderHelperBuildKey(fileNameExt, 0, totalKeys),
     );
     db.execute(
       '''
@@ -178,7 +178,7 @@ abstract class MdictReaderInitHelper {
       );
       insertedCount += keyList.length;
       progressController?.add(
-        MdictProgress.readerHelperBuildKey(
+        MdictProgressReaderHelperBuildKey(
           fileNameExt,
           insertedCount,
           totalKeys,
@@ -190,7 +190,7 @@ abstract class MdictReaderInitHelper {
     }
 
     /// RECORDS table
-    progressController?.add(MdictProgress.readerHelperBuildRecord(fileNameExt));
+    progressController?.add(MdictProgressReaderHelperBuildRecord(fileNameExt));
     db.execute(
       '''
         DELETE FROM '${MdictRecord.tableName}' 
@@ -215,7 +215,7 @@ abstract class MdictReaderInitHelper {
       ])
       ..close();
     progressController?.add(
-      MdictProgress.readerHelperFinishedIndex(fileNameExt),
+      MdictProgressReaderHelperFinishedIndex(fileNameExt),
     );
   }
 
@@ -275,14 +275,14 @@ abstract class MdictReaderInitHelper {
         progressController: progressController,
       );
     }
-    progressController?.add(MdictProgress.readerHelperGetHeaders(fileNameExt));
+    progressController?.add(MdictProgressReaderHelperGetHeaders(fileNameExt));
     final header = await _getHeader(fileNameExt: fileNameExt, db: db);
     progressController?.add(
-      MdictProgress.readerHelperGetRecordList(fileNameExt),
+      MdictProgressReaderHelperGetRecordList(fileNameExt),
     );
     final recordSizes = await _getRecordList(fileNameExt: fileNameExt, db: db);
     progressController?.add(
-      MdictProgress.readerHelperFinishedCreateDict(fileNameExt),
+      MdictProgressReaderHelperFinishedCreateDict(fileNameExt),
     );
     return MdictReader(
       path: filePath,
