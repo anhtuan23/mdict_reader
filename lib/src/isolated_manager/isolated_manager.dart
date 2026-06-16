@@ -52,7 +52,6 @@ class IsolatedManager {
         if (data is SendPort) {
           isolateSendPortCompleter.complete(data);
         }
-
         /// On initial init a [PathNameMapResult] will be returned
         /// use this value to mark completer as completed
         /// Data is PathNameMapResult means manager is initialized
@@ -84,29 +83,37 @@ class IsolatedManager {
     // events added will be listened a bit later
     // https://api.dart.dev/dev/2.8.0-dev.3.0/dart-async/SynchronousStreamController-class.html
     progressStreamController.stream.listen(mainSendPort.send);
-    late MdictManager manager;
+    MdictManager? manager;
     isolateReceivePort.listen((dynamic data) async {
       try {
         // First data is mdict paths to init dictionary
         if (data is InitManagerInput) {
-          manager = await MdictManager.create(
+          // If a manager was already initialized, we must dispose of it first
+          // to close any open file handles and the SQLite database connection.
+          // This prevents file/resource leaks when reloading dictionaries.
+          final oldManager = manager;
+          if (oldManager != null) {
+            await oldManager.dispose();
+          }
+          final newManager = await MdictManager.create(
             mdictFilesIter: data.mdictFilesIter,
             dbPath: data.dbPath,
             progressController: progressStreamController,
           );
+          manager = newManager;
           mainSendPort.send(
-            PathNameMapResult(data.hashCode, manager.pathNameMap),
+            PathNameMapResult(data.hashCode, newManager.pathNameMap),
           );
         } else if (data is SearchInput) {
-          final searchReturnList = await manager.search(data.term);
+          final searchReturnList = await manager!.search(data.term);
           mainSendPort.send(SearchResult(data.hashCode, searchReturnList));
         } else if (data is QueryInput) {
-          final queryResult = await manager.query(data.word, data.mdxPaths);
+          final queryResult = await manager!.query(data.word, data.mdxPaths);
           mainSendPort.send(
             QueryResult(data.hashCode, queryResult),
           );
         } else if (data is ResourceQueryInput) {
-          final resourceData = await manager.queryResource(
+          final resourceData = await manager!.queryResource(
             data.resourceUri,
             data.mdxPath,
           );
@@ -114,9 +121,10 @@ class IsolatedManager {
             ResourceQueryResult(data.hashCode, resourceData),
           );
         } else if (data is ReOrderInput) {
-          manager = manager.reorder(data.oldIndex, data.newIndex);
+          final updated = manager!.reorder(data.oldIndex, data.newIndex);
+          manager = updated;
           mainSendPort.send(
-            PathNameMapResult(data.hashCode, manager.pathNameMap),
+            PathNameMapResult(data.hashCode, updated.pathNameMap),
           );
         }
       } on Object catch (e, stackTrace) {
@@ -139,8 +147,9 @@ class IsolatedManager {
       _isolateSendPort.send(input);
       final completer = Completer<Result>();
       StreamSubscription<dynamic>? streamSubscription;
-      streamSubscription =
-          _resultStreamController.stream.listen((dynamic result) {
+      streamSubscription = _resultStreamController.stream.listen((
+        dynamic result,
+      ) {
         if (result is Result && result.inputHashCode == input.hashCode) {
           if (result is ErrorResult) {
             if (onError != null) {

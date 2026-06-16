@@ -59,5 +59,5 @@ void main() async {
   print('Query took ${stopWatch.elapsed}');
   // print(queryReturnList);
   stopWatch.stop();
-  mdictManager.dispose();
+  await mdictManager.dispose();
 }

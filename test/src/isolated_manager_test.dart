@@ -78,8 +78,10 @@ void main() {
           'test/assets/CC-CEDICT/CC-CEDICT.css',
         ),
       ];
-      final newPathNameMap =
-          await isolatedManager.reload(newMdictFilesList, null);
+      final newPathNameMap = await isolatedManager.reload(
+        newMdictFilesList,
+        null,
+      );
       expect(newPathNameMap.values, equals(['CC-CEDICT']));
     });
   });
@@ -95,8 +97,8 @@ void main() {
         () async {
           await isolatedManager.search('勉強');
           await isolatedManager.query('勉強');
-          final progressBroadcast =
-              isolatedManager.progressStream.asBroadcastStream();
+          final progressBroadcast = isolatedManager.progressStream
+              .asBroadcastStream();
           expect(
             progressBroadcast,
             emits(const MdictProgress.mdictManagerOpenDb()),

@@ -15,6 +15,7 @@ dependencies:
   idb_shim: ^2.9.2
   japanese_conjugation:
     path: ../japanese_conjugation
+  meta: ^1.11.0
   path: ^1.9.1
   pointycastle: ^4.0.0
   quiver: ^3.2.2

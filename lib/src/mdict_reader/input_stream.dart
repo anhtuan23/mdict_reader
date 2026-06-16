@@ -55,9 +55,12 @@ class BytesInputStream extends InputStream {
     this.byteOrder = ByteOrder.bigEndian,
     this.start = 0,
     int? length,
-  })  : buffer =
-            Uint8List.view(data.buffer, data.offsetInBytes, data.lengthInBytes),
-        offset = start {
+  }) : buffer = Uint8List.view(
+         data.buffer,
+         data.offsetInBytes,
+         data.lengthInBytes,
+       ),
+       offset = start {
     _length = length ?? buffer.length;
   }
   Uint8List buffer;
@@ -124,9 +127,11 @@ class BytesInputStream extends InputStream {
   /// returned is relative to the start of the buffer, or -1 if the [value]
   /// was not found.
   int indexOf(int value, [int offset = 0]) {
-    for (var i = this.offset + offset, end = this.offset + length;
-        i < end;
-        ++i) {
+    for (
+      var i = this.offset + offset, end = this.offset + length;
+      i < end;
+      ++i
+    ) {
       if (buffer[i] == value) {
         return i - start;
       }
@@ -252,8 +257,11 @@ class BytesInputStream extends InputStream {
     if ((offset + len) > buffer.length) {
       len = buffer.length - offset;
     }
-    final bytes =
-        Uint8List.view(buffer.buffer, buffer.offsetInBytes + offset, len);
+    final bytes = Uint8List.view(
+      buffer.buffer,
+      buffer.offsetInBytes + offset,
+      len,
+    );
     return bytes;
   }
 
@@ -467,8 +475,10 @@ class FileInputStream extends InputStream {
       await _readBuffer();
     }
     if (_remainingBufferSize >= localCount) {
-      final bytes =
-          _buffer.sublist(_bufferPosition, _bufferPosition + localCount);
+      final bytes = _buffer.sublist(
+        _bufferPosition,
+        _bufferPosition + localCount,
+      );
       _bufferPosition += localCount;
       return bytes;
     }

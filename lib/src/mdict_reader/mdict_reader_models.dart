@@ -31,10 +31,10 @@ abstract class MdictMeta {
 class MdictKey {
   MdictKey(this.word, this.offset, [this.length = -1]);
   factory MdictKey.fromRow(Row row) => MdictKey(
-        row[wordColumnName] as String,
-        int.parse(row[offsetColumnName] as String),
-        int.parse(row[lengthColumnName] as String),
-      );
+    row[wordColumnName] as String,
+    int.parse(row[offsetColumnName] as String),
+    int.parse(row[lengthColumnName] as String),
+  );
   String word;
   int offset;
   int length;

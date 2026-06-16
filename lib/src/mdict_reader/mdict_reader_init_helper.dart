@@ -43,8 +43,10 @@ abstract class MdictReaderInitHelper {
 
   /// Use externally for preliminary check if an mdx file can be indexed.
   static Future<bool> isSupportedVersion({required String path}) async {
-    final inputStream =
-        await FileInputStream.create(path, bufferSize: 64 * 1024);
+    final inputStream = await FileInputStream.create(
+      path,
+      bufferSize: 64 * 1024,
+    );
     final header = await MdictReaderHelper._readHeader(inputStream);
     final version = header['generatedbyengineversion'] ?? '2';
     await inputStream.close();
@@ -57,8 +59,10 @@ abstract class MdictReaderInitHelper {
     required StreamController<MdictProgress>? progressController,
   }) async {
     progressController?.add(MdictProgress.readerHelperGetInfo(fileName));
-    final inputStream =
-        await FileInputStream.create(path, bufferSize: 64 * 1024);
+    final inputStream = await FileInputStream.create(
+      path,
+      bufferSize: 64 * 1024,
+    );
     progressController?.add(MdictProgress.readerHelperReadHeader(fileName));
     final header = await MdictReaderHelper._readHeader(inputStream);
     progressController?.add(MdictProgress.readerHelperReadKeys(fileName));
@@ -80,8 +84,9 @@ abstract class MdictReaderInitHelper {
     required Map<int, CommonPreparedStatement> statementMap,
   }) {
     if (!statementMap.containsKey(keys.length)) {
-      final statementBuilder = StringBuffer(
-        '''
+      final statementBuilder =
+          StringBuffer(
+            '''
           INSERT INTO '${MdictKey.tableName}' 
             (${MdictKey.wordColumnName}, 
              ${MdictKey.offsetColumnName}, 
@@ -90,10 +95,10 @@ abstract class MdictReaderInitHelper {
             ) 
           VALUES 
         ''',
-      )..writeAll(
-          Iterable<dynamic>.generate(keys.length, (_) => '(?, ?, ?, ?)'),
-          ', ',
-        );
+          )..writeAll(
+            Iterable<dynamic>.generate(keys.length, (_) => '(?, ?, ?, ?)'),
+            ', ',
+          );
       final statement = db.prepare(statementBuilder.toString());
       statementMap[keys.length] = statement;
     }
@@ -148,8 +153,9 @@ abstract class MdictReaderInitHelper {
 
     /// KEYS table
     final totalKeys = indexInfo.keyList.length;
-    progressController
-        ?.add(MdictProgress.readerHelperBuildKey(fileNameExt, 0, totalKeys));
+    progressController?.add(
+      MdictProgress.readerHelperBuildKey(fileNameExt, 0, totalKeys),
+    );
     db.execute(
       '''
         DELETE FROM '${MdictKey.tableName}' 
@@ -193,7 +199,7 @@ abstract class MdictReaderInitHelper {
       [fileNameExt],
     );
     db.prepare(
-      '''
+        '''
         INSERT INTO ${MdictRecord.tableName} 
           (${MdictRecord.compressedSizeColumnName}, 
           ${MdictRecord.uncompressedSizeColumnName},
@@ -201,15 +207,16 @@ abstract class MdictReaderInitHelper {
           ) 
         VALUES (?, ?, ?)
       ''',
-    )
+      )
       ..execute([
         indexInfo.recordsCompressedSizes.buffer.asUint8List(),
         indexInfo.recordsUncompressedSizes.buffer.asUint8List(),
         fileNameExt,
       ])
       ..close();
-    progressController
-        ?.add(MdictProgress.readerHelperFinishedIndex(fileNameExt));
+    progressController?.add(
+      MdictProgress.readerHelperFinishedIndex(fileNameExt),
+    );
   }
 
   static Future<Map<String, String>> _getHeader({
@@ -246,12 +253,10 @@ abstract class MdictReaderInitHelper {
     );
     final row = resultSet.first;
     final compressedSizes =
-        (row[MdictRecord.compressedSizeColumnName] as Uint8List)
-            .buffer
+        (row[MdictRecord.compressedSizeColumnName] as Uint8List).buffer
             .asUint32List();
     final uncompressedSizes =
-        (row[MdictRecord.uncompressedSizeColumnName] as Uint8List)
-            .buffer
+        (row[MdictRecord.uncompressedSizeColumnName] as Uint8List).buffer
             .asUint32List();
     return [compressedSizes, uncompressedSizes];
   }
@@ -272,11 +277,13 @@ abstract class MdictReaderInitHelper {
     }
     progressController?.add(MdictProgress.readerHelperGetHeaders(fileNameExt));
     final header = await _getHeader(fileNameExt: fileNameExt, db: db);
-    progressController
-        ?.add(MdictProgress.readerHelperGetRecordList(fileNameExt));
+    progressController?.add(
+      MdictProgress.readerHelperGetRecordList(fileNameExt),
+    );
     final recordSizes = await _getRecordList(fileNameExt: fileNameExt, db: db);
-    progressController
-        ?.add(MdictProgress.readerHelperFinishedCreateDict(fileNameExt));
+    progressController?.add(
+      MdictProgress.readerHelperFinishedCreateDict(fileNameExt),
+    );
     return MdictReader(
       path: filePath,
       fileName: fileNameExt,

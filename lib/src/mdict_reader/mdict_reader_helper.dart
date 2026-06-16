@@ -85,7 +85,8 @@ abstract class MdictReaderHelper {
         }
         final firstOffsetByte = readByte();
         final secondOffsetByte = readByte();
-        matchOffset = output.length -
+        matchOffset =
+            output.length -
             1 -
             (firstOffsetByte >> 2) -
             (secondOffsetByte << 6);
@@ -98,7 +99,8 @@ abstract class MdictReaderHelper {
         }
         final firstOffsetByte = readByte();
         final secondOffsetByte = readByte();
-        matchOffset = output.length -
+        matchOffset =
+            output.length -
             highOffset -
             (firstOffsetByte >> 2) -
             (secondOffsetByte << 6);
@@ -308,8 +310,10 @@ abstract class MdictReaderHelper {
     FileInputStream fileInputStream,
   ) async {
     final headerLength = await fileInputStream.readUint32();
-    final header =
-        await fileInputStream.readString(size: headerLength, utf8: false);
+    final header = await fileInputStream.readString(
+      size: headerLength,
+      utf8: false,
+    );
     await fileInputStream.skip(4);
     return _parseHeader(header);
   }

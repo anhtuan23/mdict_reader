@@ -119,4 +119,37 @@ void main() {
       expect(jsContent!.length, 2860);
     });
   });
+
+  group('lifecycle and persistent handle caching', () {
+    test(
+      'keeps file handle open across queries and closes on dispose',
+      () async {
+        final mdictReader = await MdictReaderInitHelper.init(
+          filePath: 'test/assets/CC-CEDICT/CC-CEDICT.mdx',
+          db: db!,
+        );
+
+        // Initially, the file handle should be null (lazy loaded on first
+        // query).
+        expect(mdictReader.fileHandleForTest, isNull);
+
+        // Perform a lookup query to trigger file opening. Use a word that
+        // exists in CC-CEDICT.mdx to ensure _readRecord is actually invoked.
+        const word = '狗';
+        await mdictReader.queryMdx(word);
+
+        // Verify that the file handle is now open and cached
+        final handle = mdictReader.fileHandleForTest;
+        expect(handle, isNotNull);
+
+        // Perform another lookup query and check that the same handle is reused
+        await mdictReader.queryMdx(word);
+        expect(mdictReader.fileHandleForTest, same(handle));
+
+        // Call dispose and verify the handle is closed and cleared
+        await mdictReader.dispose();
+        expect(mdictReader.fileHandleForTest, isNull);
+      },
+    );
+  });
 }

@@ -70,11 +70,11 @@ class _WebMdictRandomAccessFile implements MdictRandomAccessFile {
 
     // Determine how many bytes we can actually read up to the end of the file.
     final readLength = math.min(buffer.length, size - _position);
-    
+
     // Slice a portion of the file asynchronously.
     final slice = file.slice(_position, _position + readLength);
     final arrayBuffer = await slice.arrayBuffer().toDart;
-    
+
     // Convert JS ArrayBuffer to a JSUint8Array view, and then to a Dart
     // Uint8List.
     final uint8Array = Uint8Array(arrayBuffer);
@@ -96,7 +96,7 @@ class _WebMdictRandomAccessFile implements MdictRandomAccessFile {
     final end = math.min(position + length, size);
     final slice = file.slice(position, end);
     final arrayBuffer = await slice.arrayBuffer().toDart;
-    
+
     // Convert JS ArrayBuffer to JSUint8Array, and then to a Dart Uint8List.
     final uint8Array = Uint8Array(arrayBuffer);
     return (uint8Array as JSUint8Array).toDart;
@@ -131,18 +131,22 @@ Future<web.FileSystemFileHandle> _getFileHandle(
   final parts = path.split('/');
   if (parts.length > 1) {
     for (var i = 0; i < parts.length - 1; i++) {
-      dir = await dir.getDirectoryHandle(
-        parts[i],
-        web.FileSystemGetDirectoryOptions(create: create),
-      ).toDart;
+      dir = await dir
+          .getDirectoryHandle(
+            parts[i],
+            web.FileSystemGetDirectoryOptions(create: create),
+          )
+          .toDart;
     }
   }
 
   // Return the final file handle inside the target directory.
-  return dir.getFileHandle(
-    parts.last,
-    web.FileSystemGetFileOptions(create: create),
-  ).toDart;
+  return dir
+      .getFileHandle(
+        parts.last,
+        web.FileSystemGetFileOptions(create: create),
+      )
+      .toDart;
 }
 
 /// Helper method to delete a file or directory recursively from OPFS.
@@ -160,10 +164,12 @@ Future<void> _deleteEntry(String reference) async {
   if (parts.length > 1) {
     for (var i = 0; i < parts.length - 1; i++) {
       try {
-        dir = await dir.getDirectoryHandle(
-          parts[i],
-          web.FileSystemGetDirectoryOptions(create: false),
-        ).toDart;
+        dir = await dir
+            .getDirectoryHandle(
+              parts[i],
+              web.FileSystemGetDirectoryOptions(create: false),
+            )
+            .toDart;
       } on Object catch (_) {
         return; // Directory does not exist, nothing to delete
       }
@@ -172,10 +178,12 @@ Future<void> _deleteEntry(String reference) async {
 
   try {
     // removeEntry deletes a file or directory recursively.
-    await dir.removeEntry(
-      parts.last,
-      web.FileSystemRemoveOptions(recursive: true),
-    ).toDart;
+    await dir
+        .removeEntry(
+          parts.last,
+          web.FileSystemRemoveOptions(recursive: true),
+        )
+        .toDart;
   } on Object catch (_) {
     // Ignore error if target file or folder does not exist
   }
@@ -225,7 +233,7 @@ Future<void> writeMdictFileBytes({
 }) async {
   final fileHandle = await _getFileHandle(reference, create: true);
   final writable = await fileHandle.createWritable().toDart;
-  
+
   // Write bytes payload using JavaScript Uint8Array representation.
   await writable.write(bytes.toJS).toDart;
   await writable.close().toDart;

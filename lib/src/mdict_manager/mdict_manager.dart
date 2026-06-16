@@ -20,16 +20,19 @@ class MdictManager {
   CommonDatabase get dbForTest => _db;
   final StreamController<MdictProgress>? _progressController;
   Stream<MdictProgress>? get progressStream => _progressController?.stream;
-  Map<String, String> get pathNameMap =>
-      {for (final dict in _dictionaryList) dict.mdxPath: dict.name};
+  Map<String, String> get pathNameMap => {
+    for (final dict in _dictionaryList) dict.mdxPath: dict.name,
+  };
   static void _discardOldMdicts({
     required CommonDatabase db,
     required String fileNameColumnName,
     required String tableName,
     required List<String> fileNameExtList,
   }) {
-    final conditionPlaceHolder =
-        Iterable.generate(fileNameExtList.length, (_) => '?').join(',');
+    final conditionPlaceHolder = Iterable.generate(
+      fileNameExtList.length,
+      (_) => '?',
+    ).join(',');
     db.execute(
       '''
         DELETE FROM $tableName
@@ -47,8 +50,9 @@ class MdictManager {
   }) {
     final allMdictFileNameExtList = mdictFilesIter.expand(
       (mdictFiles) {
-        final mdxFileNameExt =
-            MdictHelpers.getFileNameWithExtensionFromPath(mdictFiles.mdxPath);
+        final mdxFileNameExt = MdictHelpers.getFileNameWithExtensionFromPath(
+          mdictFiles.mdxPath,
+        );
         final mddFileNameExt = mdictFiles.mddPath != null
             ? MdictHelpers.getFileNameWithExtensionFromPath(mdictFiles.mddPath!)
             : null;
@@ -69,8 +73,10 @@ class MdictManager {
     );
     // Check if there are any old mdict in db
     progressController?.add(const MdictProgress.mdictManagerCountOld());
-    final conditionPlaceHolder =
-        Iterable.generate(allMdictFileNameExtList.length, (_) => '?').join(',');
+    final conditionPlaceHolder = Iterable.generate(
+      allMdictFileNameExtList.length,
+      (_) => '?',
+    ).join(',');
     final resultSet = db.select(
       '''
         SELECT COUNT(1) FROM ${MdictMeta.tableName}
@@ -230,8 +236,9 @@ class MdictManager {
         Conjugator.unconjugateFlatten(term).map((e) => e.word).toList(),
       );
     }
-    final searchReturns =
-        resultSet.map((row) => SearchReturn.fromRow(row, pathNameMap));
+    final searchReturns = resultSet.map(
+      (row) => SearchReturn.fromRow(row, pathNameMap),
+    );
     return searchReturns.toList();
   }
 
@@ -293,7 +300,14 @@ class MdictManager {
     return MdictManager._(_dictionaryList, _db);
   }
 
-  void dispose() {
+  /// Disposes all loaded dictionaries in the manager and closes the SQLite
+  /// database connection. This must be called when unloading the dictionary
+  /// manager (e.g., during application shutdown or dictionary reloads) to
+  /// cleanly close all active SQLite connections and underlying file handles.
+  Future<void> dispose() async {
+    for (final dictionary in _dictionaryList) {
+      await dictionary.dispose();
+    }
     _db.close();
   }
 }

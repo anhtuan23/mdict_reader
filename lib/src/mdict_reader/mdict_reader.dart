@@ -7,6 +7,7 @@ import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_reader/input_stream.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
 import 'package:mdict_reader/src/platform/mdict_random_access_file.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pointycastle/api.dart';
 import 'package:quiver/iterables.dart';
@@ -22,12 +23,12 @@ class MdictReader {
     required Map<String, String> header,
     required Uint32List recordsCompressedSizes,
     required Uint32List recordsUncompressedSizes,
-  })  : _header = header,
-        _db = db,
-        _recordsCompressedSizes = recordsCompressedSizes,
-        _recordsUncompressedSizes = recordsUncompressedSizes,
-        _recordBlockOffset = int.parse(header[recordBlockOffsetKey]!),
-        name = header['title'];
+  }) : _header = header,
+       _db = db,
+       _recordsCompressedSizes = recordsCompressedSizes,
+       _recordsUncompressedSizes = recordsUncompressedSizes,
+       _recordBlockOffset = int.parse(header[recordBlockOffsetKey]!),
+       name = header['title'];
   static const recordBlockOffsetKey = '_recordBlockOffsetKey';
   final String path;
   final String fileName;
@@ -37,6 +38,35 @@ class MdictReader {
   final int _recordBlockOffset;
   final String? name;
   final CommonDatabase _db;
+
+  /// A persistent file descriptor handle used to perform random-access reads
+  /// from the dictionary file. Caching this handle avoids opening and closing
+  /// the file on every individual query, which dramatically improves I/O
+  /// performance.
+  MdictRandomAccessFile? _fileHandle;
+
+  /// The open persistent file handle, visible for testing.
+  @visibleForTesting
+  MdictRandomAccessFile? get fileHandleForTest => _fileHandle;
+
+  /// Retrieves the existing open file handle, or opens a new one if it hasn't
+  /// been initialized yet. This lazy-loading pattern ensures we don't open the
+  /// file until a read operation is actually requested.
+  Future<MdictRandomAccessFile> _getReaderFileHandle() async {
+    return _fileHandle ??= await openMdictRandomAccessFile(path);
+  }
+
+  /// Closes the persistent file handle and frees the associated OS resources.
+  /// This must be called when the dictionary reader is no longer needed (e.g.,
+  /// when the dictionary is unloaded or reloaded) to prevent resource leaks.
+  Future<void> dispose() async {
+    final handle = _fileHandle;
+    if (handle != null) {
+      await handle.close();
+      _fileHandle = null;
+    }
+  }
+
   bool get isMdd => path.endsWith('.mdd');
   bool get _isUtf8 => _header['encoding'] == 'UTF-8';
 
@@ -76,10 +106,12 @@ class MdictReader {
     mdictKeys = resultSet.map(MdictKey.fromRow).toList();
     resultMap[keyWord] = [];
     for (final mdictKey in mdictKeys) {
-      final htmlString = await _readRecord(
-        mdictKey.offset,
-        mdictKey.length,
-      ) as String;
+      final htmlString =
+          await _readRecord(
+                mdictKey.offset,
+                mdictKey.length,
+              )
+              as String;
       if (htmlString.startsWith('@@@LINK=')) {
         final keyWord = htmlString.substring(8).trim();
         // Query result might contains a reference loop through @@@LINK=
@@ -113,10 +145,12 @@ class MdictReader {
     );
     for (final row in resultSet) {
       final key = MdictKey.fromRow(row);
-      final data = await _readRecord(
-        key.offset,
-        key.length,
-      ) as Uint8List;
+      final data =
+          await _readRecord(
+                key.offset,
+                key.length,
+              )
+              as Uint8List;
       return data;
     }
     return Future.value();
@@ -195,12 +229,11 @@ class MdictReader {
       uncompressedOffset += uncompressedSize;
       compressedOffset += compressedSize;
     }
-    final file = await openMdictRandomAccessFile(path);
+    final file = await _getReaderFileHandle();
     final block = await file.read(
       _recordBlockOffset + compressedOffset,
       compressedSize,
     );
-    await file.close();
     final blockIn = MdictReaderHelper._decompressBlock(block);
     await blockIn.skip(offset - uncompressedOffset);
     if (isMdd) {

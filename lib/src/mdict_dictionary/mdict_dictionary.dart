@@ -18,8 +18,9 @@ class MdictDictionary {
     required CommonDatabase db,
     StreamController<MdictProgress>? progressController,
   }) async {
-    final mdxFileNameExt =
-        MdictHelpers.getFileNameWithExtensionFromPath(mdictFiles.mdxPath);
+    final mdxFileNameExt = MdictHelpers.getFileNameWithExtensionFromPath(
+      mdictFiles.mdxPath,
+    );
     progressController?.add(
       MdictProgress.mdictDictionaryProcessing(mdxFileNameExt, 'mdx'),
     );
@@ -30,8 +31,9 @@ class MdictDictionary {
     );
     MdictReader? mddReader;
     if (mdictFiles.mddPath != null) {
-      final mddFileNameExt =
-          MdictHelpers.getFileNameWithExtensionFromPath(mdictFiles.mdxPath);
+      final mddFileNameExt = MdictHelpers.getFileNameWithExtensionFromPath(
+        mdictFiles.mdxPath,
+      );
       progressController?.add(
         MdictProgress.mdictDictionaryProcessing(mddFileNameExt, 'mdd'),
       );
@@ -41,8 +43,9 @@ class MdictDictionary {
         progressController: progressController,
       );
     }
-    progressController
-        ?.add(MdictProgress.mdictDictionaryGetCss(mdxFileNameExt));
+    progressController?.add(
+      MdictProgress.mdictDictionaryGetCss(mdxFileNameExt),
+    );
     // Priortize css from separate css file over from mdd.
     var cssContent =
         await MdictHelpers.readFileContent(mdictFiles.cssPath) ?? '';
@@ -56,8 +59,9 @@ class MdictDictionary {
     }
     var jsContent = await mddReader?.extractScriptContent(getCss: false) ?? '';
     jsContent = jsContent.trim();
-    progressController
-        ?.add(MdictProgress.mdictDictionaryCreatedDict(mdxFileNameExt));
+    progressController?.add(
+      MdictProgress.mdictDictionaryCreatedDict(mdxFileNameExt),
+    );
     return MdictDictionary._(
       mdxReader: mdxReader,
       mddReader: mddReader,
@@ -75,8 +79,10 @@ class MdictDictionary {
     if (name == null ||
         name.isEmpty ||
         name == 'Title (No HTML code allowed)') {
-      name =
-          MdictHelpers.getFileNameFromPath(mdxReader.path, toLowerCase: false);
+      name = MdictHelpers.getFileNameFromPath(
+        mdxReader.path,
+        toLowerCase: false,
+      );
     }
     return name;
   }
@@ -112,4 +118,13 @@ class MdictDictionary {
 
   Future<Uint8List?> queryResource(String resourceKey) async =>
       mddReader?.queryMdd(resourceKey);
+
+  /// Closes and releases resources for both the MDX (definitions) and MDD
+  /// (resources) file readers associated with this dictionary. This ensures
+  /// that the underlying file descriptors are properly closed when the
+  /// dictionary is unloaded.
+  Future<void> dispose() async {
+    await mdxReader.dispose();
+    await mddReader?.dispose();
+  }
 }

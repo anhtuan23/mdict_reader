@@ -93,8 +93,10 @@ class IsolatedManager {
     void Function(Object, StackTrace)? onError,
   ]) async {
     try {
-      // Recreate the manager so the SQLite index and path-name map reflect the
-      // latest browser imports or deletes.
+      // Dispose the existing manager instance to close all open Web file
+      // handles (OPFS/IndexedDB) and SQLite connections before creating a new
+      // one on reload.
+      await _manager.dispose();
       _manager = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
         dbPath: dbPath,

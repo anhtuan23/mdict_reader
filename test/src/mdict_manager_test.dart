@@ -115,7 +115,8 @@ void main() {
         expect(
           queryReturnList,
           hasLength(1),
-          reason: 'should only query in dict with mdx path specified '
+          reason:
+              'should only query in dict with mdx path specified '
               'in query function',
         );
         final queryReturn = queryReturnList[0];
@@ -216,8 +217,8 @@ void main() {
     MdictManager? mdictManager1;
     MdictManager? mdictManager2;
     tearDown(() async {
-      mdictManager1?.dispose();
-      mdictManager2?.dispose();
+      await mdictManager1?.dispose();
+      await mdictManager2?.dispose();
       await Future<dynamic>.delayed(const Duration(seconds: 3));
       final dbFile = File(tempDbPath);
       await dbFile.delete();
@@ -231,7 +232,7 @@ void main() {
       final firstStartDuration = stopwatch.elapsed;
       // this might fail if the records written in manager1
       // are not yet committed to the db file
-      mdictManager1?.dispose();
+      await mdictManager1?.dispose();
       await Future<dynamic>.delayed(const Duration(seconds: 3));
       stopwatch.reset();
       mdictManager2 = await MdictManager.create(
@@ -239,7 +240,7 @@ void main() {
         dbPath: tempDbPath,
       );
       final secondStartDuration = stopwatch.elapsed;
-      mdictManager2?.dispose();
+      await mdictManager2?.dispose();
       printOnFailure('First start duration: $firstStartDuration');
       printOnFailure('Second start duration: $secondStartDuration');
       expect(secondStartDuration, lessThan(firstStartDuration * (1 / 10)));
@@ -249,7 +250,7 @@ void main() {
         mdictFilesIter: mdictFilesList,
         dbPath: tempDbPath,
       );
-      mdictManager1?.dispose();
+      await mdictManager1?.dispose();
       // this might fail if the records written in manager1
       // are not yet committed to the db file
       await Future<dynamic>.delayed(const Duration(seconds: 2));
@@ -257,7 +258,7 @@ void main() {
         mdictFilesIter: [],
         dbPath: tempDbPath,
       );
-      mdictManager2?.dispose();
+      await mdictManager2?.dispose();
       await Future<dynamic>.delayed(const Duration(seconds: 2));
       final db = sqlite3.open(tempDbPath);
       final deletedRows = db.select(
