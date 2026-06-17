@@ -16,4 +16,7 @@ export 'src/mdict_reader/mdict_reader.dart';
 // reader as if they were file paths.
 export 'src/platform/mdict_random_access_file.dart'
     show deleteMdictFileReference, readMdictFileBytes, writeMdictFileBytes;
+export 'src/progress/mdict_progress.dart';
+export 'src/progress/mdict_progress_display.dart';
+export 'src/progress/mdict_progress_helper.dart';
 export 'src/utils.dart';
