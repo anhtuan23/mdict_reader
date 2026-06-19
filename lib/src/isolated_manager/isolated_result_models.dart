@@ -12,18 +12,18 @@ class PathNameMapResult implements Result {
   final Map<String, String> pathNameMap;
 }
 
-class SearchResult implements Result {
-  const SearchResult(this.inputHashCode, this.searchReturnList);
+class IsolateSearchResult implements Result {
+  const IsolateSearchResult(this.inputHashCode, this.searchResults);
   @override
   final int inputHashCode;
-  final List<SearchReturn> searchReturnList;
+  final List<SearchResult> searchResults;
 }
 
-class QueryResult implements Result {
-  const QueryResult(this.inputHashCode, this.queryReturns);
+class IsolateQueryResult implements Result {
+  const IsolateQueryResult(this.inputHashCode, this.queryResults);
   @override
   final int inputHashCode;
-  final List<QueryReturn> queryReturns;
+  final List<QueryResult> queryResults;
 }
 
 class ResourceQueryResult implements Result {

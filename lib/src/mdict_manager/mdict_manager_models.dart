@@ -17,9 +17,9 @@ class MdictFiles extends Equatable {
   List<Object?> get props => [mdxPath, mddPath, cssPath];
 }
 
-class SearchReturn extends Equatable {
-  const SearchReturn._(this.word, this.dictPathNameMap);
-  factory SearchReturn.fromRow(Row row, Map<String, String> allPathNameMap) {
+class SearchResult extends Equatable {
+  const SearchResult._(this.word, this.dictPathNameMap);
+  factory SearchResult.fromRow(Row row, Map<String, String> allPathNameMap) {
     final dictFileNameExtList = MdictKey.getFileNamesFromRow(row);
     final dictPathNameMap = <String, String>{};
     for (final fileNameExt in dictFileNameExtList) {
@@ -31,19 +31,19 @@ class SearchReturn extends Equatable {
         }
       }
     }
-    return SearchReturn._(MdictKey.getWordFromRow(row), dictPathNameMap);
+    return SearchResult._(MdictKey.getWordFromRow(row), dictPathNameMap);
   }
-  factory SearchReturn.testResult(String word, List<String> dictPaths) {
+  factory SearchResult.testResult(String word, List<String> dictPaths) {
     final dictPathNameMap = {for (final key in dictPaths) key: ''};
-    return SearchReturn._(word, dictPathNameMap);
+    return SearchResult._(word, dictPathNameMap);
   }
-  factory SearchReturn.testReturnFromWord(String word) {
-    return SearchReturn.testResult(word, ['${word}_path.mdx']);
+  factory SearchResult.testResultFromWord(String word) {
+    return SearchResult.testResult(word, ['${word}_path.mdx']);
   }
-  factory SearchReturn.fromQueryReturn(QueryReturn queryReturn) {
-    return SearchReturn._(
-      queryReturn.word,
-      {queryReturn.mdxPath: queryReturn.dictName},
+  factory SearchResult.fromQueryResult(QueryResult queryResult) {
+    return SearchResult._(
+      queryResult.word,
+      {queryResult.mdxPath: queryResult.dictName},
     );
   }
   final String word;
@@ -57,8 +57,8 @@ class SearchReturn extends Equatable {
   List<Object?> get props => [word, ...dictPathNameMap.keys];
 }
 
-class QueryReturn extends Equatable {
-  const QueryReturn(
+class QueryResult extends Equatable {
+  const QueryResult(
     this.word,
     this.dictName,
     this.mdxPath,
@@ -66,11 +66,11 @@ class QueryReturn extends Equatable {
     this.css,
     this.js,
   );
-  factory QueryReturn.testReturn(String word, String mdxPath) {
-    return QueryReturn(word, '', mdxPath, '', '', '');
+  factory QueryResult.testResult(String word, String mdxPath) {
+    return QueryResult(word, '', mdxPath, '', '', '');
   }
-  factory QueryReturn.testReturnFromWord(String word) {
-    return QueryReturn.testReturn(word, '${word}_path.mdx');
+  factory QueryResult.testResultFromWord(String word) {
+    return QueryResult.testResult(word, '${word}_path.mdx');
   }
   final String word;
   final String dictName;

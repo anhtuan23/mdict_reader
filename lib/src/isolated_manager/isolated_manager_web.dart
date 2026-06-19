@@ -33,7 +33,7 @@ class IsolatedManager {
     return IsolatedManager._(manager, progressStreamController);
   }
 
-  Future<List<SearchReturn>> search(
+  Future<List<SearchResult>> search(
     String term, [
     List<String>? alternativeTerms,
     void Function(Object, StackTrace)? onError,
@@ -48,7 +48,7 @@ class IsolatedManager {
     }
   }
 
-  Future<List<QueryReturn>> query(
+  Future<List<QueryResult>> query(
     String word, [
     Set<String>? mdxPaths,
     void Function(Object, StackTrace)? onError,

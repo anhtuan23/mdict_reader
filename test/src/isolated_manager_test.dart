@@ -26,12 +26,12 @@ void main() {
       isolatedManager = await IsolatedManager.init(mdictFilesList, null);
     });
     test('search function', () async {
-      final searchReturnList = await isolatedManager.search(word);
-      printOnFailure(searchReturnList.toString());
-      expect(searchReturnList, isNotEmpty);
-      expect(searchReturnList[0].word, equals(word));
+      final searchResultList = await isolatedManager.search(word);
+      printOnFailure(searchResultList.toString());
+      expect(searchResultList, isNotEmpty);
+      expect(searchResultList[0].word, equals(word));
       expect(
-        searchReturnList[0].dictPathNameMap,
+        searchResultList[0].dictPathNameMap,
         equals({
           'test/assets/CC-CEDICT/CC-CEDICT.mdx': 'CC-CEDICT',
           'test/assets/jmdict_v2.mdx': 'JMDict',
@@ -39,15 +39,15 @@ void main() {
       );
     });
     test('query function', () async {
-      final queryReturnList = await isolatedManager.query(word);
-      printOnFailure(queryReturnList.toString());
-      expect(queryReturnList, hasLength(2));
-      final firstDictReturn = queryReturnList[0];
+      final queryResultList = await isolatedManager.query(word);
+      printOnFailure(queryResultList.toString());
+      expect(queryResultList, hasLength(2));
+      final firstDictReturn = queryResultList[0];
       expect(firstDictReturn.word, equals(word));
       expect(firstDictReturn.dictName, equals('CC-CEDICT'));
       expect(firstDictReturn.html, isNotEmpty);
       expect(firstDictReturn.css, isNotEmpty);
-      final secondDictReturn = queryReturnList[1];
+      final secondDictReturn = queryResultList[1];
       expect(secondDictReturn.word, equals(word));
       expect(secondDictReturn.dictName, equals('JMDict'));
       expect(secondDictReturn.html, isNotEmpty);

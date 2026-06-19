@@ -227,7 +227,7 @@ class MdictManager {
     return resultSet;
   }
 
-  Future<List<SearchReturn>> search(
+  Future<List<SearchResult>> search(
     String term, [
     List<String>? alternativeTerms,
   ]) async {
@@ -239,18 +239,18 @@ class MdictManager {
         alternativeTerms.isNotEmpty) {
       resultSet = await _multipleSearch(alternativeTerms);
     }
-    final searchReturns = resultSet.map(
-      (row) => SearchReturn.fromRow(row, pathNameMap),
+    final searchResults = resultSet.map(
+      (row) => SearchResult.fromRow(row, pathNameMap),
     );
-    return searchReturns.toList();
+    return searchResults.toList();
   }
 
   /// [searchDictMdxPaths] narrow down which dictionary to query if provided
-  Future<List<QueryReturn>> query(
+  Future<List<QueryResult>> query(
     String word, [
     Set<String>? searchDictMdxPaths,
   ]) async {
-    final results = <QueryReturn>[];
+    final results = <QueryResult>[];
     for (final dictionary in _dictionaryList) {
       if (searchDictMdxPaths?.contains(dictionary.mdxPath) ?? true) {
         _progressController?.add(
@@ -259,7 +259,7 @@ class MdictManager {
         final htmlCssJsList = await dictionary.queryMdx(word);
         if (htmlCssJsList[0].isNotEmpty) {
           results.add(
-            QueryReturn(
+            QueryResult(
               word,
               dictionary.name,
               dictionary.mdxPath,

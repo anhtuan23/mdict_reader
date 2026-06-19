@@ -56,13 +56,13 @@ void main() {
     group('search function', () {
       final testCases = {
         '勉強': [
-          SearchReturn.testResult('勉強', const [
+          SearchResult.testResult('勉強', const [
             'test/assets/CC-CEDICT/CC-CEDICT.mdx',
             'test/assets/jmdict_v2.mdx',
           ]),
         ],
         '道': [
-          SearchReturn.testResult('道', const [
+          SearchResult.testResult('道', const [
             'test/assets/CC-CEDICT/CC-CEDICT.mdx',
             'test/assets/jmdict_v2.mdx',
           ]),
@@ -70,22 +70,22 @@ void main() {
       };
       for (final word in testCases.keys) {
         test('search for $word', () async {
-          final searchReturnList = await mdictManager.search(word);
-          printOnFailure(searchReturnList.toString());
-          expect(searchReturnList, containsAll(testCases[word]!));
+          final searchResultList = await mdictManager.search(word);
+          printOnFailure(searchResultList.toString());
+          expect(searchResultList, containsAll(testCases[word]!));
         });
       }
       test(
         'search for 消え with manual Japanese unconjugation alternatives',
         () async {
-          final searchReturnList = await mdictManager.search(
+          final searchResultList = await mdictManager.search(
             '消え',
             const ['消える'],
           );
           expect(
-            searchReturnList,
+            searchResultList,
             contains(
-              SearchReturn.testResult('消える', const [
+              SearchResult.testResult('消える', const [
                 'test/assets/jmdict_v2.mdx',
               ]),
             ),
@@ -94,60 +94,60 @@ void main() {
       );
       test('special characters are escaped', () async {
         const word = "aaron's rod";
-        final searchReturnList = await mdictManager.search(word);
-        printOnFailure(searchReturnList.toString());
-        expect(searchReturnList, isNotEmpty);
+        final searchResultList = await mdictManager.search(word);
+        printOnFailure(searchResultList.toString());
+        expect(searchResultList, isNotEmpty);
       });
     });
     group('query function', () {
       final testCases = {
         '勉強': [
-          QueryReturn.testReturn('勉強', 'test/assets/CC-CEDICT/CC-CEDICT.mdx'),
-          QueryReturn.testReturn('勉強', 'test/assets/jmdict_v2.mdx'),
+          QueryResult.testResult('勉強', 'test/assets/CC-CEDICT/CC-CEDICT.mdx'),
+          QueryResult.testResult('勉強', 'test/assets/jmdict_v2.mdx'),
         ],
         '辺': [
-          QueryReturn.testReturn('辺', 'test/assets/CC-CEDICT/CC-CEDICT.mdx'),
-          QueryReturn.testReturn('辺', 'test/assets/jmdict_v2.mdx'),
+          QueryResult.testResult('辺', 'test/assets/CC-CEDICT/CC-CEDICT.mdx'),
+          QueryResult.testResult('辺', 'test/assets/jmdict_v2.mdx'),
         ],
       };
       for (final word in testCases.keys) {
         test('query for $word', () async {
-          final queryReturnList = await mdictManager.query(word);
-          print(queryReturnList);
-          expect(queryReturnList, containsAll(testCases[word]!));
+          final queryResultList = await mdictManager.query(word);
+          print(queryResultList);
+          expect(queryResultList, containsAll(testCases[word]!));
         });
       }
       test('on in specified dictionary', () async {
         const word = '勉強';
-        final queryReturnList = await mdictManager.query(
+        final queryResultList = await mdictManager.query(
           word,
           {'test/assets/jmdict_v2.mdx'},
         );
-        printOnFailure(queryReturnList.toString());
+        printOnFailure(queryResultList.toString());
         expect(
-          queryReturnList,
+          queryResultList,
           hasLength(1),
           reason:
               'should only query in dict with mdx path specified '
               'in query function',
         );
-        final queryReturn = queryReturnList[0];
-        expect(queryReturn.word, equals('勉強'));
-        expect(queryReturn.dictName, equals('JMDict'));
-        expect(queryReturn.html, isNotEmpty);
-        expect(queryReturn.css, isEmpty);
+        final queryResult = queryResultList[0];
+        expect(queryResult.word, equals('勉強'));
+        expect(queryResult.dictName, equals('JMDict'));
+        expect(queryResult.html, isNotEmpty);
+        expect(queryResult.css, isEmpty);
       });
       test('prevent reference loop', () async {
         // 道 have a @@@LINK= to 路 and vice versa
         const word = '道';
-        final queryReturnList = await mdictManager.query(
+        final queryResultList = await mdictManager.query(
           word,
           {'test/assets/jmdict_v2.mdx'},
         );
-        printOnFailure(queryReturnList.toString());
+        printOnFailure(queryResultList.toString());
         expect(
-          queryReturnList,
-          contains(QueryReturn.testReturn('道', 'test/assets/jmdict_v2.mdx')),
+          queryResultList,
+          contains(QueryResult.testResult('道', 'test/assets/jmdict_v2.mdx')),
         );
       });
     });

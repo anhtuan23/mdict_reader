@@ -109,11 +109,13 @@ class IsolatedManager {
             data.term,
             data.alternativeTerms,
           );
-          mainSendPort.send(SearchResult(data.hashCode, searchReturnList));
+          mainSendPort.send(
+            IsolateSearchResult(data.hashCode, searchReturnList),
+          );
         } else if (data is QueryInput) {
           final queryResult = await manager!.query(data.word, data.mdxPaths);
           mainSendPort.send(
-            QueryResult(data.hashCode, queryResult),
+            IsolateQueryResult(data.hashCode, queryResult),
           );
         } else if (data is ResourceQueryInput) {
           final resourceData = await manager!.queryResource(
@@ -170,7 +172,7 @@ class IsolatedManager {
     }
   }
 
-  Future<List<SearchReturn>> search(
+  Future<List<SearchResult>> search(
     String term, [
     List<String>? alternativeTerms,
     void Function(Object, StackTrace)? onError,
@@ -180,11 +182,11 @@ class IsolatedManager {
     if (result is ErrorResult) {
       return [];
     }
-    return (result as SearchResult).searchReturnList;
+    return (result as IsolateSearchResult).searchResults;
   }
 
   /// [mdxPaths] narrow down which dictionary to query if provided
-  Future<List<QueryReturn>> query(
+  Future<List<QueryResult>> query(
     String word, [
     Set<String>? mdxPaths,
     void Function(Object, StackTrace)? onError,
@@ -194,7 +196,7 @@ class IsolatedManager {
     if (result is ErrorResult) {
       return [];
     }
-    return (result as QueryResult).queryReturns;
+    return (result as IsolateQueryResult).queryResults;
   }
 
   /// [mdxPath] act as a key when we want to query resource
