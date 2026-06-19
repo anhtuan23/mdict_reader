@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:archive/archive.dart' show ZLibDecoder;
-import 'package:html/parser.dart' show parseFragment;
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_reader/input_stream.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';

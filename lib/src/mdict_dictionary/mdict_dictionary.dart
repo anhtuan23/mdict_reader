@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
-import 'package:html/parser.dart' show parse;
+
 import 'package:mdict_reader/mdict_reader.dart';
-import 'package:path/path.dart' as p;
+import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary_helper.dart';
 import 'package:sqlite3/common.dart';
 
 class MdictDictionary {
@@ -95,24 +94,10 @@ class MdictDictionary {
     if (mddReader == null || html.isEmpty) {
       return [html, cssContent, jsContent];
     }
-    try {
-      final document = parse(html);
-      final images = document.getElementsByTagName('img');
-      for (final img in images) {
-        final src = img.attributes['src'];
-        if (src == null) continue;
-        var extension = p.extension(src).toLowerCase();
-        if (extension.isEmpty) continue;
-        extension = extension.replaceFirst('.', '');
-        final intData = await queryResource(src.replaceAll('/', r'\'));
-        if (intData == null) continue;
-        final base64Data = base64.encode(intData);
-        img.attributes['src'] = 'data:image/$extension;base64,$base64Data';
-      }
-      html = document.body?.innerHtml ?? html;
-    } on Exception catch (e) {
-      print(e);
-    }
+    html = await MdictDictionaryHelper.inlineImages(
+      html: html,
+      queryResource: queryResource,
+    );
     return [html, cssContent, jsContent];
   }
 

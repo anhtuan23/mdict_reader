@@ -297,11 +297,35 @@ abstract class MdictReaderHelper {
     return inputStream.readByte();
   }
 
+  /// Parses the XML/HTML-like dictionary header tag (e.g.,
+  /// `<Dictionary Title="..." />`) to extract its attributes into a map.
+  ///
+  /// Instead of pulling in a heavy HTML parser package, this utilizes a
+  /// targeted regular expression to scan the header string for `key="value"`
+  /// or `key='value'` pairs.
   static Map<String, String> _parseHeader(String header) {
     final attributes = <String, String>{};
-    final doc = parseFragment(header);
-    for (final entry in doc.nodes.first.attributes.entries) {
-      attributes[entry.key.toString()] = entry.value;
+
+    // Define the regular expression pattern to identify attribute key-value
+    // pairs:
+    // - (\w+) matches the attribute key name (letters, digits, underscores).
+    // - \s*=\s* matches the equals sign with optional surrounding spaces.
+    // - (?:"([^"]*)"|'([^']*)') matches the value:
+    //   - "([^"]*)" captures contents inside double quotes (Group 2).
+    //   - '([^']*)' captures contents inside single quotes (Group 3).
+    final regex = RegExp(r'''(\w+)\s*=\s*(?:"([^"]*)"|'([^']*)')''');
+
+    for (final match in regex.allMatches(header)) {
+      // Group 1 contains the attribute key (e.g., 'GeneratedByEngineVersion').
+      // We convert keys to lowercase to match standard HTML behavior and
+      // support lowercase lookups throughout the library.
+      final key = (match[1] ?? '').toLowerCase();
+
+      // Group 2 is populated if double quotes were matched.
+      // Group 3 is populated if single quotes were matched.
+      final value = match[2] ?? match[3] ?? '';
+
+      attributes[key] = value;
     }
     return attributes;
   }
@@ -325,4 +349,9 @@ abstract class MdictReaderHelper {
     final exp = RegExp(r"(?<=url\()[^'].+(?=\))");
     return exp.allMatches(input);
   }
+
+  /// Exposes private [_parseHeader] for unit tests.
+  @visibleForTesting
+  static Map<String, String> parseHeaderForTesting(String header) =>
+      _parseHeader(header);
 }

@@ -10,7 +10,6 @@ environment:
 dependencies:
   archive: ^4.0.9
   equatable: ^2.0.8
-  html: ^0.15.6
   html_unescape: ^2.0.0
   idb_shim: ^2.9.2
   meta: ^1.11.0

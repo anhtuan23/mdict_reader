@@ -1,4 +1,3 @@
-import 'package:html/parser.dart' show parse;
 import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
 import 'package:mdict_reader/src/mdict_manager/mdict_manager.dart';
 import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
@@ -62,10 +61,16 @@ void main() {
       final resultList = await mdictDictionary.queryMdx('aardvark');
       printOnFailure(resultList.toString());
       final html = resultList[0];
-      final document = parse(html);
-      final images = document.getElementsByTagName('img');
-      for (final img in images) {
-        expect(img.attributes['src'], startsWith('data:image/png;base64,'));
+      // Find img src attributes using RegExp to check for base64 inlining.
+      final imgRegex = RegExp(
+        r'''<img\s+[^>]*src=["']([^"']*)["']''',
+        caseSensitive: false,
+      );
+      final matches = imgRegex.allMatches(html);
+      expect(matches, isNotEmpty);
+      for (final match in matches) {
+        final src = match[1] ?? '';
+        expect(src, startsWith('data:image/png;base64,'));
       }
     });
   });
