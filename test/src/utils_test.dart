@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:mdict_reader/src/utils.dart';
+import 'package:mdict_reader/mdict_reader.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -30,9 +30,15 @@ void main() {
     });
 
     test('returns null when asked to read a null or missing path', () async {
-      expect(await MdictHelpers.readFileContent(null), isNull);
       expect(
-        await MdictHelpers.readFileContent('/path/does/not/exist'),
+        await MdictHelpers.readFileContent(null, const IoMdictFileSystem()),
+        isNull,
+      );
+      expect(
+        await MdictHelpers.readFileContent(
+          '/path/does/not/exist',
+          const IoMdictFileSystem(),
+        ),
         isNull,
       );
     });
@@ -44,7 +50,10 @@ void main() {
       await file.writeAsString('body { color: red; }');
 
       expect(
-        await MdictHelpers.readFileContent(file.path),
+        await MdictHelpers.readFileContent(
+          file.path,
+          const IoMdictFileSystem(),
+        ),
         'body { color: red; }',
       );
     });

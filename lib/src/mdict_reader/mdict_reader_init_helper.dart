@@ -42,10 +42,14 @@ abstract class MdictReaderInitHelper {
   }
 
   /// Use externally for preliminary check if an mdx file can be indexed.
-  static Future<bool> isSupportedVersion({required String path}) async {
+  static Future<bool> isSupportedVersion({
+    required String path,
+    required MdictFileSystem fileSystem,
+  }) async {
     final inputStream = await FileInputStream.create(
       path,
       bufferSize: 64 * 1024,
+      fileSystem: fileSystem,
     );
     final header = await MdictReaderHelper._readHeader(inputStream);
     final version = header['generatedbyengineversion'] ?? '2';
@@ -56,12 +60,14 @@ abstract class MdictReaderInitHelper {
   static Future<IndexInfo> _getIndexInfo({
     required String path,
     required String fileName,
+    required MdictFileSystem fileSystem,
     required StreamController<MdictProgress>? progressController,
   }) async {
     progressController?.add(MdictProgressReaderHelperGetInfo(fileName));
     final inputStream = await FileInputStream.create(
       path,
       bufferSize: 64 * 1024,
+      fileSystem: fileSystem,
     );
     progressController?.add(MdictProgressReaderHelperReadHeader(fileName));
     final header = await MdictReaderHelper._readHeader(inputStream);
@@ -119,11 +125,13 @@ abstract class MdictReaderInitHelper {
     required String dictFilePath,
     required String fileNameExt,
     required CommonDatabase db,
+    required MdictFileSystem fileSystem,
     StreamController<MdictProgress>? progressController,
   }) async {
     final indexInfo = await _getIndexInfo(
       path: dictFilePath,
       fileName: fileNameExt,
+      fileSystem: fileSystem,
       progressController: progressController,
     );
 
@@ -264,6 +272,7 @@ abstract class MdictReaderInitHelper {
   static Future<MdictReader> init({
     required String filePath,
     required CommonDatabase db,
+    required MdictFileSystem fileSystem,
     StreamController<MdictProgress>? progressController,
   }) async {
     final fileNameExt = MdictHelpers.getFileNameWithExtensionFromPath(filePath);
@@ -272,6 +281,7 @@ abstract class MdictReaderInitHelper {
         dictFilePath: filePath,
         fileNameExt: fileNameExt,
         db: db,
+        fileSystem: fileSystem,
         progressController: progressController,
       );
     }
@@ -291,6 +301,7 @@ abstract class MdictReaderInitHelper {
       header: header,
       recordsCompressedSizes: recordSizes[0],
       recordsUncompressedSizes: recordSizes[1],
+      fileSystem: fileSystem,
     );
   }
 }

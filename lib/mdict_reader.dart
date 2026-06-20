@@ -11,22 +11,7 @@ export 'src/isolated_manager/isolated_manager_web.dart'
 export 'src/mdict_manager/mdict_manager.dart';
 export 'src/mdict_manager/mdict_manager_models.dart';
 export 'src/mdict_reader/mdict_reader.dart';
-// These helpers are mainly for browser callers. The Flutter app stores picked
-// MDX/MDD/CSS bytes in IndexedDB, then passes logical references back into the
-// reader as if they were file paths.
-export 'src/platform/mdict_random_access_file.dart'
-    show
-        MdictRandomAccessFile,
-        deleteMdictFileReference,
-        mdictFileBytesReader,
-        mdictFileBytesWriter,
-        mdictFileDeleter,
-        mdictFileExists,
-        mdictFileOpener,
-        readMdictFileBytes,
-        writeMdictFileBytes;
-export 'src/platform/sqlite_connection.dart'
-    show mdictDatabaseFlusher, mdictDatabaseOpener;
+export 'src/platform/mdict_file_system.dart';
 export 'src/progress/mdict_progress.dart';
 export 'src/progress/mdict_progress_helper.dart';
 export 'src/utils.dart';

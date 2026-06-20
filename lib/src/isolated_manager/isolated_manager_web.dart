@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:mdict_reader/mdict_reader.dart';
+import 'package:sqlite3/common.dart';
 
 /// Web implementation of the public [IsolatedManager] API.
 ///
@@ -22,12 +23,19 @@ class IsolatedManager {
   /// Creates a manager from the supplied MDX/MDD/CSS references and SQLite path.
   static Future<IsolatedManager> init(
     Iterable<MdictFiles> mdictFilesIter,
-    String? dbPath,
-  ) async {
+    String? dbPath, {
+    CommonDatabase? db,
+    MdictFileSystem? fileSystem,
+  }) async {
+    if (db == null || fileSystem == null) {
+      throw ArgumentError('db and fileSystem must be provided on Web.');
+    }
     final progressStreamController = StreamController<MdictProgress>();
+    progressStreamController.add(const MdictProgressManagerOpenDb());
     final manager = await MdictManager.create(
       mdictFilesIter: mdictFilesIter,
-      dbPath: dbPath,
+      db: db,
+      fileSystem: fileSystem,
       progressController: progressStreamController,
     );
     return IsolatedManager._(manager, progressStreamController);
@@ -90,17 +98,24 @@ class IsolatedManager {
 
   Future<Map<String, String>> reload(
     Iterable<MdictFiles> mdictFilesList,
-    String? dbPath, [
+    String? dbPath, {
     void Function(Object, StackTrace)? onError,
-  ]) async {
+    CommonDatabase? db,
+    MdictFileSystem? fileSystem,
+  }) async {
     try {
+      if (db == null || fileSystem == null) {
+        throw ArgumentError('db and fileSystem must be provided on Web.');
+      }
       // Dispose the existing manager instance to close all open Web file
       // handles (OPFS/IndexedDB) and SQLite connections before creating a new
       // one on reload.
       await _manager.dispose();
+      _progressStreamController.add(const MdictProgressManagerOpenDb());
       _manager = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
-        dbPath: dbPath,
+        db: db,
+        fileSystem: fileSystem,
         progressController: _progressStreamController,
       );
       return _manager.pathNameMap;

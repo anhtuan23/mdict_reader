@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:mdict_reader/src/platform/mdict_random_access_file.dart';
+import 'package:mdict_reader/src/platform/mdict_file_system.dart';
 import 'package:path/path.dart' as p;
 
 abstract class MdictHelpers {
@@ -13,19 +13,20 @@ abstract class MdictHelpers {
     return p.basename(mdxPath).toLowerCase();
   }
 
-  static Future<String?> readFileContent(String? filePath) async {
+  static Future<String?> readFileContent(
+    String? filePath,
+    MdictFileSystem fileSystem,
+  ) async {
     // * Check file.exists() of empty path cause CRASH:
     // * Stack dump aborted because InitialRegisterCheck failed
     if (filePath != null) {
-      if (await mdictFileReferenceExists(filePath)) {
+      if (await fileSystem.exists(filePath)) {
         try {
-          final bytes = await readMdictFileBytes(filePath);
-          if (bytes == null) return null;
+          final bytes = await fileSystem.readAsBytes(filePath);
           return const Utf8Decoder().convert(bytes);
         } on FormatException catch (_) {
           // try to read file content with utf-16 encoding
-          final bytes = await readMdictFileBytes(filePath);
-          if (bytes == null) return null;
+          final bytes = await fileSystem.readAsBytes(filePath);
           // Note that this assumes that the system's native endianness
           // is the same as the file's.
           final utf16CodeUnits = bytes.buffer.asUint16List();
@@ -33,7 +34,7 @@ abstract class MdictHelpers {
         }
       }
     }
-    return Future.value();
+    return null;
   }
 }
 

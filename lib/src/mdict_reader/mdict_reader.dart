@@ -5,7 +5,6 @@ import 'package:archive/archive.dart' show ZLibDecoder;
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_reader/input_stream.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
-import 'package:mdict_reader/src/platform/mdict_random_access_file.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pointycastle/api.dart';
@@ -22,11 +21,13 @@ class MdictReader {
     required Map<String, String> header,
     required Uint32List recordsCompressedSizes,
     required Uint32List recordsUncompressedSizes,
+    required MdictFileSystem fileSystem,
   }) : _header = header,
        _db = db,
        _recordsCompressedSizes = recordsCompressedSizes,
        _recordsUncompressedSizes = recordsUncompressedSizes,
        _recordBlockOffset = int.parse(header[recordBlockOffsetKey]!),
+       _fileSystem = fileSystem,
        name = header['title'];
   static const recordBlockOffsetKey = '_recordBlockOffsetKey';
   final String path;
@@ -37,6 +38,7 @@ class MdictReader {
   final int _recordBlockOffset;
   final String? name;
   final CommonDatabase _db;
+  final MdictFileSystem _fileSystem;
 
   /// A persistent file descriptor handle used to perform random-access reads
   /// from the dictionary file. Caching this handle avoids opening and closing
@@ -52,7 +54,7 @@ class MdictReader {
   /// been initialized yet. This lazy-loading pattern ensures we don't open the
   /// file until a read operation is actually requested.
   Future<MdictRandomAccessFile> _getReaderFileHandle() async {
-    return _fileHandle ??= await openMdictRandomAccessFile(path);
+    return _fileHandle ??= await _fileSystem.open(path);
   }
 
   /// Closes the persistent file handle and frees the associated OS resources.

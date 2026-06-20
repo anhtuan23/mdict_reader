@@ -1,6 +1,5 @@
+import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
-import 'package:mdict_reader/src/mdict_manager/mdict_manager.dart';
-import 'package:mdict_reader/src/mdict_manager/mdict_manager_models.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 
@@ -24,6 +23,7 @@ void main() {
           'test/assets/CC-CEDICT/CC-CEDICT.css',
         ),
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
     });
     test('query function', () async {
@@ -43,6 +43,7 @@ void main() {
           null,
         ),
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
       final data = await mdictDictionary.queryResource(r'\犯浑.spx');
       printOnFailure(data.toString());
@@ -57,6 +58,7 @@ void main() {
           null,
         ),
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
       final resultList = await mdictDictionary.queryMdx('aardvark');
       printOnFailure(resultList.toString());
@@ -83,6 +85,7 @@ void main() {
           'test/assets/CC-CEDICT/CC-CEDICT.css',
         ),
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
       final resultList = await mdictDictionary.queryMdx('歌词');
       final css = resultList[1];
@@ -101,6 +104,7 @@ void main() {
           '',
         ),
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
       final resultList = await mdictDictionary.queryMdx('歌词');
       final css = resultList[1];
@@ -115,6 +119,7 @@ void main() {
           'test/assets/GrandRobert_Utf16/GrandRobert.css',
         ),
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
       // Length of css only from css file is 222
       expect(mdictDictionary.cssContent.length, 222);
@@ -129,6 +134,7 @@ void main() {
           null,
         ),
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
       expect(mdictDictionary.jsContent.length, 2858);
     });

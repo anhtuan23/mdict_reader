@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/isolated_manager/isolated_command.dart';
 import 'package:mdict_reader/src/isolated_manager/isolated_input_models.dart';
+import 'package:sqlite3/common.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 class IsolatedManager {
   IsolatedManager(
@@ -19,8 +21,10 @@ class IsolatedManager {
 
   static Future<IsolatedManager> init(
     Iterable<MdictFiles> mdictFilesIter,
-    String? dbPath,
-  ) async {
+    String? dbPath, {
+    CommonDatabase? db,
+    MdictFileSystem? fileSystem,
+  }) async {
     final progressStreamController = StreamController<MdictProgress>();
     final managerInitCompleter = Completer<void>();
     final isolateSendPort = await _initIsolate(progressStreamController);
@@ -87,9 +91,14 @@ class IsolatedManager {
               if (oldManager != null) {
                 await oldManager.dispose();
               }
+              progressStreamController.add(const MdictProgressManagerOpenDb());
+              final db = input.dbPath == null
+                  ? sqlite3.sqlite3.openInMemory()
+                  : sqlite3.sqlite3.open(input.dbPath!);
               final newManager = await MdictManager.create(
                 mdictFilesIter: input.mdictFilesIter,
-                dbPath: input.dbPath,
+                db: db,
+                fileSystem: const IoMdictFileSystem(),
                 progressController: progressStreamController,
               );
               manager = newManager;
@@ -204,9 +213,11 @@ class IsolatedManager {
 
   Future<Map<String, String>> reload(
     Iterable<MdictFiles> mdictFilesList,
-    String? dbPath, [
+    String? dbPath, {
     void Function(Object, StackTrace)? onError,
-  ]) async {
+    CommonDatabase? db,
+    MdictFileSystem? fileSystem,
+  }) async {
     try {
       final result = await _send(InitManagerInput(dbPath, mdictFilesList));
       return result as Map<String, String>;

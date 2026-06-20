@@ -15,6 +15,7 @@ class MdictDictionary {
   static Future<MdictDictionary> create({
     required MdictFiles mdictFiles,
     required CommonDatabase db,
+    required MdictFileSystem fileSystem,
     StreamController<MdictProgress>? progressController,
   }) async {
     final mdxFileNameExt = MdictHelpers.getFileNameWithExtensionFromPath(
@@ -26,6 +27,7 @@ class MdictDictionary {
     final mdxReader = await MdictReaderInitHelper.init(
       filePath: mdictFiles.mdxPath,
       db: db,
+      fileSystem: fileSystem,
       progressController: progressController,
     );
     MdictReader? mddReader;
@@ -39,15 +41,17 @@ class MdictDictionary {
       mddReader = await MdictReaderInitHelper.init(
         filePath: mdictFiles.mddPath!,
         db: db,
+        fileSystem: fileSystem,
         progressController: progressController,
       );
     }
     progressController?.add(
       MdictProgressDictionaryGetCss(mdxFileNameExt),
     );
-    // Priortize css from separate css file over from mdd.
+    // Prioritize css from separate css file over from mdd.
     var cssContent =
-        await MdictHelpers.readFileContent(mdictFiles.cssPath) ?? '';
+        await MdictHelpers.readFileContent(mdictFiles.cssPath, fileSystem) ??
+        '';
     cssContent = cssContent.trim();
     if (cssContent.isEmpty) {
       cssContent = await mddReader?.extractScriptContent(getCss: true) ?? '';

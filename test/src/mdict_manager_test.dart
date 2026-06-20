@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 void main() {
   group('create', () {
     test('file name with singe quote', () async {
+      final db = sqlite3.openInMemory();
       await MdictManager.create(
         mdictFilesIter: [
           const MdictFiles(
@@ -15,8 +16,10 @@ void main() {
             null,
           ),
         ],
-        dbPath: null,
+        db: db,
+        fileSystem: const IoMdictFileSystem(),
       );
+      db.close();
     });
   });
   group('standard tests', () {
@@ -41,7 +44,8 @@ void main() {
     setUp(() async {
       mdictManager = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
-        dbPath: null,
+        db: sqlite3.openInMemory(),
+        fileSystem: const IoMdictFileSystem(),
       );
     });
     test('all keys are inserted fully', () {
@@ -187,7 +191,8 @@ void main() {
     setUp(() async {
       mdictManager = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
-        dbPath: null,
+        db: sqlite3.openInMemory(),
+        fileSystem: const IoMdictFileSystem(),
       );
     });
     test('query for sound without mdx path', () async {
@@ -239,7 +244,8 @@ void main() {
       final stopwatch = Stopwatch()..start();
       mdictManager1 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
-        dbPath: tempDbPath,
+        db: sqlite3.open(tempDbPath),
+        fileSystem: const IoMdictFileSystem(),
       );
       final firstStartDuration = stopwatch.elapsed;
       // this might fail if the records written in manager1
@@ -249,7 +255,8 @@ void main() {
       stopwatch.reset();
       mdictManager2 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
-        dbPath: tempDbPath,
+        db: sqlite3.open(tempDbPath),
+        fileSystem: const IoMdictFileSystem(),
       );
       final secondStartDuration = stopwatch.elapsed;
       await mdictManager2?.dispose();
@@ -260,7 +267,8 @@ void main() {
     test('unused mdict files are discarded from index db', () async {
       mdictManager1 = await MdictManager.create(
         mdictFilesIter: mdictFilesList,
-        dbPath: tempDbPath,
+        db: sqlite3.open(tempDbPath),
+        fileSystem: const IoMdictFileSystem(),
       );
       await mdictManager1?.dispose();
       // this might fail if the records written in manager1
@@ -268,7 +276,8 @@ void main() {
       await Future<dynamic>.delayed(const Duration(seconds: 2));
       mdictManager2 = await MdictManager.create(
         mdictFilesIter: [],
-        dbPath: tempDbPath,
+        db: sqlite3.open(tempDbPath),
+        fileSystem: const IoMdictFileSystem(),
       );
       await mdictManager2?.dispose();
       await Future<dynamic>.delayed(const Duration(seconds: 2));

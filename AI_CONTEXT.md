@@ -34,13 +34,9 @@ The `japanese_conjugation` directory is present in this workspace, and its
 
 ## Core Flow
 
-- `MdictManager.create` opens SQLite, creates metadata/key/record tables, builds
-  or reuses dictionary data, and returns a manager for search/query operations.
-- SQLite access is platform-specific. Native builds use `sqlite3.open`; web
-  builds use `package:sqlite3/wasm.dart` with an `IndexedDbFileSystem`.
-- MDX/MDD random access is platform-specific. Native builds read files from
-  `dart:io`; web builds read selected file bytes from IndexedDB references.
-- `MdictDictionary` owns lower-level MDX/MDD file parsing and dictionary access.
+- `MdictManager.create` takes an injected `CommonDatabase` and `MdictFileSystem` to build dictionary indexes.
+- Database and file system abstractions are completely constructor-injected. Native builds use native `sqlite3` and `IoMdictFileSystem` inside the background isolate; web builds use standard browser OPFS (via `WebMdictFileSystem`) and SQLite WASM.
+- `MdictDictionary` owns lower-level MDX/MDD file parsing and dictionary access via the injected `MdictFileSystem`.
 - `IsolatedManager` spawns an isolate, initializes `MdictManager` there, sends
   typed request objects, and correlates typed result objects back to callers.
 - SQLite tables and indexes are created inside `MdictManager.createTables`.
@@ -72,9 +68,8 @@ The `japanese_conjugation` directory is present in this workspace, and its
 - Web support depends on `package:sqlite3/wasm.dart`,
   `package:sqlite3/common.dart` interfaces, `archive` for zlib decoding
   without `dart:io`, and browser OPFS for browser MDX/MDD byte storage.
-- Web callers must provide file bytes through `writeMdictFileBytes`; browser
-  references such as `idb://mdict/<dict>/<file>.mdx` are logical keys, not host
-  filesystem paths.
+- File-writing and deleting helpers reside in `mdict_flutter`. `mdict_reader`
+  is a 100% read-only engine.
 - `dart pub outdated` still reports non-upgradable transitive native-assets
   packages through `sqlite3` (`code_assets`, `hooks`, and
   `native_toolchain_c`). Those are upstream transitive constraints, not direct

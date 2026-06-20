@@ -4,7 +4,6 @@ import 'package:html_unescape/html_unescape_small.dart';
 import 'package:mdict_reader/mdict_reader.dart';
 import 'package:mdict_reader/src/mdict_dictionary/mdict_dictionary.dart';
 import 'package:mdict_reader/src/mdict_reader/mdict_reader_models.dart';
-import 'package:mdict_reader/src/platform/sqlite_connection.dart';
 import 'package:sqlite3/common.dart';
 
 class MdictManager {
@@ -170,12 +169,11 @@ class MdictManager {
 
   static Future<MdictManager> create({
     required Iterable<MdictFiles> mdictFilesIter,
-    required String? dbPath,
+    required CommonDatabase db,
+    required MdictFileSystem fileSystem,
     StreamController<MdictProgress>? progressController,
   }) async {
     final dictionaryList = <MdictDictionary>[];
-    progressController?.add(const MdictProgressManagerOpenDb());
-    final db = await openMdictDatabase(dbPath);
     createTables(
       db: db,
       mdictFilesIter: mdictFilesIter,
@@ -191,6 +189,7 @@ class MdictManager {
         final mdict = await MdictDictionary.create(
           mdictFiles: mdictFiles,
           db: db,
+          fileSystem: fileSystem,
           progressController: progressController,
         );
         dictionaryList.add(mdict);
@@ -200,7 +199,6 @@ class MdictManager {
         print(stackTrace);
       }
     }
-    await flushMdictDatabase();
     return MdictManager._(dictionaryList, db, progressController);
   }
 

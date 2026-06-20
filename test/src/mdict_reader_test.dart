@@ -16,6 +16,7 @@ void main() {
       await MdictReaderInitHelper.init(
         filePath: "test/assets/contains'single quote.mdx",
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
     });
   });
@@ -26,6 +27,7 @@ void main() {
       mdictReader = await MdictReaderInitHelper.init(
         filePath: 'test/assets/CC-CEDICT/CC-CEDICT.mdx',
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
     });
     test('query function', () async {
@@ -48,12 +50,14 @@ void main() {
     test('indexes and queries definitions', () async {
       final isSupported = await MdictReaderInitHelper.isSupportedVersion(
         path: 'test/assets/jmdict.mdx',
+        fileSystem: const IoMdictFileSystem(),
       );
       expect(isSupported, isTrue);
 
       final mdictReader = await MdictReaderInitHelper.init(
         filePath: 'test/assets/jmdict.mdx',
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
       final html = await mdictReader.queryMdx('勉強');
 
@@ -68,6 +72,7 @@ void main() {
       mdictReader = await MdictReaderInitHelper.init(
         filePath: 'test/assets/cc_cedict_v2.mdx',
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
     });
     test('correctly result @@@LINK= in query function', () async {
@@ -84,6 +89,7 @@ void main() {
       mdictReader = await MdictReaderInitHelper.init(
         filePath: 'test/assets/Sound-zh_CN.mdd',
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
     });
     test('correctly query sound resource', () async {
@@ -98,6 +104,7 @@ void main() {
       mdictReader = await MdictReaderInitHelper.init(
         filePath: 'test/assets/non_utf8_with_css.mdd',
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
     });
     test('able to read css without crashing', () async {
@@ -111,6 +118,7 @@ void main() {
       mdictReader = await MdictReaderInitHelper.init(
         filePath: 'test/assets/mtBab EV v1.0/mtBab EV v1.0.mdd',
         db: db!,
+        fileSystem: const IoMdictFileSystem(),
       );
     });
     test('able to read js without crashing', () async {
@@ -127,6 +135,7 @@ void main() {
         final mdictReader = await MdictReaderInitHelper.init(
           filePath: 'test/assets/CC-CEDICT/CC-CEDICT.mdx',
           db: db!,
+          fileSystem: const IoMdictFileSystem(),
         );
 
         // Initially, the file handle should be null (lazy loaded on first
