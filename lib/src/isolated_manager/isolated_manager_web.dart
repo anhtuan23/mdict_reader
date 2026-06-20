@@ -30,8 +30,8 @@ class IsolatedManager {
     if (db == null || fileSystem == null) {
       throw ArgumentError('db and fileSystem must be provided on Web.');
     }
-    final progressStreamController = StreamController<MdictProgress>();
-    progressStreamController.add(const MdictProgressManagerOpenDb());
+    final progressStreamController = StreamController<MdictProgress>()
+      ..add(const MdictProgressManagerOpenDb());
     final manager = await MdictManager.create(
       mdictFilesIter: mdictFilesIter,
       db: db,

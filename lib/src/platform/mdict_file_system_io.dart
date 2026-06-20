@@ -41,7 +41,7 @@ class IoMdictFileSystem implements MdictFileSystem {
   }
 
   @override
-  Future<bool> exists(String path) => File(path).exists();
+  Future<bool> exists(String path) => Future.value(File(path).existsSync());
 
   @override
   Future<Uint8List> readAsBytes(String path) => File(path).readAsBytes();
