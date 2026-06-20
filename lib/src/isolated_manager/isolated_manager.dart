@@ -1,69 +1,61 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
+
 import 'package:mdict_reader/mdict_reader.dart';
+import 'package:mdict_reader/src/isolated_manager/isolated_command.dart';
 import 'package:mdict_reader/src/isolated_manager/isolated_input_models.dart';
-import 'package:mdict_reader/src/isolated_manager/isolated_result_models.dart';
 
 class IsolatedManager {
   IsolatedManager(
     this._isolateSendPort,
-    this._resultStreamController,
     this._progressStreamController,
     this._managerInitCompleter,
   );
   final SendPort _isolateSendPort;
   final Completer<void> _managerInitCompleter;
-  final StreamController<dynamic> _resultStreamController;
   final StreamController<MdictProgress> _progressStreamController;
   Stream<MdictProgress> get progressStream => _progressStreamController.stream;
+
   static Future<IsolatedManager> init(
     Iterable<MdictFiles> mdictFilesIter,
     String? dbPath,
   ) async {
-    final resultStreamController = StreamController<dynamic>.broadcast();
     final progressStreamController = StreamController<MdictProgress>();
     final managerInitCompleter = Completer<void>();
-    final isolateSendPort = await _initIsolate(
-      resultStreamController,
+    final isolateSendPort = await _initIsolate(progressStreamController);
+
+    final manager = IsolatedManager(
+      isolateSendPort,
       progressStreamController,
       managerInitCompleter,
     );
 
-    /// Begin to create manager right away
-    final input = InitManagerInput(dbPath, mdictFilesIter);
-    isolateSendPort.send(input);
-    return IsolatedManager(
-      isolateSendPort,
-      resultStreamController,
-      progressStreamController,
-      managerInitCompleter,
-    );
+    // Asynchronously initialize the MdictManager in the worker isolate.
+    unawaited(() async {
+      try {
+        await manager._send(InitManagerInput(dbPath, mdictFilesIter));
+        managerInitCompleter.complete();
+      } on Object catch (e, st) {
+        managerInitCompleter.completeError(e, st);
+      }
+    }());
+
+    return manager;
   }
 
   static Future<SendPort> _initIsolate(
-    StreamController<dynamic> resultStreamController,
     StreamController<MdictProgress> progressStreamController,
-    Completer<void> managerInitCompleter,
   ) async {
     final isolateSendPortCompleter = Completer<SendPort>();
     final mainReceivePort = ReceivePort()
       ..listen((dynamic data) {
         if (data is SendPort) {
           isolateSendPortCompleter.complete(data);
-        }
-        /// On initial init a [PathNameMapResult] will be returned
-        /// use this value to mark completer as completed
-        /// Data is PathNameMapResult means manager is initialized
-        else if (data is PathNameMapResult &&
-            !managerInitCompleter.isCompleted) {
-          managerInitCompleter.complete();
         } else if (data is MdictProgress) {
           progressStreamController.add(data);
         } else if (data == null) {
-          throw Exception('Isolate is terminated');
-        } else {
-          resultStreamController.add(data);
+          unawaited(progressStreamController.close());
         }
       });
     await Isolate.spawn(
@@ -79,97 +71,79 @@ class IsolatedManager {
     final isolateReceivePort = ReceivePort();
     mainSendPort.send(isolateReceivePort.sendPort);
     final progressStreamController = StreamController<MdictProgress>();
-    // Note: since this is not a synchronous stream controller,
-    // events added will be listened a bit later
-    // https://api.dart.dev/dev/2.8.0-dev.3.0/dart-async/SynchronousStreamController-class.html
     progressStreamController.stream.listen(mainSendPort.send);
     MdictManager? manager;
-    isolateReceivePort.listen((dynamic data) async {
-      try {
-        // First data is mdict paths to init dictionary
-        if (data is InitManagerInput) {
-          // If a manager was already initialized, we must dispose of it first
-          // to close any open file handles and the SQLite database connection.
-          // This prevents file/resource leaks when reloading dictionaries.
-          final oldManager = manager;
-          if (oldManager != null) {
-            await oldManager.dispose();
+    // Use an async loop (await for) to process commands sequentially.
+    // This ensures only one query runs at a time within the worker isolate,
+    // avoiding concurrent access errors on the persistent RandomAccessFile.
+    unawaited(() async {
+      await for (final dynamic data in isolateReceivePort) {
+        if (data is IsolateCommand) {
+          final replyPort = data.replyPort;
+          final input = data.input;
+          try {
+            if (input is InitManagerInput) {
+              final oldManager = manager;
+              if (oldManager != null) {
+                await oldManager.dispose();
+              }
+              final newManager = await MdictManager.create(
+                mdictFilesIter: input.mdictFilesIter,
+                dbPath: input.dbPath,
+                progressController: progressStreamController,
+              );
+              manager = newManager;
+              replyPort.send(newManager.pathNameMap);
+            } else if (input is SearchInput) {
+              final searchResult = await manager!.search(
+                input.term,
+                input.alternativeTerms,
+              );
+              replyPort.send(searchResult);
+            } else if (input is QueryInput) {
+              final queryResult = await manager!.query(
+                input.word,
+                input.mdxPaths,
+              );
+              replyPort.send(queryResult);
+            } else if (input is ResourceQueryInput) {
+              final resourceData = await manager!.queryResource(
+                input.resourceUri,
+                input.mdxPath,
+              );
+              replyPort.send(resourceData);
+            } else if (input is ReOrderInput) {
+              final updated = manager!.reorder(
+                input.oldIndex,
+                input.newIndex,
+              );
+              manager = updated;
+              replyPort.send(updated.pathNameMap);
+            }
+          } on Object catch (e, stackTrace) {
+            replyPort.send(IsolateError(e, stackTrace));
           }
-          final newManager = await MdictManager.create(
-            mdictFilesIter: data.mdictFilesIter,
-            dbPath: data.dbPath,
-            progressController: progressStreamController,
-          );
-          manager = newManager;
-          mainSendPort.send(
-            PathNameMapResult(data.hashCode, newManager.pathNameMap),
-          );
-        } else if (data is SearchInput) {
-          final searchReturnList = await manager!.search(
-            data.term,
-            data.alternativeTerms,
-          );
-          mainSendPort.send(
-            IsolateSearchResult(data.hashCode, searchReturnList),
-          );
-        } else if (data is QueryInput) {
-          final queryResult = await manager!.query(data.word, data.mdxPaths);
-          mainSendPort.send(
-            IsolateQueryResult(data.hashCode, queryResult),
-          );
-        } else if (data is ResourceQueryInput) {
-          final resourceData = await manager!.queryResource(
-            data.resourceUri,
-            data.mdxPath,
-          );
-          mainSendPort.send(
-            ResourceQueryResult(data.hashCode, resourceData),
-          );
-        } else if (data is ReOrderInput) {
-          final updated = manager!.reorder(data.oldIndex, data.newIndex);
-          manager = updated;
-          mainSendPort.send(
-            PathNameMapResult(data.hashCode, updated.pathNameMap),
-          );
         }
-      } on Object catch (e, stackTrace) {
-        // This worker isolate cannot throw directly to the caller isolate, so
-        // package the thrown object and stack trace into the normal result
-        // stream for the public search/query methods to handle.
-        mainSendPort.send(ErrorResult(data.hashCode, e, stackTrace));
       }
-    });
+    }());
   }
 
-  Future<Result> _doWork<I>(
-    I input,
-    void Function(Object, StackTrace)? onError,
-  ) async {
-    if (!_managerInitCompleter.isCompleted) {
+  Future<dynamic> _send(dynamic input) async {
+    // Wait for the manager to be fully initialized, unless this is the
+    // initialization command itself.
+    if (input is! InitManagerInput && !_managerInitCompleter.isCompleted) {
       await _managerInitCompleter.future;
-      return _doWork(input, onError);
-    } else {
-      _isolateSendPort.send(input);
-      final completer = Completer<Result>();
-      StreamSubscription<dynamic>? streamSubscription;
-      streamSubscription = _resultStreamController.stream.listen((
-        dynamic result,
-      ) {
-        if (result is Result && result.inputHashCode == input.hashCode) {
-          if (result is ErrorResult) {
-            if (onError != null) {
-              onError(result.error, result.stackTrace);
-            } else {
-              print(result.error);
-              print(result.stackTrace);
-            }
-          }
-          completer.complete(result);
-          unawaited(streamSubscription?.cancel());
-        }
-      });
-      return completer.future;
     }
+
+    final tempPort = ReceivePort();
+    _isolateSendPort.send(IsolateCommand(input, tempPort.sendPort));
+    final response = await tempPort.first;
+    tempPort.close();
+
+    if (response is IsolateError) {
+      throw response;
+    }
+    return response;
   }
 
   Future<List<SearchResult>> search(
@@ -177,44 +151,41 @@ class IsolatedManager {
     List<String>? alternativeTerms,
     void Function(Object, StackTrace)? onError,
   ]) async {
-    final input = SearchInput(term, alternativeTerms);
-    final result = await _doWork(input, onError);
-    if (result is ErrorResult) {
+    try {
+      final result = await _send(SearchInput(term, alternativeTerms));
+      return result as List<SearchResult>;
+    } on IsolateError catch (e) {
+      onError?.call(e.error, e.stackTrace);
       return [];
     }
-    return (result as IsolateSearchResult).searchResults;
   }
 
-  /// [mdxPaths] narrow down which dictionary to query if provided
   Future<List<QueryResult>> query(
     String word, [
     Set<String>? mdxPaths,
     void Function(Object, StackTrace)? onError,
   ]) async {
-    final input = QueryInput(word, mdxPaths);
-    final result = await _doWork(input, onError);
-    if (result is ErrorResult) {
+    try {
+      final result = await _send(QueryInput(word, mdxPaths));
+      return result as List<QueryResult>;
+    } on IsolateError catch (e) {
+      onError?.call(e.error, e.stackTrace);
       return [];
     }
-    return (result as IsolateQueryResult).queryResults;
   }
 
-  /// [mdxPath] act as a key when we want to query resource
-  /// from a specific dictionary
   Future<Uint8List?> queryResource(
     String resourceUri,
     String? mdxPath, [
     void Function(Object, StackTrace)? onError,
   ]) async {
-    final input = ResourceQueryInput(
-      resourceUri,
-      mdxPath,
-    );
-    final result = await _doWork(input, onError);
-    if (result is ErrorResult) {
+    try {
+      final result = await _send(ResourceQueryInput(resourceUri, mdxPath));
+      return result as Uint8List?;
+    } on IsolateError catch (e) {
+      onError?.call(e.error, e.stackTrace);
       return null;
     }
-    return (result as ResourceQueryResult).resourceData;
   }
 
   Future<Map<String, String>> reorder(
@@ -222,12 +193,13 @@ class IsolatedManager {
     int newIndex, [
     void Function(Object, StackTrace)? onError,
   ]) async {
-    final input = ReOrderInput(oldIndex, newIndex);
-    final result = await _doWork(input, onError);
-    if (result is ErrorResult) {
+    try {
+      final result = await _send(ReOrderInput(oldIndex, newIndex));
+      return result as Map<String, String>;
+    } on IsolateError catch (e) {
+      onError?.call(e.error, e.stackTrace);
       return {};
     }
-    return (result as PathNameMapResult).pathNameMap;
   }
 
   Future<Map<String, String>> reload(
@@ -235,17 +207,15 @@ class IsolatedManager {
     String? dbPath, [
     void Function(Object, StackTrace)? onError,
   ]) async {
-    final input = InitManagerInput(
-      dbPath,
-      mdictFilesList,
-    );
-    final result = await _doWork(input, onError);
-    if (result is ErrorResult) {
+    try {
+      final result = await _send(InitManagerInput(dbPath, mdictFilesList));
+      return result as Map<String, String>;
+    } on IsolateError catch (e) {
+      onError?.call(e.error, e.stackTrace);
       return {};
     }
-    return (result as PathNameMapResult).pathNameMap;
   }
 
-  /// reorder() with identical index return the same manager
+  /// reorder() with identical index returns the same manager
   Future<Map<String, String>> getPathNameMap() => reorder(0, 0);
 }

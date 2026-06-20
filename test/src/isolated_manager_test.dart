@@ -107,4 +107,65 @@ void main() {
       );
     },
   );
+  group(
+    'isolated manager robustness and concurrency',
+    () {
+      const word = '勉強';
+      late IsolatedManager isolatedManager;
+      setUp(() async {
+        isolatedManager = await IsolatedManager.init(mdictFilesList, null);
+      });
+
+      test(
+        'handles multiple concurrent queries and searches without collision',
+        () async {
+          final futures = <Future<dynamic>>[];
+          for (var i = 0; i < 5; i++) {
+            futures
+              ..add(
+                isolatedManager.search(word, null, (e, st) {
+                  print('Concurrent search error: $e\n$st');
+                }),
+              )
+              ..add(
+                isolatedManager.query(word, null, (e, st) {
+                  print('Concurrent query error: $e\n$st');
+                }),
+              );
+          }
+          final results = await Future.wait(futures);
+          print('Concurrent results count: ${results.length}');
+          for (var i = 0; i < results.length; i++) {
+            final res = results[i] as List;
+            print('Result $i length: ${res.length}');
+            expect(res, isNotEmpty);
+          }
+        },
+      );
+
+      test('recovers from worker errors and remains non-blocking', () async {
+        Object? capturedError;
+        StackTrace? capturedStackTrace;
+
+        final reorderResult = await isolatedManager.reorder(
+          999,
+          0,
+          (err, st) {
+            capturedError = err;
+            capturedStackTrace = st;
+          },
+        );
+        print('Reorder result: $reorderResult');
+        print('Captured error: $capturedError');
+
+        expect(capturedError, isNotNull);
+        expect(capturedError, isA<RangeError>());
+        expect(capturedStackTrace, isNotNull);
+
+        final searchResultList = await isolatedManager.search(word);
+        expect(searchResultList, isNotEmpty);
+        expect(searchResultList[0].word, equals(word));
+      });
+    },
+  );
 }
