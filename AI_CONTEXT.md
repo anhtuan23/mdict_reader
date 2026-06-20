@@ -69,9 +69,9 @@ The `japanese_conjugation` directory is present in this workspace, and its
 - `sqlite3` 3.x uses Dart native assets for platform library selection. Do not
   reintroduce the old `package:sqlite3/open.dart` override hook; that file was
   removed upstream and native assets now handle the local SQLite library.
-- Web support depends on `package:sqlite3/wasm.dart`, `package:sqlite3/common.dart`
-  interfaces, `archive` for zlib decoding without `dart:io`, and `idb_shim`
-  for browser MDX/MDD byte storage.
+- Web support depends on `package:sqlite3/wasm.dart`,
+  `package:sqlite3/common.dart` interfaces, `archive` for zlib decoding
+  without `dart:io`, and browser OPFS for browser MDX/MDD byte storage.
 - Web callers must provide file bytes through `writeMdictFileBytes`; browser
   references such as `idb://mdict/<dict>/<file>.mdx` are logical keys, not host
   filesystem paths.

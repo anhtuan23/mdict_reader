@@ -15,7 +15,18 @@ export 'src/mdict_reader/mdict_reader.dart';
 // MDX/MDD/CSS bytes in IndexedDB, then passes logical references back into the
 // reader as if they were file paths.
 export 'src/platform/mdict_random_access_file.dart'
-    show deleteMdictFileReference, readMdictFileBytes, writeMdictFileBytes;
+    show
+        MdictRandomAccessFile,
+        deleteMdictFileReference,
+        mdictFileBytesReader,
+        mdictFileBytesWriter,
+        mdictFileDeleter,
+        mdictFileExists,
+        mdictFileOpener,
+        readMdictFileBytes,
+        writeMdictFileBytes;
+export 'src/platform/sqlite_connection.dart'
+    show mdictDatabaseFlusher, mdictDatabaseOpener;
 export 'src/progress/mdict_progress.dart';
 export 'src/progress/mdict_progress_helper.dart';
 export 'src/utils.dart';

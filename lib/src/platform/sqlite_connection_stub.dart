@@ -1,9 +1,24 @@
 import 'package:sqlite3/common.dart';
 
-/// Fallback used only if a future platform matches neither native IO nor web.
-Future<CommonDatabase> openMdictDatabase(String? dbPath) {
-  throw UnsupportedError('SQLite is not available on this platform.');
+// Global injectable callbacks for web/non-IO platforms.
+// The caller (like mdict_flutter) registers these functions at startup.
+Future<CommonDatabase> Function(String? dbPath)? mdictDatabaseOpener;
+Future<void> Function()? mdictDatabaseFlusher;
+
+Future<CommonDatabase> openMdictDatabase(String? dbPath) async {
+  final opener = mdictDatabaseOpener;
+  if (opener != null) {
+    return opener(dbPath);
+  }
+  throw UnsupportedError(
+    'Database access is not available on this platform. '
+    'Ensure you set mdictDatabaseOpener.',
+  );
 }
 
-/// Fallback no-op matching the native/web SQLite API shape.
-Future<void> flushMdictDatabase() async {}
+Future<void> flushMdictDatabase() async {
+  final flusher = mdictDatabaseFlusher;
+  if (flusher != null) {
+    await flusher();
+  }
+}

@@ -1,6 +1,17 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+// Injectable file hooks. Unused on native VM as dart:io is used directly.
+Future<MdictRandomAccessFile> Function(String)? mdictFileOpener;
+Future<bool> Function(String)? mdictFileExists;
+Future<Uint8List?> Function(String)? mdictFileBytesReader;
+Future<void> Function({
+  required String reference,
+  required Uint8List bytes,
+})?
+mdictFileBytesWriter;
+Future<void> Function(String)? mdictFileDeleter;
+
 /// Minimal random-access file contract needed by the MDICT parser.
 ///
 /// The parser frequently jumps between header, key block, and record block

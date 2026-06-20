@@ -1,6 +1,10 @@
 import 'package:sqlite3/common.dart';
 import 'package:sqlite3/sqlite3.dart' as native;
 
+// Injectable database hooks. Unused on native VM as native sqlite3 is used.
+Future<CommonDatabase> Function(String? dbPath)? mdictDatabaseOpener;
+Future<void> Function()? mdictDatabaseFlusher;
+
 /// Opens the MDICT index database on native platforms.
 ///
 /// When [dbPath] is `null`, callers get a temporary in-memory database for
